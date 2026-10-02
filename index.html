@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дымный Гурман — Калькулятор</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #1e0e10;
+            color: #f1e0d6;
+            margin: 0;
+            padding: 16px;
+        }
+        h2, h3 { margin-top: 0; color: #f1e0d6; }
+        .card {
+            background-color: #2b1417;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #3e1e22;
+        }
+        select, input, button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #522429;
+            background: #3e1e22;
+            color: white;
+            box-sizing: border-box;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .weight-input {
+            background: #522429;
+            border: 2px solid #d3524b;
+            font-weight: bold;
+            font-size: 20px;
+            text-align: center;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #38191d;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+        }
+        .row-name { font-size: 15px; flex: 2; }
+        .row-value { font-size: 16px; font-weight: bold; color: #ff9d9d; flex: 1; text-align: right; }
+        .btn-main {
+            background: #d3524b;
+            color: white;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            padding: 12px;
+        }
+        .btn-sec {
+            background: #522429;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-danger {
+            background: transparent;
+            color: #d3524b;
+            border: 1px solid #d3524b;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>🥩 Дымный Гурман</h2>
+
+    <!-- ВЫБОР ИЛИ СОЗДАНИЕ РЕЦЕПТА -->
+    <div class="card">
+        <label style="font-size: 13px; color: #a08a8a;">Выберите рецепт:</label>
+        <select id="recipeSelect" onchange="loadSelectedRecipe()">
+            <!-- Загружается из JS -->
+        </select>
+        <button class="btn-sec" onclick="showNewRecipeForm()">➕ Добавить свой рецепт</button>
+    </div>
+
+    <!-- РАСЧЕТ ПО ВЕСУ СЫРЬЯ -->
+    <div class="card" id="calculatorBlock">
+        <h3>Пересчёт по весу сырья</h3>
+        <label style="font-size: 13px; color: #a08a8a;">Введите фактический вес мяса/сырья (кг):</label>
+        <input type="number" id="meatWeight" class="weight-input" value="1.0" step="0.05" oninput="calculate()">
+
+        <div id="resultsList">
+            <!-- Ингредиенты пересчитываются здесь -->
+        </div>
+
+        <button class="btn-danger" onclick="deleteCurrentRecipe()">🗑 Удалить этот рецепт</button>
+    </div>
+
+    <!-- ФОРМА ДОБАВЛЕНИЯ НОВОГО РЕЦЕПТА -->
+    <div class="card" id="newRecipeBlock" style="display: none;">
+        <h3>Новый рецепт (пропорции на 1 кг мяса)</h3>
+        <input type="text" id="newRecipeName" placeholder="Название (напр., Сервелат)">
+        
+        <div id="newIngredientsInputs">
+            <!-- Поля ввода -->
+        </div>
+        
+        <button class="btn-sec" onclick="addIngredientInput()">+ Добавить ингредиент/специю</button>
+        <button class="btn-main" style="margin-top: 10px;" onclick="saveRecipe()">💾 Сохранить рецепт</button>
+        <button class="btn-sec" style="margin-top: 5px; background: transparent;" onclick="cancelNewRecipe()">Отмена</button>
+    </div>
+
+<script>
+// Начальные базовые рецепты
+let defaultRecipes = {
+    "Краковская (пропорция на 1 кг)": [
+        { name: "Свинина полужирная", gramsPerKg: 700 },
+        { name: "Грудинка свиная", gramsPerKg: 300 },
+        { name: "Вода ледяная", gramsPerKg: 100 },
+        { name: "Соль нитритная (0.5%)", gramsPerKg: 18 },
+        { name: "Сахар", gramsPerKg: 3 },
+        { name: "Перец чёрный молотый", gramsPerKg: 2 },
+        { name: "Кориандр молотый", gramsPerKg: 1 },
+        { name: "Мускатный орех", gramsPerKg: 0.5 },
+        { name: "Чеснок гранулированный", gramsPerKg: 2 },
+        { name: "Фосфат пищевой", gramsPerKg: 2 }
+    ],
+    "Кабаноси (пропорция на 1 кг)": [
+        { name: "Мясное сырье (нежирное)", gramsPerKg: 1000 },
+        { name: "Соль нитритная (0.5%)", gramsPerKg: 20 },
+        { name: "Перец чёрный молотый", gramsPerKg: 2 },
+        { name: "Паприка копчёная", gramsPerKg: 3 },
+        { name: "Чеснок гранулированный", gramsPerKg: 2 },
+        { name: "Тмин молотый", gramsPerKg: 0.5 },
+        { name: "Стартовые культуры (BioStart)", gramsPerKg: 0.6 }
+    ]
+};
+
+// Загрузка сохранённых рецептов из памяти устройства
+let recipes = JSON.parse(localStorage.getItem('dg_meat_recipes')) || defaultRecipes;
+
+function init() {
+    const select = document.getElementById('recipeSelect');
+    select.innerHTML = '';
+    for (let name in recipes) {
+        let opt = document.createElement('option');
+        opt.value = name;
+        opt.innerText = name;
+        select.appendChild(opt);
+    }
+    loadSelectedRecipe();
+}
+
+function loadSelectedRecipe() {
+    calculate();
+}
+
+function calculate() {
+    const recipeName = document.getElementById('recipeSelect').value;
+    const meatKg = parseFloat(document.getElementById('meatWeight').value) || 0;
+    const resultsList = document.getElementById('resultsList');
+    
+    if (!recipeName || !recipes[recipeName]) {
+        resultsList.innerHTML = '<div style="color:#a08a8a; text-align:center;">Рецепты отсутствуют</div>';
+        return;
+    }
+
+    const ingredients = recipes[recipeName];
+    resultsList.innerHTML = '';
+
+    ingredients.forEach(item => {
+        const totalGrams = (item.gramsPerKg * meatKg).toFixed(1);
+        
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+            <span class="row-name">${item.name}</span>
+            <span class="row-value">${totalGrams} г</span>
+        `;
+        resultsList.appendChild(row);
+    });
+}
+
+function showNewRecipeForm() {
+    document.getElementById('newRecipeBlock').style.display = 'block';
+    document.getElementById('calculatorBlock').style.display = 'none';
+    document.getElementById('newIngredientsInputs').innerHTML = '';
+    
+    // Начальные типовые поля
+    addIngredientInput("Соль нитритная", 18);
+    addIngredientInput("Перец чёрный", 2);
+    addIngredientInput("Фосфат", 2);
+}
+
+function addIngredientInput(defaultName = '', defaultGrams = '') {
+    const div = document.createElement('div');
+    div.style.display = 'flex';
+    div.style.gap = '8px';
+    div.innerHTML = `
+        <input type="text" placeholder="Название компонента" class="ing-name" value="${defaultName}">
+        <input type="number" step="0.1" placeholder="г на 1 кг" class="ing-grams" style="width: 110px;" value="${defaultGrams}">
+    `;
+    document.getElementById('newIngredientsInputs').appendChild(div);
+}
+
+function saveRecipe() {
+    const name = document.getElementById('newRecipeName').value.trim();
+    if (!name) { alert("Укажите название рецепта"); return; }
+
+    const names = document.querySelectorAll('.ing-name');
+    const grams = document.querySelectorAll('.ing-grams');
+    
+    let list = [];
+    for (let i = 0; i < names.length; i++) {
+        let ingName = names[i].value.trim();
+        let ingGrams = parseFloat(grams[i].value) || 0;
+        if (ingName && ingGrams > 0) {
+            list.push({ name: ingName, gramsPerKg: ingGrams });
+        }
+    }
+
+    if (list.length === 0) { alert("Добавьте хотя бы один компонент"); return; }
+
+    recipes[name] = list;
+    localStorage.setItem('dg_meat_recipes', JSON.stringify(recipes));
+    
+    cancelNewRecipe();
+    init();
+    document.getElementById('recipeSelect').value = name;
+    calculate();
+}
+
+function cancelNewRecipe() {
+    document.getElementById('newRecipeBlock').style.display = 'none';
+    document.getElementById('calculatorBlock').style.display = 'block';
+}
+
+function deleteCurrentRecipe() {
+    const recipeName = document.getElementById('recipeSelect').value;
+    if (!recipeName) return;
+
+    if (confirm(`Удалить рецепт "${recipeName}"?`)) {
+        delete recipes[recipeName];
+        localStorage.setItem('dg_meat_recipes', JSON.stringify(recipes));
+        init();
+    }
+}
+
+init();
+</script>
+</body>
+</html>
