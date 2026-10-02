@@ -37,9 +37,41 @@
             background: #4a1f23;
             border: 2px solid #d3524b;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 16px;
             text-align: center;
             color: #ffda79;
+            height: 44px;
+        }
+        .green-input {
+            background: #1e382b;
+            border: 2px solid #52d37c;
+            color: #52d37c;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+            height: 44px;
+        }
+        .sell-input {
+            background: #3b1b1e;
+            border: 2px solid #5e2c30;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+            height: 44px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .input-group label {
+            font-size: 11px;
+            color: #bda8a8;
+            margin-bottom: 4px;
+            height: 28px;
+            display: flex;
+            align-items: center;
         }
         .row {
             display: flex;
@@ -105,21 +137,21 @@
     <div class="card" id="calculatorBlock">
         <h3>Параметры партии и термообработки</h3>
         
-        <label style="font-size: 12px; color: #bda8a8;">Основное мясное сырье (кг):</label>
+        <label style="font-size: 12px; color: #bda8a8; margin-bottom: 4px; display: block;">Основное мясное сырье (кг):</label>
         <input type="number" id="meatWeight" class="weight-input" value="1.0" step="0.1" oninput="calculate()">
 
-        <div style="display: flex; gap: 8px;">
-            <div style="flex: 1;">
-                <label style="font-size: 12px; color: #bda8a8;">Вес ГОТОВОГО после копчения (кг):</label>
-                <input type="number" id="finishedWeightInput" class="weight-input" style="border-color: #52d37c; color: #52d37c;" placeholder="Например: 0.850" step="0.01" oninput="calculate()">
+        <div style="display: flex; gap: 8px; margin-top: 6px;">
+            <div class="input-group">
+                <label>Вес ГОТОВОГО (кг):</label>
+                <input type="number" id="finishedWeightInput" class="green-input" placeholder="0.850" step="0.01" oninput="calculate()">
             </div>
-            <div style="flex: 1;">
-                <label style="font-size: 12px; color: #bda8a8;">Цена продажи (грн/кг):</label>
-                <input type="number" id="sellPrice" placeholder="0" oninput="calculate()">
+            <div class="input-group">
+                <label>Цена продажи (грн/кг):</label>
+                <input type="number" id="sellPrice" class="sell-input" placeholder="0" oninput="calculate()">
             </div>
         </div>
 
-        <h4 style="margin-bottom: 8px; margin-top: 14px; color: #d3524b;">Ингредиенты замеса (до коптильни):</h4>
+        <h4 style="margin-bottom: 8px; margin-top: 16px; color: #d3524b;">Ингредиенты замеса (до коптильни):</h4>
         <div id="resultsList"></div>
 
         <h4 style="margin-bottom: 8px; margin-top: 16px; color: #ffda79;">Итоговые показатели партии:</h4>
@@ -150,21 +182,21 @@
 let defaultRecipes = {
     "Краковская классика": {
         ingredients: [
-            { name: "Свинина полужирная", gramsPerKg: 700, pricePerKg: 180, isMeat: true },
-            { name: "Грудинка свиная", gramsPerKg: 300, pricePerKg: 160, isMeat: true },
-            { name: "Вода ледяная / Лёд", gramsPerKg: 100, pricePerKg: 0, isLiquid: true },
+            { name: "Свинина полужирная", gramsPerKg: 700, pricePerKg: 180 },
+            { name: "Грудинка свиная", gramsPerKg: 300, pricePerKg: 160 },
+            { name: "Вода ледяная / Лёд", gramsPerKg: 100, pricePerKg: 0 },
             { name: "Соль нитритная (0.5%)", gramsPerKg: 18, pricePerKg: 50 },
             { name: "Сахар / Декстроза", gramsPerKg: 2, pricePerKg: 40 },
             { name: "Перец чёрный молотый", gramsPerKg: 2, pricePerKg: 400 },
             { name: "Чеснок свежий", gramsPerKg: 2, pricePerKg: 120 },
             { name: "Фосфат пищевой", gramsPerKg: 3, pricePerKg: 220 },
-            { name: "Оболочка коллаген 45мм", gramsPerKg: 2, pricePerKg: 15 } // 15 грн за метр/порцию
+            { name: "Оболочка коллаген 45мм", gramsPerKg: 2, pricePerKg: 15 }
         ]
     },
     "Кабаноси": {
         ingredients: [
-            { name: "Свинина постная", gramsPerKg: 1000, pricePerKg: 190, isMeat: true },
-            { name: "Вода ледяная", gramsPerKg: 50, pricePerKg: 0, isLiquid: true },
+            { name: "Свинина постная", gramsPerKg: 1000, pricePerKg: 190 },
+            { name: "Вода ледяная", gramsPerKg: 50, pricePerKg: 0 },
             { name: "Соль нитритная", gramsPerKg: 20, pricePerKg: 50 },
             { name: "Паприка копчёная", gramsPerKg: 4, pricePerKg: 350 },
             { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
@@ -206,14 +238,12 @@ function calculate() {
     resultsList.innerHTML = '';
     
     let totalBatchCost = 0;
-    let totalRawWeightGrams = 0; // Полная масса перед коптильней (мясо + вода + специи)
+    let totalRawWeightGrams = 0;
 
     ingredients.forEach(item => {
-        // Вес компонента в граммах для текущего веса мяса
         const totalGrams = item.gramsPerKg * baseMeatKg;
-        totalRawWeightGrams += totalGrams; // ПЛЮСУЕМ ВСЁ В ОБЩИЙ ВЕС ДО КОПЧЕНИЯ!
+        totalRawWeightGrams += totalGrams;
 
-        // Стоимость компонента
         const itemCost = (totalGrams / 1000) * (item.pricePerKg || 0);
         totalBatchCost += itemCost;
 
@@ -227,7 +257,7 @@ function calculate() {
         resultsList.appendChild(row);
     });
 
-    const totalRawKg = (totalRawWeightGrams / 1000).toFixed(3); // Полный вес батонов до термообработки
+    const totalRawKg = (totalRawWeightGrams / 1000).toFixed(3);
 
     if (finishedWeight > 0) {
         const weightLossKg = (totalRawKg - finishedWeight).toFixed(3);
@@ -264,7 +294,6 @@ function showNewRecipeForm() {
     document.getElementById('newIngredientsInputs').innerHTML = '';
     document.getElementById('newRecipeName').value = '';
     
-    // Начальный шаблон добавления
     addIngredientInput("Свинина полужирная", 700, 180);
     addIngredientInput("Грудинка", 300, 160);
     addIngredientInput("Вода ледяная", 100, 0);
