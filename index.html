@@ -284,7 +284,7 @@ let defaultRecipes = {
             { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
             { name: "Чили перец", gramsPerKg: 0.5, pricePerKg: 350 },
             { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
-            { name: "Глутамат", gramsPerKg: 1.5, pricePerKg: 300 }
+            { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 300 }
         ]
     },
     "Краковская классика": {
@@ -299,6 +299,7 @@ let defaultRecipes = {
             { name: "Перец чёрный молотый", gramsPerKg: 2, pricePerKg: 400 },
             { name: "Чеснок свежий", gramsPerKg: 2, pricePerKg: 120 },
             { name: "Фосфат пищевой", gramsPerKg: 3, pricePerKg: 220 },
+            { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 300 },
             { name: "Оболочка коллаген 45мм", gramsPerKg: 2, pricePerKg: 15 }
         ]
     }
@@ -755,6 +756,7 @@ function showNewRecipeForm() {
 
     addEditAdditiveInput("Вода", 220, 0);
     addEditAdditiveInput("Фосфат", 2, 220);
+    addEditAdditiveInput("Глутамат натрия", 2, 300);
 }
 
 function editRecipe(name) {
