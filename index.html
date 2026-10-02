@@ -3,65 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Дымный Гурман — Калькулятор</title>
+    <title>Дымный Гурман — Премиум Бизнес-Калькулятор</title>
     <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(51, 65, 85, 0.8);
+            --accent-gold: #f59e0b;
+            --accent-gold-glow: rgba(245, 158, 11, 0.2);
+            --accent-blue: #3b82f6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
         * { box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #1a1110;
-            color: #f1e0d6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            background-color: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
+            color: var(--text-main);
             margin: 0;
-            padding: 12px;
+            padding: 16px;
+            min-height: 100vh;
         }
-        h2, h3, h4 { margin-top: 0; color: #f1e0d6; }
-        .card {
-            background-color: #2b1819;
-            border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 16px;
-            border: 1px solid #4a2426;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .brand-header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+        .brand-header p {
+            margin: 4px 0 0;
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         /* ВКЛАДКИ НАВИГАЦИИ */
         .tabs {
             display: flex;
-            gap: 6px;
-            margin-bottom: 12px;
+            gap: 8px;
+            margin-bottom: 16px;
         }
         .tab-btn {
             flex: 1;
-            padding: 10px 4px;
-            background: #3b1b1e;
-            border: 1px solid #5e2c30;
-            color: #bda8a8;
-            border-radius: 8px;
+            padding: 12px 6px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            border-radius: 10px;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 700;
             cursor: pointer;
             text-align: center;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .tab-btn:hover {
+            border-color: var(--accent-gold);
+            color: var(--text-main);
         }
         .tab-btn.active {
-            background: #d3524b;
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
             color: white;
-            border-color: #d3524b;
+            border-color: #f59e0b;
+            box-shadow: 0 4px 15px var(--accent-gold-glow);
+        }
+
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
         select, input, button {
             width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #5e2c30;
-            background: #3b1b1e;
-            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-main);
             font-size: 15px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 0 3px var(--accent-gold-glow);
         }
 
         .input-row {
             display: flex;
-            gap: 8px;
-            margin-top: 6px;
+            gap: 10px;
+            margin-top: 8px;
             align-items: flex-end;
         }
         .input-col {
@@ -71,66 +133,78 @@
         }
         .input-col label {
             font-size: 11px;
-            color: #bda8a8;
+            color: var(--text-muted);
             margin-bottom: 4px;
-            white-space: nowrap;
+            font-weight: 600;
+            text-transform: uppercase;
         }
         .input-col input {
-            height: 44px;
+            height: 46px;
             margin-bottom: 0;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 700;
             text-align: center;
         }
 
-        .green-input { background: #1e382b; border: 2px solid #52d37c !important; color: #52d37c; }
+        .green-input { 
+            background: rgba(16, 185, 129, 0.1) !important; 
+            border: 2px solid var(--success) !important; 
+            color: #34d399 !important; 
+        }
 
         .row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #34171a;
-            padding: 8px 10px;
-            border-radius: 8px;
-            margin-bottom: 6px;
-            border-left: 3px solid #d3524b;
-            gap: 6px;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            gap: 8px;
         }
-        .row-name { font-size: 12px; flex: 1.8; word-break: break-word; }
-        .row-input-small { width: 68px !important; height: 34px !important; margin-bottom: 0 !important; text-align: center; font-size: 12px !important; padding: 2px !important; background: #2b1819 !important; border: 1px solid #5e2c30 !important; color: #ffda79 !important; }
-        .row-val-text { font-size: 12px; width: 68px; text-align: center; color: #ffda79; font-weight: bold; }
-        .row-cost { font-size: 12px; color: #bda8a8; width: 65px; text-align: right; }
+        .row-name { font-size: 13px; flex: 1.8; color: var(--text-main); font-weight: 500; }
+        .row-input-small { width: 72px !important; height: 36px !important; margin-bottom: 0 !important; text-align: center; font-size: 13px !important; padding: 2px !important; background: var(--bg-secondary) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; font-weight: 700; }
+        .row-val-text { font-size: 13px; width: 72px; text-align: center; color: var(--accent-gold); font-weight: 700; }
+        .row-cost { font-size: 13px; color: var(--text-muted); width: 75px; text-align: right; font-weight: 600; }
 
-        .section-sub {
-            font-size: 13px;
-            color: #ffda79;
-            margin-top: 12px;
-            margin-bottom: 6px;
-            border-bottom: 1px solid #4a2426;
-            padding-bottom: 4px;
+        .section-title {
+            font-size: 14px;
+            color: var(--accent-gold);
+            font-weight: 700;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         /* СЕТКА КАМЕРЫ */
         .chamber-item {
-            background: #3a1c1f;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border-left: 3px solid #ffda79;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-gold);
         }
         .chamber-item-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-weight: bold;
+            font-weight: 700;
             font-size: 15px;
-            color: #ffffff;
-            margin-bottom: 8px;
+            color: var(--text-main);
+            margin-bottom: 10px;
         }
         .chamber-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            gap: 10px;
         }
         .chamber-field {
             display: flex;
@@ -138,68 +212,105 @@
         }
         .chamber-field label {
             font-size: 10px;
-            color: #bda8a8;
-            margin-bottom: 3px;
-            height: 14px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            font-weight: 600;
         }
         .chamber-field input {
-            height: 40px;
+            height: 42px;
             margin-bottom: 0;
             text-align: center;
-            font-size: 14px;
-            font-weight: bold;
-            box-sizing: border-box;
+            font-size: 15px;
+            font-weight: 700;
         }
 
         .fin-row {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px dashed #522429;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--border-color);
             font-size: 14px;
+            color: var(--text-muted);
+        }
+        .fin-row strong {
+            color: var(--text-main);
         }
         
-        .btn-main { background: #d3524b; color: white; font-weight: bold; border: none; cursor: pointer; padding: 12px; font-size: 16px; }
-        .btn-sec { background: #522429; color: white; border: none; cursor: pointer; }
-        .ing-edit-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+        .btn-main { 
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%); 
+            color: white; 
+            font-weight: 700; 
+            border: none; 
+            cursor: pointer; 
+            padding: 14px; 
+            font-size: 15px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 15px var(--accent-gold-glow); 
+            transition: all 0.3s; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-main:hover { 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+        }
+        .btn-sec { 
+            background: var(--bg-secondary); 
+            color: var(--text-main); 
+            border: 1px solid var(--border-color); 
+            cursor: pointer; 
+            border-radius: 10px; 
+            font-weight: 600; 
+            padding: 10px;
+            transition: all 0.2s;
+        }
+        .btn-sec:hover { 
+            background: rgba(51, 65, 85, 0.8); 
+        }
+        .ing-edit-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
     </style>
 </head>
 <body>
 
-    <h2>🔥 Дымный Гурман</h2>
+<div class="container">
+    <div class="brand-header">
+        <h1>Дымный Гурман</h1>
+        <p>Craft Meat & Smoke Production • Executive Calculator</p>
+    </div>
 
     <!-- Вкладки навигации -->
     <div class="tabs">
         <div class="tab-btn active" id="tab_single" onclick="switchTab('single')">1 Рецепт</div>
-        <div class="tab-btn" id="tab_multi" onclick="switchTab('multi')">💨 Загрузка Камеры</div>
-        <div class="tab-btn" id="tab_recipes" onclick="switchTab('recipes')">📖 Мои Рецепты</div>
+        <div class="tab-btn" id="tab_multi" onclick="switchTab('multi')">💨 Камера</div>
+        <div class="tab-btn" id="tab_recipes" onclick="switchTab('recipes')">📖 Рецепты</div>
     </div>
 
     <!-- 1. ВКЛАДКА: ОДИН РЕЦЕПТ -->
     <div id="section_single">
         <div class="card">
-            <label style="font-size: 12px; color: #bda8a8; display: block; margin-bottom: 4px;">Выберите рецепт:</label>
+            <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600; text-transform: uppercase;">Выберите рецепт:</label>
             <select id="recipeSelect" onchange="onRecipeSelectChange()"></select>
             
-            <div class="section-sub">🥩 Мясное сырье (вес и цена каждого вида):</div>
-            <div style="display: flex; gap: 4px; font-size: 10px; color: #bda8a8; margin-bottom: 4px; padding: 0 4px;">
-                <span style="flex:1.6;">Вид мяса</span>
-                <span style="width:68px; text-align:center;">Вес (кг)</span>
-                <span style="width:68px; text-align:center;">Цена/кг</span>
-                <span style="width:65px; text-align:right;">Итог</span>
+            <div class="section-title">🥩 Мясное сырье (вес и цена):</div>
+            <div style="display: flex; gap: 4px; font-size: 10px; color: var(--text-muted); margin-bottom: 6px; padding: 0 4px; text-transform: uppercase; font-weight: 700;">
+                <span style="flex:1.6;">Вид сырья</span>
+                <span style="width:72px; text-align:center;">Вес (кг)</span>
+                <span style="width:72px; text-align:center;">Цена/кг</span>
+                <span style="width:75px; text-align:right;">Итог</span>
             </div>
             <div id="singleMeatList"></div>
 
-            <div class="section-sub">🧂 Специи и добавки (на 1 кг сырья / авторасчет):</div>
-            <div style="display: flex; gap: 4px; font-size: 10px; color: #bda8a8; margin-bottom: 4px; padding: 0 4px;">
+            <div class="section-title">🧂 Специи и добавки (на 1 кг / авторасчет):</div>
+            <div style="display: flex; gap: 4px; font-size: 10px; color: var(--text-muted); margin-bottom: 6px; padding: 0 4px; text-transform: uppercase; font-weight: 700;">
                 <span style="flex:1.6;">Компонент</span>
-                <span style="width:68px; text-align:center;">Грамм</span>
-                <span style="width:68px; text-align:center;">Цена/кг</span>
-                <span style="width:65px; text-align:right;">Итог</span>
+                <span style="width:72px; text-align:center;">Грамм</span>
+                <span style="width:72px; text-align:center;">Цена/кг</span>
+                <span style="width:75px; text-align:right;">Итог</span>
             </div>
             <div id="singleAdditivesList"></div>
 
-            <div class="input-row" style="margin-top: 14px;">
+            <div class="input-row" style="margin-top: 16px;">
                 <div class="input-col">
                     <label>Вес ГОТОВОГО изделия (кг):</label>
                     <input type="number" id="finishedWeightInput" class="green-input" placeholder="2.400" step="0.01" oninput="calculateSingle()">
@@ -210,7 +321,7 @@
                 </div>
             </div>
 
-            <h4 style="margin-bottom: 8px; margin-top: 16px; color: #ffda79;">Итоги по партии:</h4>
+            <div class="section-title" style="margin-top: 20px;">📊 Финансовый итог партии:</div>
             <div id="financialBlock"></div>
         </div>
     </div>
@@ -218,58 +329,58 @@
     <!-- 2. ВКЛАДКА: ЗАГРУЗКА КАМЕРЫ -->
     <div id="section_multi" style="display: none;">
         <div class="card">
-            <h3 style="color: #ffda79;">💨 Добавить изделие в коптильню</h3>
+            <h3 style="color: var(--text-main); font-size: 16px; margin-bottom: 12px;">💨 Добавить изделие в камеру</h3>
             
-            <label style="font-size: 11px; color: #bda8a8;">Выберите рецепт:</label>
+            <label style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Выберите рецепт:</label>
             <select id="chamberRecipeAddSelect" onchange="updateChamberDefaultMeats()"></select>
 
-            <div id="chamberMeatInputsContainer" style="margin-top: 8px;"></div>
-            <div id="chamberAdditivesPreviewContainer" style="margin-top: 8px;"></div>
+            <div id="chamberMeatInputsContainer" style="margin-top: 10px;"></div>
 
-            <div class="input-col" style="margin-top: 8px;">
+            <div class="input-col" style="margin-top: 10px;">
                 <label>Розничная цена (грн/кг):</label>
-                <input type="number" id="chamberRetailPriceInput" placeholder="250" step="10" value="250" style="height: 40px; text-align: center;">
+                <input type="number" id="chamberRetailPriceInput" placeholder="250" step="10" value="250" style="height: 42px; text-align: center;">
             </div>
 
-            <button class="btn-main" style="margin-top: 10px;" onclick="addRecipeToChamberBatch()">➕ Добавить в камеру</button>
+            <button class="btn-main" style="margin-top: 12px;" onclick="addRecipeToChamberBatch()">➕ Добавить в камеру</button>
         </div>
 
-        <div class="card" style="border: 2px solid #ffda79;">
-            <h3 style="color: #ffda79;">📋 Изделия в коптильне</h3>
+        <div class="card">
+            <h3 style="color: var(--text-main); font-size: 16px; margin-bottom: 12px;">📋 Загрузка коптильной камеры</h3>
             <div id="chamberItemsList"></div>
 
-            <button class="btn-main" style="margin-top: 12px;" onclick="calculateMultiBatch()">🔥 Посчитать всю камеру</button>
+            <button class="btn-main" style="margin-top: 14px;" onclick="calculateMultiBatch()">🔥 Рассчитать всю камеру</button>
 
-            <div id="multiResultsBlock" style="margin-top: 14px;"></div>
+            <div id="multiResultsBlock" style="margin-top: 16px;"></div>
         </div>
     </div>
 
     <!-- 3. ВКЛАДКА: МОИ РЕЦЕПТЫ -->
     <div id="section_recipes" style="display: none;">
         <div class="card">
-            <h3>📖 Управление рецептами</h3>
+            <h3 style="font-size: 16px; margin-bottom: 12px;">📖 База рецептур</h3>
             <button class="btn-main" onclick="showNewRecipeForm()">➕ Создать новый рецепт</button>
             
-            <h4 style="margin-top:16px; color:#ffda79;">Сохранённые рецепты:</h4>
+            <div class="section-title" style="margin-top: 16px;">Сохранённые рецепты:</div>
             <div id="recipeManagerList"></div>
         </div>
 
         <div class="card" id="newRecipeBlock" style="display: none;">
-            <h3 id="formTitle">Новый рецепт</h3>
-            <input type="text" id="newRecipeName" placeholder="Название (например: Балык)">
+            <h3 id="formTitle" style="font-size: 16px; margin-bottom: 12px; color: var(--accent-gold);">Новый рецепт</h3>
+            <input type="text" id="newRecipeName" placeholder="Название (например: Сервелат)">
 
-            <h4 style="color:#d3524b; margin-top:10px; margin-bottom:4px; font-size:13px;">Мясная база (базовый вес и цена):</h4>
+            <div class="section-title">🥩 Мясная база (базовый вес и цена):</div>
             <div id="editMeatInputs"></div>
-            <button class="btn-sec" style="margin-bottom: 12px; font-size:12px; padding:6px;" onclick="addEditMeatInput()">+ Добавить вид мяса</button>
+            <button class="btn-sec" style="margin-bottom: 14px; font-size:13px;" onclick="addEditMeatInput()">+ Добавить вид мяса</button>
 
-            <h4 style="color:#ffda79; margin-top:10px; margin-bottom:4px; font-size:13px;">Специи и добавки (грамм на 1 кг мяса):</h4>
+            <div class="section-title">🧂 Специи и добавки (грамм на 1 кг мяса):</div>
             <div id="editAdditiveInputs"></div>
-            <button class="btn-sec" style="margin-bottom: 12px; font-size:12px; padding:6px;" onclick="addEditAdditiveInput()">+ Добавить компонент</button>
+            <button class="btn-sec" style="margin-bottom: 14px; font-size:13px;" onclick="addEditAdditiveInput()">+ Добавить компонент</button>
             
-            <button class="btn-main" style="margin-top: 6px;" onclick="saveRecipe()">💾 Сохранить рецепт</button>
-            <button class="btn-sec" style="margin-top: 5px; background: transparent;" onclick="cancelNewRecipe()">Отмена</button>
+            <button class="btn-main" style="margin-top: 8px;" onclick="saveRecipe()">💾 Сохранить рецепт</button>
+            <button class="btn-sec" style="margin-top: 8px; background: transparent;" onclick="cancelNewRecipe()">Отмена</button>
         </div>
     </div>
+</div>
 
 <script>
 let defaultRecipes = {
@@ -303,9 +414,9 @@ let defaultRecipes = {
     }
 };
 
-let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v13')) || defaultRecipes;
-let activeRecipeState = JSON.parse(localStorage.getItem('dg_active_state_v13')) || {};
-let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v13')) || [];
+let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v14')) || defaultRecipes;
+let activeRecipeState = JSON.parse(localStorage.getItem('dg_active_state_v14')) || {};
+let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v14')) || [];
 
 function init() {
     updateRecipeSelects();
@@ -380,7 +491,6 @@ function renderSingleInputs(recipeName) {
 
     if (!data) return;
 
-    // Рендер мяса
     data.meats.forEach((m, idx) => {
         const row = document.createElement('div');
         row.className = 'row';
@@ -393,10 +503,8 @@ function renderSingleInputs(recipeName) {
         meatContainer.appendChild(row);
     });
 
-    // Считаем общий вес мяса для авторасчета специй
     let totalMeatKg = data.meats.reduce((sum, m) => sum + (parseFloat(m.weightKg) || 0), 0);
 
-    // Рендер специй (исходя из веса мяса, цены менять можно)
     data.additives.forEach((a, idx) => {
         let totalGrams = (a.gramsPerKg || 0) * totalMeatKg;
         let totalCost = (totalGrams / 1000) * (a.pricePerKg || 0);
@@ -404,7 +512,7 @@ function renderSingleInputs(recipeName) {
         const row = document.createElement('div');
         row.className = 'row';
         row.innerHTML = `
-            <span class="row-name">${a.name} <span style="font-size:10px; color:#bda8a8;">(${a.gramsPerKg}г/кг)</span></span>
+            <span class="row-name">${a.name} <span style="font-size:10px; color:var(--text-muted);">(${a.gramsPerKg}г/кг)</span></span>
             <span class="row-val-text" id="add_grams_${idx}">${totalGrams < 1000 ? totalGrams.toFixed(1) + ' г' : (totalGrams/1000).toFixed(3) + ' кг'}</span>
             <input type="number" step="1" class="row-input-small" value="${a.pricePerKg}" oninput="updateSingleAdditivePrice(${idx}, this.value)">
             <span class="row-cost" id="add_cost_${idx}">${totalCost.toFixed(2)} грн</span>
@@ -425,7 +533,6 @@ function updateSingleMeat(idx, field, val) {
         costSpan.innerText = (data.meats[idx].weightKg * data.meats[idx].pricePerKg).toFixed(2) + ' грн';
     }
 
-    // Пересчитываем граммы специй для всех специй в реальном времени
     let totalMeatKg = data.meats.reduce((sum, m) => sum + (parseFloat(m.weightKg) || 0), 0);
     data.additives.forEach((a, aIdx) => {
         let totalGrams = (a.gramsPerKg || 0) * totalMeatKg;
@@ -495,25 +602,24 @@ function calculateSingle() {
         const profit = (revenue - totalBatchCost).toFixed(2);
 
         financialBlock.innerHTML = `
-            <div class="fin-row"><span>Общий вес сырья ДО коптильни:</span> <span><strong>${totalRawKg.toFixed(3)} кг</strong> (мясо: ${totalMeatKg.toFixed(2)} кг)</span></div>
+            <div class="fin-row"><span>Общий вес сырья ДО:</span> <span><strong>${totalRawKg.toFixed(3)} кг</strong> (мясо: ${totalMeatKg.toFixed(2)} кг)</span></div>
             <div class="fin-row"><span>Затраты на всю партию:</span> <span><strong>${totalBatchCost.toFixed(2)} грн</strong></span></div>
-            <div class="fin-row"><span>Потеря веса (усушка):</span> <span style="color:#ff9d9d;">${weightLossKg} кг (${shrinkagePct}%)</span></div>
-            <div class="fin-row"><span>Фактический выход:</span> <span style="color:#52d37c; font-weight:bold;">${yieldPct}% (${finishedWeight} кг)</span></div>
-            <div class="fin-row" style="font-size:15px;"><span>СЕБЕСТОИМОСТЬ 1 КГ ГОТОВОГО:</span> <span style="color:#ffda79; font-weight:bold;">${costPerKgFinished} грн/кг</span></div>
+            <div class="fin-row"><span>Потеря веса (усушка):</span> <span style="color:var(--danger);">${weightLossKg} кг (${shrinkagePct}%)</span></div>
+            <div class="fin-row"><span>Фактический выход:</span> <span style="color:var(--success); font-weight:700;">${yieldPct}% (${finishedWeight} кг)</span></div>
+            <div class="fin-row" style="font-size:15px; border-bottom: none; padding-top: 12px;"><span>СЕБЕСТОИМОСТЬ 1 КГ:</span> <span style="color:var(--accent-gold); font-weight:800; font-size: 17px;">${costPerKgFinished} грн/кг</span></div>
             ${sellPrice > 0 ? `
                 <div class="fin-row"><span>Выручка от продажи:</span> <span>${revenue} грн</span></div>
-                <div class="fin-row"><span>Чистая прибыль с партии:</span> <span style="color:#52d37c; font-weight:bold;">${profit} грн</span></div>
+                <div class="fin-row" style="border-bottom: none;"><span>Чистая прибыль:</span> <span style="color:var(--success); font-weight:800; font-size: 17px;">${profit} грн</span></div>
             ` : ''}
         `;
     } else {
         financialBlock.innerHTML = `
-            <div class="fin-row"><span>Общий вес сырья ДО коптильни:</span> <span><strong>${totalRawKg.toFixed(3)} кг</strong> (мясо: ${totalMeatKg.toFixed(2)} кг)</span></div>
-            <div class="fin-row"><span>Затраты на всю партию:</span> <span><strong>${totalBatchCost.toFixed(2)} грн</strong></span></div>
+            <div class="fin-row"><span>Общий вес сырья ДО:</span> <span><strong>${totalRawKg.toFixed(3)} кг</strong> (мясо: ${totalMeatKg.toFixed(2)} кг)</span></div>
+            <div class="fin-row" style="border-bottom: none;"><span>Затраты на всю партию:</span> <span><strong>${totalBatchCost.toFixed(2)} грн</strong></span></div>
         `;
     }
 }
 
-/* 2. ЗАГРУЗКА КАМЕРЫ */
 function updateChamberDefaultMeats() {
     const name = document.getElementById('chamberRecipeAddSelect').value;
     const container = document.getElementById('chamberMeatInputsContainer');
@@ -523,16 +629,16 @@ function updateChamberDefaultMeats() {
     if (!rec) return;
 
     let title = document.createElement('div');
-    title.style.cssText = "font-size:11px; color:#bda8a8; margin-bottom:4px;";
+    title.style.cssText = "font-size:11px; color:var(--text-muted); margin-bottom:4px; font-weight:600; text-transform:uppercase;";
     title.innerText = "Вес каждого вида мяса для закладки (кг):";
     container.appendChild(title);
 
     rec.meats.forEach((m, idx) => {
         let div = document.createElement('div');
-        div.style.cssText = "display:flex; gap:6px; margin-bottom:4px; align-items:center;";
+        div.style.cssText = "display:flex; gap:6px; margin-bottom:6px; align-items:center;";
         div.innerHTML = `
-            <span style="font-size:12px; flex:2;">${m.name}:</span>
-            <input type="number" step="0.1" value="${m.weightKg}" class="chamber_meat_input_${idx}" data-meat-idx="${idx}" style="height:34px; font-size:14px; text-align:center; width:90px;">
+            <span style="font-size:13px; flex:2; color:var(--text-main);">${m.name}:</span>
+            <input type="number" step="0.1" value="${m.weightKg}" class="chamber_meat_input_${idx}" data-meat-idx="${idx}" style="height:36px; font-size:14px; text-align:center; width:90px;">
         `;
         container.appendChild(div);
     });
@@ -576,23 +682,23 @@ function addRecipeToChamberBatch() {
         retailPrice: retailPrice
     });
 
-    localStorage.setItem('dg_chamber_batch_v13', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v14', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
 function updateChamberItemMeat(itemIdx, meatIdx, val) {
     chamberBatchList[itemIdx].meats[meatIdx].weightKg = parseFloat(val) || 0;
-    localStorage.setItem('dg_chamber_batch_v13', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v14', JSON.stringify(chamberBatchList));
 }
 
 function updateChamberItemField(itemIdx, field, val) {
     chamberBatchList[itemIdx][field] = parseFloat(val) || 0;
-    localStorage.setItem('dg_chamber_batch_v13', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v14', JSON.stringify(chamberBatchList));
 }
 
 function removeChamberItem(index) {
     chamberBatchList.splice(index, 1);
-    localStorage.setItem('dg_chamber_batch_v13', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v14', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
@@ -601,7 +707,7 @@ function renderChamberItemsList() {
     container.innerHTML = '';
 
     if (chamberBatchList.length === 0) {
-        container.innerHTML = '<div style="color:#bda8a8; text-align:center; padding:10px; font-size:13px;">Камера пуста. Добавьте изделие выше!</div>';
+        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">Камера пуста. Добавьте изделие выше.</div>';
         return;
     }
 
@@ -609,9 +715,9 @@ function renderChamberItemsList() {
         let meatsHtml = '';
         item.meats.forEach((m, mIdx) => {
             meatsHtml += `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; font-size:11px;">
-                    <span style="color:#bda8a8;">${m.name} (кг):</span>
-                    <input type="number" step="0.1" value="${m.weightKg}" style="width:75px; height:30px; text-align:center; font-size:12px; background:#2b1819; border:1px solid #5e2c30; color:#ffda79;" oninput="updateChamberItemMeat(${idx}, ${mIdx}, this.value)">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:12px;">
+                    <span style="color:var(--text-muted);">${m.name} (кг):</span>
+                    <input type="number" step="0.1" value="${m.weightKg}" style="width:75px; height:32px; text-align:center; font-size:13px; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-main); font-weight:700;" oninput="updateChamberItemMeat(${idx}, ${mIdx}, this.value)">
                 </div>
             `;
         });
@@ -621,12 +727,12 @@ function renderChamberItemsList() {
         div.innerHTML = `
             <div class="chamber-item-header">
                 <span>${item.recipeName}</span>
-                <button onclick="removeChamberItem(${idx})" style="width: auto; margin-bottom:0; padding:2px 8px; background:transparent; border:1px solid #d3524b; color:#d3524b;">✕</button>
+                <button onclick="removeChamberItem(${idx})" style="width: auto; margin-bottom:0; padding:2px 8px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius: 6px;">✕</button>
             </div>
             ${meatsHtml}
-            <div class="chamber-grid" style="margin-top:6px;">
+            <div class="chamber-grid" style="margin-top:8px;">
                 <div class="chamber-field">
-                    <label style="color:#52d37c;">Вес ПОСЛЕ (кг):</label>
+                    <label style="color:var(--success);">Вес ПОСЛЕ (кг):</label>
                     <input type="number" step="0.01" class="green-input" value="${item.finishedWeightKg}" oninput="updateChamberItemField(${idx}, 'finishedWeightKg', this.value)">
                 </div>
                 <div class="chamber-field">
@@ -642,7 +748,7 @@ function renderChamberItemsList() {
 function calculateMultiBatch() {
     const resultsBlock = document.getElementById('multiResultsBlock');
     if (chamberBatchList.length === 0) {
-        resultsBlock.innerHTML = '<div style="color:#ff9d9d; text-align:center;">Добавьте изделия в камеру!</div>';
+        resultsBlock.innerHTML = '<div style="color:var(--danger); text-align:center;">Добавьте изделия в камеру!</div>';
         return;
     }
 
@@ -694,36 +800,35 @@ function calculateMultiBatch() {
     const avgCostPerKgFinished = totalFinishedWeight > 0 ? (totalCost / totalFinishedWeight).toFixed(2) : 0;
     const totalProfit = (totalRevenue - totalCost).toFixed(2);
 
-    let html = `<h4 style="color:#d3524b; margin-bottom:6px; margin-top:10px;">Общий список закупок мяса:</h4>`;
+    let html = `<div class="section-title">Сводная закупка сырья:</div>`;
     for (let mName in consolidatedMeats) {
         let m = consolidatedMeats[mName];
-        html += `<div class="row"><span class="row-name">${mName}</span><span style="font-size:12px; font-weight:bold; color:#ffda79; width:68px; text-align:center;">${m.weight.toFixed(2)} кг</span><span class="row-cost">${m.cost.toFixed(2)} грн</span></div>`;
+        html += `<div class="row"><span class="row-name">${mName}</span><span style="font-size:13px; font-weight:700; color:var(--text-main); width:72px; text-align:center;">${m.weight.toFixed(2)} кг</span><span class="row-cost">${m.cost.toFixed(2)} грн</span></div>`;
     }
 
-    html += `<h4 style="color:#d3524b; margin-bottom:6px; margin-top:10px;">Общий список специй и воды:</h4>`;
+    html += `<div class="section-title">Сводные специи и вода:</div>`;
     for (let aName in consolidatedAdditives) {
         let a = consolidatedAdditives[aName];
-        html += `<div class="row"><span class="row-name">${aName}</span><span style="font-size:12px; font-weight:bold; color:#ffda79; width:68px; text-align:center;">${a.grams < 1000 ? a.grams.toFixed(1) + ' г' : (a.grams/1000).toFixed(3) + ' кг'}</span><span class="row-cost">${a.cost.toFixed(2)} грн</span></div>`;
+        html += `<div class="row"><span class="row-name">${aName}</span><span style="font-size:13px; font-weight:700; color:var(--text-main); width:72px; text-align:center;">${a.grams < 1000 ? a.grams.toFixed(1) + ' г' : (a.grams/1000).toFixed(3) + ' кг'}</span><span class="row-cost">${a.cost.toFixed(2)} грн</span></div>`;
     }
 
     html += `
-        <h4 style="color:#ffda79; margin-top:14px; margin-bottom:8px;">Сводные итоги коптильной камеры:</h4>
-        <div class="fin-row"><span>Общая закладка ДО коптильни:</span> <span><strong>${totalRawKg} кг</strong></span></div>
-        <div class="fin-row"><span>Общий вес ПОСЛЕ коптильни:</span> <span style="color:#52d37c;"><strong>${totalFinishedWeight.toFixed(3)} кг</strong></span></div>
-        <div class="fin-row"><span>Потеря веса (усушка):</span> <span style="color:#ff9d9d;">${weightLossKg} кг (${shrinkagePct}%)</span></div>
-        <div class="fin-row"><span>Выход готовой продукции:</span> <span style="color:#52d37c; font-weight:bold;">${yieldPct}%</span></div>
-        <div class="fin-row" style="font-size:15px;"><span>СРЕДНЯЯ СЕБЕСТОИМОСТЬ 1 КГ:</span> <span style="color:#ffda79; font-weight:bold;">${avgCostPerKgFinished} грн/кг</span></div>
-        <div class="fin-row"><span>Общие затраты на партию:</span> <span><strong>${totalCost.toFixed(2)} грн</strong></span></div>
+        <div class="section-title" style="margin-top: 16px;">Финансовый итог камеры:</div>
+        <div class="fin-row"><span>Общая закладка ДО:</span> <span><strong>${totalRawKg} кг</strong></span></div>
+        <div class="fin-row"><span>Общий вес ПОСЛЕ:</span> <span style="color:var(--success);"><strong>${totalFinishedWeight.toFixed(3)} кг</strong></span></div>
+        <div class="fin-row"><span>Потеря веса (усушка):</span> <span style="color:var(--danger);">${weightLossKg} кг (${shrinkagePct}%)</span></div>
+        <div class="fin-row"><span>Выход продукции:</span> <span style="color:var(--success); font-weight:700;">${yieldPct}%</span></div>
+        <div class="fin-row"><span>Общие затраты:</span> <span><strong>${totalCost.toFixed(2)} грн</strong></span></div>
+        <div class="fin-row" style="font-size:15px;"><span>СРЕДНЯЯ СЕБЕСТОИМОСТЬ 1 КГ:</span> <span style="color:var(--accent-gold); font-weight:800; font-size: 17px;">${avgCostPerKgFinished} грн/кг</span></div>
         ${totalRevenue > 0 ? `
-            <div class="fin-row"><span>Ожидаемая выручка с камеры:</span> <span style="color:#52d37c;">${totalRevenue.toFixed(2)} грн</span></div>
-            <div class="fin-row" style="font-size:16px;"><span>ЧИСТАЯ ПРИБЫЛЬ С КАМЕРЫ:</span> <span style="color:#52d37c; font-weight:bold;">${totalProfit} грн</span></div>
+            <div class="fin-row"><span>Ожидаемая выручка:</span> <span style="color:var(--success);">${totalRevenue.toFixed(2)} грн</span></div>
+            <div class="fin-row" style="border-bottom: none; font-size: 16px;"><span>ЧИСТАЯ ПРИБЫЛЬ:</span> <span style="color:var(--success); font-weight:800; font-size: 18px;">${totalProfit} грн</span></div>
         ` : ''}
     `;
 
     resultsBlock.innerHTML = html;
 }
 
-/* 3. УПРАВЛЕНИЕ РЕЦЕПТАМИ */
 function renderRecipeManagerList() {
     const list = document.getElementById('recipeManagerList');
     list.innerHTML = '';
@@ -733,9 +838,9 @@ function renderRecipeManagerList() {
         div.className = 'row';
         div.style.marginBottom = '8px';
         div.innerHTML = `
-            <span class="row-name" style="font-weight:bold; font-size:14px; flex:2;">${name}</span>
-            <button onclick="editRecipe('${name}')" style="width: auto; margin-bottom:0; padding:6px 10px; background:#522429; border:none; margin-right:4px;">✏</button>
-            <button onclick="deleteRecipe('${name}')" style="width: auto; margin-bottom:0; padding:6px 10px; background:transparent; border:1px solid #d3524b; color:#d3524b;">🗑</button>
+            <span class="row-name" style="font-weight:700; font-size:14px; flex:2; color:var(--text-main);">${name}</span>
+            <button onclick="editRecipe('${name}')" style="width: auto; margin-bottom:0; padding:6px 12px; background:var(--bg-secondary); border:1px solid var(--border-color); margin-right:4px; color:var(--text-main);">✏</button>
+            <button onclick="deleteRecipe('${name}')" style="width: auto; margin-bottom:0; padding:6px 12px; background:transparent; border:1px solid var(--danger); color:var(--danger);">🗑</button>
         `;
         list.appendChild(div);
     }
@@ -771,8 +876,8 @@ function addEditMeatInput(name = '', weight = 1, price = 100) {
     div.className = 'ing-edit-row';
     div.innerHTML = `
         <input type="text" placeholder="Название мяса" class="edit-meat-name" value="${name}" style="flex:1.6;">
-        <input type="number" step="0.1" placeholder="кг" class="edit-meat-weight" value="${weight}" style="width:65px;">
-        <input type="number" step="1" placeholder="грн/кг" class="edit-meat-price" value="${price}" style="width:75px;">
+        <input type="number" step="0.1" placeholder="кг" class="edit-meat-weight" value="${weight}" style="width:70px;">
+        <input type="number" step="1" placeholder="грн/кг" class="edit-meat-price" value="${price}" style="width:80px;">
     `;
     document.getElementById('editMeatInputs').appendChild(div);
 }
@@ -782,8 +887,8 @@ function addEditAdditiveInput(name = '', gramsPerKg = 10, price = 0) {
     div.className = 'ing-edit-row';
     div.innerHTML = `
         <input type="text" placeholder="Компонент/специя" class="edit-add-name" value="${name}" style="flex:1.6;">
-        <input type="number" step="0.1" placeholder="грамм/кг" class="edit-add-grams" value="${gramsPerKg}" style="width:65px;" title="Грамм на 1 кг мяса">
-        <input type="number" step="1" placeholder="грн/кг" class="edit-add-price" value="${price}" style="width:75px;">
+        <input type="number" step="0.1" placeholder="г/кг" class="edit-add-grams" value="${gramsPerKg}" style="width:70px;" title="Грамм на 1 кг мяса">
+        <input type="number" step="1" placeholder="грн/кг" class="edit-add-price" value="${price}" style="width:80px;">
     `;
     document.getElementById('editAdditiveInputs').appendChild(div);
 }
@@ -817,10 +922,10 @@ function saveRecipe() {
     if (meats.length === 0) { alert("Добавьте хотя бы один вид мяса"); return; }
 
     recipes[name] = { meats: meats, additives: additives };
-    localStorage.setItem('dg_cost_recipes_v13', JSON.stringify(recipes));
+    localStorage.setItem('dg_cost_recipes_v14', JSON.stringify(recipes));
     
     if (activeRecipeState[name]) delete activeRecipeState[name];
-    localStorage.setItem('dg_active_state_v13', JSON.stringify(activeRecipeState));
+    localStorage.setItem('dg_active_state_v14', JSON.stringify(activeRecipeState));
 
     cancelNewRecipe();
     init();
@@ -833,7 +938,7 @@ function cancelNewRecipe() {
 function deleteRecipe(name) {
     if (confirm(`Удалить рецепт "${name}"?`)) {
         delete recipes[name];
-        localStorage.setItem('dg_cost_recipes_v13', JSON.stringify(recipes));
+        localStorage.setItem('dg_cost_recipes_v14', JSON.stringify(recipes));
         init();
     }
 }
