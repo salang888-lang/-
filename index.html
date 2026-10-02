@@ -267,6 +267,18 @@
 
 <script>
 let defaultRecipes = {
+    "Куринные части": {
+        ingredients: [
+            { name: "Крылья", gramsPerKg: 333.3, pricePerKg: 120 },
+            { name: "Голени", gramsPerKg: 333.3, pricePerKg: 100 },
+            { name: "Окорочка", gramsPerKg: 333.3, pricePerKg: 110 },
+            { name: "Вода", gramsPerKg: 220, pricePerKg: 0 },
+            { name: "Перец чёрный", gramsPerKg: 0.67, pricePerKg: 400 },
+            { name: "Чили перец", gramsPerKg: 0.17, pricePerKg: 350 },
+            { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
+            { name: "Глутамат", gramsPerKg: 1.5, pricePerKg: 300 }
+        ]
+    },
     "Краковская классика": {
         ingredients: [
             { name: "Свинина полужирная", gramsPerKg: 700, pricePerKg: 180 },
@@ -292,10 +304,9 @@ let defaultRecipes = {
     }
 };
 
-let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v5')) || defaultRecipes;
-// Хранилище измененных прямо в калькуляторе граммовок для конкретных сессий
-let activeCustomGrams = JSON.parse(localStorage.getItem('dg_custom_grams_v5')) || {};
-let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v5')) || [];
+let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v6')) || defaultRecipes;
+let activeCustomGrams = JSON.parse(localStorage.getItem('dg_custom_grams_v6')) || {};
+let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v6')) || [];
 
 function init() {
     updateRecipeSelects();
@@ -367,7 +378,6 @@ function calculateSingle() {
     let totalRawWeightGrams = 0;
 
     ingredients.forEach((item, index) => {
-        // Если пользователь менял граммы на 1 кг мяса, берем их, иначе базовые из рецепта
         let gramsPerKg = (activeCustomGrams[recipeName][index] !== undefined) 
             ? activeCustomGrams[recipeName][index] 
             : item.gramsPerKg;
@@ -423,7 +433,7 @@ function calculateSingle() {
 function updateSingleGrams(recipeName, ingIndex, newGrams) {
     if (!activeCustomGrams[recipeName]) activeCustomGrams[recipeName] = {};
     activeCustomGrams[recipeName][ingIndex] = parseFloat(newGrams) || 0;
-    localStorage.setItem('dg_custom_grams_v5', JSON.stringify(activeCustomGrams));
+    localStorage.setItem('dg_custom_grams_v6', JSON.stringify(activeCustomGrams));
 
     const baseMeatKg = parseFloat(document.getElementById('meatWeight').value) || 0;
     const ing = recipes[recipeName].ingredients[ingIndex];
@@ -440,7 +450,7 @@ function updateSingleGrams(recipeName, ingIndex, newGrams) {
 function updateSingleIngredientPrice(recipeName, ingIndex, newPrice) {
     if (recipes[recipeName] && recipes[recipeName].ingredients[ingIndex]) {
         recipes[recipeName].ingredients[ingIndex].pricePerKg = parseFloat(newPrice) || 0;
-        localStorage.setItem('dg_cost_recipes_v5', JSON.stringify(recipes));
+        localStorage.setItem('dg_cost_recipes_v6', JSON.stringify(recipes));
         
         const baseMeatKg = parseFloat(document.getElementById('meatWeight').value) || 0;
         const ing = recipes[recipeName].ingredients[ingIndex];
@@ -462,7 +472,7 @@ function resetRecipeToDefault() {
     const recipeName = document.getElementById('recipeSelect').value;
     if (recipeName && activeCustomGrams[recipeName]) {
         delete activeCustomGrams[recipeName];
-        localStorage.setItem('dg_custom_grams_v5', JSON.stringify(activeCustomGrams));
+        localStorage.setItem('dg_custom_grams_v6', JSON.stringify(activeCustomGrams));
         calculateSingle();
     }
 }
@@ -548,7 +558,7 @@ function addRecipeToChamberBatch() {
         retailPrice: retailPrice
     });
 
-    localStorage.setItem('dg_chamber_batch_v5', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v6', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
@@ -573,12 +583,12 @@ function updateChamberItemField(index, field, value) {
         if (rawInput) rawInput.value = chamberBatchList[index].rawWeightBeforeSmokeKg.toFixed(3);
     }
 
-    localStorage.setItem('dg_chamber_batch_v5', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v6', JSON.stringify(chamberBatchList));
 }
 
 function removeChamberItem(index) {
     chamberBatchList.splice(index, 1);
-    localStorage.setItem('dg_chamber_batch_v5', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v6', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
@@ -726,7 +736,7 @@ function renderRecipeManagerList() {
         div.style.marginBottom = '8px';
         div.innerHTML = `
             <span class="row-name" style="font-weight:bold; font-size:14px; flex:2;">${name}</span>
-            <button onclick="editRecipe('${name}')" style="width: auto; margin-bottom:0; padding:6px 10px; background:#522429; border:none; margin-right:4px;">✏️️</button>
+            <button onclick="editRecipe('${name}')" style="width: auto; margin-bottom:0; padding:6px 10px; background:#522429; border:none; margin-right:4px;">✏</button>
             <button onclick="deleteRecipe('${name}')" style="width: auto; margin-bottom:0; padding:6px 10px; background:transparent; border:1px solid #d3524b; color:#d3524b;">🗑</button>
         `;
         list.appendChild(div);
@@ -785,14 +795,14 @@ function saveRecipe() {
         let ingPrice = parseFloat(prices[i].value) || 0;
         
         if (ingName && ingGrams > 0) {
-            list.push({ name: ingName, gramsPerKg: ingGrams, pricePerKg: ingPrice });
+            list.push({ name: ingName, gramsPerGramms: ingGrams, gramsPerKg: ingGrams, pricePerKg: ingPrice });
         }
     }
 
     if (list.length === 0) { alert("Добавьте хотя бы один компонент"); return; }
 
     recipes[name] = { ingredients: list };
-    localStorage.setItem('dg_cost_recipes_v5', JSON.stringify(recipes));
+    localStorage.setItem('dg_cost_recipes_v6', JSON.stringify(recipes));
     
     cancelNewRecipe();
     init();
@@ -805,7 +815,7 @@ function cancelNewRecipe() {
 function deleteRecipe(name) {
     if (confirm(`Удалить рецепт "${name}"?`)) {
         delete recipes[name];
-        localStorage.setItem('dg_cost_recipes_v5', JSON.stringify(recipes));
+        localStorage.setItem('dg_cost_recipes_v6', JSON.stringify(recipes));
         init();
     }
 }
