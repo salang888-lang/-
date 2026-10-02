@@ -83,7 +83,6 @@
             text-align: center;
         }
 
-        .weight-input { background: #4a1f23; border: 2px solid #d3524b !important; color: #ffda79; }
         .green-input { background: #1e382b; border: 2px solid #52d37c !important; color: #52d37c; }
 
         .row {
@@ -99,7 +98,17 @@
         }
         .row-name { font-size: 12px; flex: 1.8; word-break: break-word; }
         .row-input-small { width: 68px !important; height: 34px !important; margin-bottom: 0 !important; text-align: center; font-size: 12px !important; padding: 2px !important; background: #2b1819 !important; border: 1px solid #5e2c30 !important; color: #ffda79 !important; }
-        .row-cost { font-size: 12px; color: #bda8a8; width: 60px; text-align: right; }
+        .row-val-text { font-size: 12px; width: 68px; text-align: center; color: #ffda79; font-weight: bold; }
+        .row-cost { font-size: 12px; color: #bda8a8; width: 65px; text-align: right; }
+
+        .section-sub {
+            font-size: 13px;
+            color: #ffda79;
+            margin-top: 12px;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #4a2426;
+            padding-bottom: 4px;
+        }
 
         /* СЕТКА КАМЕРЫ */
         .chamber-item {
@@ -152,7 +161,7 @@
         
         .btn-main { background: #d3524b; color: white; font-weight: bold; border: none; cursor: pointer; padding: 12px; font-size: 16px; }
         .btn-sec { background: #522429; color: white; border: none; cursor: pointer; }
-        .ing-edit-row { display: flex; gap: 6px; margin-bottom: 6px; }
+        .ing-edit-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
     </style>
 </head>
 <body>
@@ -170,16 +179,30 @@
     <div id="section_single">
         <div class="card">
             <label style="font-size: 12px; color: #bda8a8; display: block; margin-bottom: 4px;">Выберите рецепт:</label>
-            <select id="recipeSelect" onchange="calculateSingle()"></select>
+            <select id="recipeSelect" onchange="onRecipeSelectChange()"></select>
             
-            <h3 style="margin-top: 14px;">Параметры партии</h3>
-            <label style="font-size: 12px; color: #bda8a8; margin-bottom: 4px; display: block;">Мясное сырье (кг):</label>
-            <input type="number" id="meatWeight" class="weight-input" style="height: 44px;" value="1.0" step="0.1" oninput="calculateSingle()">
+            <div class="section-sub">🥩 Мясное сырье (вес и цена каждого вида):</div>
+            <div style="display: flex; gap: 4px; font-size: 10px; color: #bda8a8; margin-bottom: 4px; padding: 0 4px;">
+                <span style="flex:1.6;">Вид мяса</span>
+                <span style="width:68px; text-align:center;">Вес (кг)</span>
+                <span style="width:68px; text-align:center;">Цена/кг</span>
+                <span style="width:65px; text-align:right;">Итог</span>
+            </div>
+            <div id="singleMeatList"></div>
 
-            <div class="input-row">
+            <div class="section-sub">🧂 Специи и добавки (на 1 кг сырья / авторасчет):</div>
+            <div style="display: flex; gap: 4px; font-size: 10px; color: #bda8a8; margin-bottom: 4px; padding: 0 4px;">
+                <span style="flex:1.6;">Компонент</span>
+                <span style="width:68px; text-align:center;">Грамм</span>
+                <span style="width:68px; text-align:center;">Цена/кг</span>
+                <span style="width:65px; text-align:right;">Итог</span>
+            </div>
+            <div id="singleAdditivesList"></div>
+
+            <div class="input-row" style="margin-top: 14px;">
                 <div class="input-col">
-                    <label>Вес ГОТОВОГО (кг):</label>
-                    <input type="number" id="finishedWeightInput" class="green-input" placeholder="0.850" step="0.01" oninput="calculateSingle()">
+                    <label>Вес ГОТОВОГО изделия (кг):</label>
+                    <input type="number" id="finishedWeightInput" class="green-input" placeholder="2.400" step="0.01" oninput="calculateSingle()">
                 </div>
                 <div class="input-col">
                     <label>Цена продажи (грн/кг):</label>
@@ -187,20 +210,7 @@
                 </div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; margin-bottom: 8px;">
-                <h4 style="margin: 0; color: #d3524b; font-size: 13px;">Ингредиенты (вес и цену можно менять):</h4>
-                <button onclick="resetRecipeToDefault()" style="width: auto; margin-bottom: 0; padding: 4px 8px; font-size: 11px; background: #3b1b1e; border: 1px solid #5e2c30; color: #bda8a8;">🔄 Сбросить вес</button>
-            </div>
-            
-            <div style="display: flex; gap: 4px; font-size: 10px; color: #bda8a8; margin-bottom: 4px; padding: 0 4px;">
-                <span style="flex:1.8;">Компонент</span>
-                <span style="width:68px; text-align:center;">Кол-во</span>
-                <span style="width:68px; text-align:center;">Цена/кг</span>
-                <span style="width:60px; text-align:right;">Итог</span>
-            </div>
-            <div id="resultsList"></div>
-
-            <h4 style="margin-bottom: 8px; margin-top: 16px; color: #ffda79;">Итоги по 1 рецепту:</h4>
+            <h4 style="margin-bottom: 8px; margin-top: 16px; color: #ffda79;">Итоги по партии:</h4>
             <div id="financialBlock"></div>
         </div>
     </div>
@@ -210,18 +220,15 @@
         <div class="card">
             <h3 style="color: #ffda79;">💨 Добавить изделие в коптильню</h3>
             
-            <label style="font-size: 11px; color: #bda8a8;">Выберите рецепт из списка:</label>
-            <select id="chamberRecipeAddSelect"></select>
+            <label style="font-size: 11px; color: #bda8a8;">Выберите рецепт:</label>
+            <select id="chamberRecipeAddSelect" onchange="updateChamberDefaultMeats()"></select>
 
-            <div class="input-row" style="margin-top: 4px;">
-                <div class="input-col">
-                    <label>Мясное сырьё (кг):</label>
-                    <input type="number" id="chamberMeatKgInput" placeholder="2.0" value="2.0" step="0.1">
-                </div>
-                <div class="input-col">
-                    <label>Розничная цена (грн/кг):</label>
-                    <input type="number" id="chamberRetailPriceInput" placeholder="380" step="10" value="380">
-                </div>
+            <div id="chamberMeatInputsContainer" style="margin-top: 8px;"></div>
+            <div id="chamberAdditivesPreviewContainer" style="margin-top: 8px;"></div>
+
+            <div class="input-col" style="margin-top: 8px;">
+                <label>Розничная цена (грн/кг):</label>
+                <input type="number" id="chamberRetailPriceInput" placeholder="250" step="10" value="250" style="height: 40px; text-align: center;">
             </div>
 
             <button class="btn-main" style="margin-top: 10px;" onclick="addRecipeToChamberBatch()">➕ Добавить в камеру</button>
@@ -249,68 +256,61 @@
 
         <div class="card" id="newRecipeBlock" style="display: none;">
             <h3 id="formTitle">Новый рецепт</h3>
-            <input type="text" id="newRecipeName" placeholder="Название (например: Краковская)">
+            <input type="text" id="newRecipeName" placeholder="Название (например: Куриные части)">
 
-            <div style="display: flex; gap: 6px; font-size: 11px; color: #bda8a8; margin-top: 8px;">
-                <span style="flex:2;">Ингредиент</span>
-                <span style="width:70px;">г на 1кг</span>
-                <span style="width:80px;">грн/кг</span>
-            </div>
+            <h4 style="color:#d3524b; margin-top:10px; margin-bottom:4px; font-size:13px;">Мясная база (базовый вес и цена):</h4>
+            <div id="editMeatInputs"></div>
+            <button class="btn-sec" style="margin-bottom: 12px; font-size:12px; padding:6px;" onclick="addEditMeatInput()">+ Добавить вид мяса</button>
+
+            <h4 style="color:#ffda79; margin-top:10px; margin-bottom:4px; font-size:13px;">Специи и добавки (грамм на 1 кг мяса):</h4>
+            <div id="editAdditiveInputs"></div>
+            <button class="btn-sec" style="margin-bottom: 12px; font-size:12px; padding:6px;" onclick="addEditAdditiveInput()">+ Добавить компонент</button>
             
-            <div id="newIngredientsInputs"></div>
-            
-            <button class="btn-sec" onclick="addIngredientInput()">+ Добавить компонент</button>
-            <button class="btn-main" style="margin-top: 10px;" onclick="saveRecipe()">💾 Сохранить рецепт</button>
+            <button class="btn-main" style="margin-top: 6px;" onclick="saveRecipe()">💾 Сохранить рецепт</button>
             <button class="btn-sec" style="margin-top: 5px; background: transparent;" onclick="cancelNewRecipe()">Отмена</button>
         </div>
     </div>
 
 <script>
 let defaultRecipes = {
-    "Куринные части": {
-        ingredients: [
-            { name: "Крылья", gramsPerKg: 333.3, pricePerKg: 120 },
-            { name: "Голени", gramsPerKg: 333.3, pricePerKg: 100 },
-            { name: "Окорочка", gramsPerKg: 333.3, pricePerKg: 110 },
+    "Куриные части": {
+        meats: [
+            { name: "Крылья", weightKg: 1.0, pricePerKg: 120 },
+            { name: "Голени", weightKg: 1.0, pricePerKg: 100 },
+            { name: "Окорочка", weightKg: 1.0, pricePerKg: 110 }
+        ],
+        additives: [
             { name: "Вода", gramsPerKg: 220, pricePerKg: 0 },
-            { name: "Перец чёрный", gramsPerKg: 0.67, pricePerKg: 400 },
-            { name: "Чили перец", gramsPerKg: 0.17, pricePerKg: 350 },
+            { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
+            { name: "Чили перец", gramsPerKg: 0.5, pricePerKg: 350 },
             { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
             { name: "Глутамат", gramsPerKg: 1.5, pricePerKg: 300 }
         ]
     },
     "Краковская классика": {
-        ingredients: [
-            { name: "Свинина полужирная", gramsPerKg: 700, pricePerKg: 180 },
-            { name: "Грудинка свиная", gramsPerKg: 300, pricePerKg: 160 },
+        meats: [
+            { name: "Свинина полужирная", weightKg: 0.7, pricePerKg: 180 },
+            { name: "Грудинка свиная", weightKg: 0.3, pricePerKg: 160 }
+        ],
+        additives: [
             { name: "Вода ледяная / Лёд", gramsPerKg: 100, pricePerKg: 0 },
-            { name: "Соль нитритная (0.5%)", gramsPerKg: 18, pricePerKg: 50 },
+            { name: "Соль нитритная", gramsPerKg: 18, pricePerKg: 50 },
             { name: "Сахар / Декстроза", gramsPerKg: 2, pricePerKg: 40 },
             { name: "Перец чёрный молотый", gramsPerKg: 2, pricePerKg: 400 },
             { name: "Чеснок свежий", gramsPerKg: 2, pricePerKg: 120 },
             { name: "Фосфат пищевой", gramsPerKg: 3, pricePerKg: 220 },
             { name: "Оболочка коллаген 45мм", gramsPerKg: 2, pricePerKg: 15 }
         ]
-    },
-    "Кабаноси": {
-        ingredients: [
-            { name: "Свинина постная", gramsPerKg: 1000, pricePerKg: 190 },
-            { name: "Вода ледяная", gramsPerKg: 50, pricePerKg: 0 },
-            { name: "Соль нитритная", gramsPerKg: 20, pricePerKg: 50 },
-            { name: "Паприка копчёная", gramsPerKg: 4, pricePerKg: 350 },
-            { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
-            { name: "Стартовые культуры", gramsPerKg: 0.6, pricePerKg: 2500 }
-        ]
     }
 };
 
-let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v6')) || defaultRecipes;
-let activeCustomGrams = JSON.parse(localStorage.getItem('dg_custom_grams_v6')) || {};
-let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v6')) || [];
+let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v10')) || defaultRecipes;
+let activeRecipeState = JSON.parse(localStorage.getItem('dg_active_state_v10')) || {};
+let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v10')) || [];
 
 function init() {
     updateRecipeSelects();
-    calculateSingle();
+    onRecipeSelectChange();
     renderChamberItemsList();
     renderRecipeManagerList();
 }
@@ -324,7 +324,10 @@ function switchTab(tab) {
     document.getElementById('tab_multi').classList.toggle('active', tab === 'multi');
     document.getElementById('tab_recipes').classList.toggle('active', tab === 'recipes');
 
-    if (tab === 'multi') renderChamberItemsList();
+    if (tab === 'multi') {
+        updateChamberDefaultMeats();
+        renderChamberItemsList();
+    }
     if (tab === 'recipes') renderRecipeManagerList();
 }
 
@@ -351,155 +354,137 @@ function updateRecipeSelects() {
     if (currentVal2 && recipes[currentVal2]) s2.value = currentVal2;
 }
 
-/* 1. РАСЧЕТ ОДНОГО РЕЦЕПТА */
-function calculateSingle() {
+function getActiveRecipeData(recipeName) {
+    if (!recipes[recipeName]) return null;
+    if (!activeRecipeState[recipeName]) {
+        activeRecipeState[recipeName] = JSON.parse(JSON.stringify(recipes[recipeName]));
+    }
+    return activeRecipeState[recipeName];
+}
+
+function onRecipeSelectChange() {
     const recipeName = document.getElementById('recipeSelect').value;
-    const baseMeatKg = parseFloat(document.getElementById('meatWeight').value) || 0;
-    const finishedWeight = parseFloat(document.getElementById('finishedWeightInput').value) || 0;
-    const sellPrice = parseFloat(document.getElementById('sellPrice').value) || 0;
+    const data = getActiveRecipeData(recipeName);
+    if (!data) return;
+
+    renderSingleInputs(recipeName);
+    calculateSingle();
+}
+
+function renderSingleInputs(recipeName) {
+    const data = getActiveRecipeData(recipeName);
+    const meatContainer = document.getElementById('singleMeatList');
+    const addContainer = document.getElementById('singleAdditivesList');
     
-    const resultsList = document.getElementById('resultsList');
-    const financialBlock = document.getElementById('financialBlock');
-    
-    if (!recipeName || !recipes[recipeName]) {
-        resultsList.innerHTML = '<div style="color:#bda8a8; text-align:center;">Выберите или создайте рецепт</div>';
-        financialBlock.innerHTML = '';
-        return;
-    }
+    meatContainer.innerHTML = '';
+    addContainer.innerHTML = '';
 
-    const ingredients = recipes[recipeName].ingredients;
-    if (!activeCustomGrams[recipeName]) {
-        activeCustomGrams[recipeName] = {};
-    }
+    if (!data) return;
 
-    resultsList.innerHTML = '';
-    
-    let totalBatchCost = 0;
-    let totalRawWeightGrams = 0;
+    // Рендер мяса
+    data.meats.forEach((m, idx) => {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+            <span class="row-name">${m.name}</span>
+            <input type="number" step="0.05" class="row-input-small" value="${m.weightKg}" oninput="updateSingleMeat(${idx}, 'weightKg', this.value)">
+            <input type="number" step="1" class="row-input-small" value="${m.pricePerKg}" oninput="updateSingleMeat(${idx}, 'pricePerKg', this.value)">
+            <span class="row-cost" id="meat_cost_${idx}">${(m.weightKg * m.pricePerKg).toFixed(2)} грн</span>
+        `;
+        meatContainer.appendChild(row);
+    });
 
-    ingredients.forEach((item, index) => {
-        let gramsPerKg = (activeCustomGrams[recipeName][index] !== undefined) 
-            ? activeCustomGrams[recipeName][index] 
-            : item.gramsPerKg;
+    // Считаем общий вес мяса для авторасчета специй
+    let totalMeatKg = data.meats.reduce((sum, m) => sum + (parseFloat(m.weightKg) || 0), 0);
 
-        const totalGrams = gramsPerKg * baseMeatKg;
-        totalRawWeightGrams += totalGrams;
-
-        const currentPricePerKg = item.pricePerKg || 0;
-        const itemCost = (totalGrams / 1000) * currentPricePerKg;
-        totalBatchCost += itemCost;
+    // Рендер специй (исходя из веса мяса, цены менять можно)
+    data.additives.forEach((a, idx) => {
+        let totalGrams = (a.gramsPerKg || 0) * totalMeatKg;
+        let totalCost = (totalGrams / 1000) * (a.pricePerKg || 0);
 
         const row = document.createElement('div');
         row.className = 'row';
         row.innerHTML = `
-            <span class="row-name">${item.name}</span>
-            <input type="number" step="0.1" class="row-input-small" value="${gramsPerKg}" title="Гр на 1кг сырья" oninput="updateSingleGrams('${recipeName}', ${index}, this.value)">
-            <input type="number" step="1" class="row-input-small" value="${currentPricePerKg}" title="Цена за 1 кг" oninput="updateSingleIngredientPrice('${recipeName}', ${index}, this.value)">
-            <span class="row-cost" id="cost_row_${index}">${itemCost.toFixed(2)} грн</span>
+            <span class="row-name">${a.name} <span style="font-size:10px; color:#bda8a8;">(${a.gramsPerKg}г/кг)</span></span>
+            <span class="row-val-text" id="add_grams_${idx}">${totalGrams < 1000 ? totalGrams.toFixed(1) + ' г' : (totalGrams/1000).toFixed(3) + ' кг'}</span>
+            <input type="number" step="1" class="row-input-small" value="${a.pricePerKg}" oninput="updateSingleAdditivePrice(${idx}, this.value)">
+            <span class="row-cost" id="add_cost_${idx}">${totalCost.toFixed(2)} грн</span>
         `;
-        resultsList.appendChild(row);
+        addContainer.appendChild(row);
+    });
+}
+
+function updateSingleMeat(idx, field, val) {
+    const recipeName = document.getElementById('recipeSelect').value;
+    const data = getActiveRecipeData(recipeName);
+    if (!data) return;
+
+    data.meats[idx][field] = parseFloat(val) || 0;
+    
+    const costSpan = document.getElementById(`meat_cost_${idx}`);
+    if (costSpan) {
+        costSpan.innerText = (data.meats[idx].weightKg * data.meats[idx].pricePerKg).toFixed(2) + ' грн';
+    }
+
+    // Пересчитываем граммы специй для всех специй в реальном времени
+    let totalMeatKg = data.meats.reduce((sum, m) => sum + (parseFloat(m.weightKg) || 0), 0);
+    data.additives.forEach((a, aIdx) => {
+        let totalGrams = (a.gramsPerKg || 0) * totalMeatKg;
+        let totalCost = (totalGrams / 1000) * (a.pricePerKg || 0);
+
+        let gElem = document.getElementById(`add_grams_${aIdx}`);
+        let cElem = document.getElementById(`add_cost_${aIdx}`);
+        if (gElem) gElem.innerText = totalGrams < 1000 ? totalGrams.toFixed(1) + ' г' : (totalGrams/1000).toFixed(3) + ' кг';
+        if (cElem) cElem.innerText = totalCost.toFixed(2) + ' грн';
     });
 
-    const totalRawKg = (totalRawWeightGrams / 1000).toFixed(3);
-
-    if (finishedWeight > 0) {
-        const weightLossKg = (totalRawKg - finishedWeight).toFixed(3);
-        const shrinkagePct = ((weightLossKg / totalRawKg) * 100).toFixed(1);
-        const yieldPct = ((finishedWeight / totalRawKg) * 100).toFixed(1);
-        const costPerKgFinished = (totalBatchCost / finishedWeight).toFixed(2);
-        
-        const revenue = (finishedWeight * sellPrice).toFixed(2);
-        const profit = (revenue - totalBatchCost).toFixed(2);
-
-        financialBlock.innerHTML = `
-            <div class="fin-row"><span>Общий вес замеса ДО коптильни:</span> <span><strong>${totalRawKg} кг</strong></span></div>
-            <div class="fin-row"><span>Затраты на партию:</span> <span><strong>${totalBatchCost.toFixed(2)} грн</strong></span></div>
-            <div class="fin-row"><span>Потеря веса (усушка):</span> <span style="color:#ff9d9d;">${weightLossKg} кг (${shrinkagePct}%)</span></div>
-            <div class="fin-row"><span>Фактический выход:</span> <span style="color:#52d37c; font-weight:bold;">${yieldPct}% (${finishedWeight} кг)</span></div>
-            <div class="fin-row" style="font-size:15px;"><span>СЕБЕСТОИМОСТЬ 1 КГ ГОТОВОГО:</span> <span style="color:#ffda79; font-weight:bold;">${costPerKgFinished} грн/кг</span></div>
-            ${sellPrice > 0 ? `
-                <div class="fin-row"><span>Выручка от продажи:</span> <span>${revenue} грн</span></div>
-                <div class="fin-row"><span>Чистая прибыль с партии:</span> <span style="color:#52d37c; font-weight:bold;">${profit} грн</span></div>
-            ` : ''}
-        `;
-    } else {
-        financialBlock.innerHTML = `
-            <div class="fin-row"><span>Общий вес замеса ДО коптильни:</span> <span><strong>${totalRawKg} кг</strong></span></div>
-            <div class="fin-row"><span>Затраты на партию:</span> <span><strong>${totalBatchCost.toFixed(2)} грн</strong></span></div>
-        `;
-    }
+    calculateSingle();
 }
 
-function updateSingleGrams(recipeName, ingIndex, newGrams) {
-    if (!activeCustomGrams[recipeName]) activeCustomGrams[recipeName] = {};
-    activeCustomGrams[recipeName][ingIndex] = parseFloat(newGrams) || 0;
-    localStorage.setItem('dg_custom_grams_v6', JSON.stringify(activeCustomGrams));
-
-    const baseMeatKg = parseFloat(document.getElementById('meatWeight').value) || 0;
-    const ing = recipes[recipeName].ingredients[ingIndex];
-    const gramsPerKg = activeCustomGrams[recipeName][ingIndex];
-    const totalGrams = gramsPerKg * baseMeatKg;
-    const newItemCost = (totalGrams / 1000) * (ing.pricePerKg || 0);
-
-    const costSpan = document.getElementById(`cost_row_${ingIndex}`);
-    if (costSpan) costSpan.innerText = newItemCost.toFixed(2) + ' грн';
-
-    calculateFinancialTotalsOnly();
-}
-
-function updateSingleIngredientPrice(recipeName, ingIndex, newPrice) {
-    if (recipes[recipeName] && recipes[recipeName].ingredients[ingIndex]) {
-        recipes[recipeName].ingredients[ingIndex].pricePerKg = parseFloat(newPrice) || 0;
-        localStorage.setItem('dg_cost_recipes_v6', JSON.stringify(recipes));
-        
-        const baseMeatKg = parseFloat(document.getElementById('meatWeight').value) || 0;
-        const ing = recipes[recipeName].ingredients[ingIndex];
-        let gramsPerKg = (activeCustomGrams[recipeName] && activeCustomGrams[recipeName][ingIndex] !== undefined)
-            ? activeCustomGrams[recipeName][ingIndex]
-            : ing.gramsPerKg;
-
-        const totalGrams = gramsPerKg * baseMeatKg;
-        const newItemCost = (totalGrams / 1000) * ing.pricePerKg;
-        
-        const costSpan = document.getElementById(`cost_row_${ingIndex}`);
-        if (costSpan) costSpan.innerText = newItemCost.toFixed(2) + ' грн';
-        
-        calculateFinancialTotalsOnly();
-    }
-}
-
-function resetRecipeToDefault() {
+function updateSingleAdditivePrice(idx, newPrice) {
     const recipeName = document.getElementById('recipeSelect').value;
-    if (recipeName && activeCustomGrams[recipeName]) {
-        delete activeCustomGrams[recipeName];
-        localStorage.setItem('dg_custom_grams_v6', JSON.stringify(activeCustomGrams));
-        calculateSingle();
-    }
+    const data = getActiveRecipeData(recipeName);
+    if (!data) return;
+
+    data.additives[idx].pricePerKg = parseFloat(newPrice) || 0;
+    let totalMeatKg = data.meats.reduce((sum, m) => sum + (parseFloat(m.weightKg) || 0), 0);
+    let totalGrams = (data.additives[idx].gramsPerKg || 0) * totalMeatKg;
+    let totalCost = (totalGrams / 1000) * data.additives[idx].pricePerKg;
+
+    const costElem = document.getElementById(`add_cost_${idx}`);
+    if (costElem) costElem.innerText = totalCost.toFixed(2) + ' грн';
+
+    calculateSingle();
 }
 
-function calculateFinancialTotalsOnly() {
+function calculateSingle() {
     const recipeName = document.getElementById('recipeSelect').value;
-    const baseMeatKg = parseFloat(document.getElementById('meatWeight').value) || 0;
+    const data = getActiveRecipeData(recipeName);
     const finishedWeight = parseFloat(document.getElementById('finishedWeightInput').value) || 0;
     const sellPrice = parseFloat(document.getElementById('sellPrice').value) || 0;
-    
-    if (!recipeName || !recipes[recipeName]) return;
+    const financialBlock = document.getElementById('financialBlock');
 
-    let totalBatchCost = 0;
-    let totalRawWeightGrams = 0;
+    if (!data) return;
 
-    recipes[recipeName].ingredients.forEach((item, index) => {
-        let gramsPerKg = (activeCustomGrams[recipeName] && activeCustomGrams[recipeName][index] !== undefined)
-            ? activeCustomGrams[recipeName][index]
-            : item.gramsPerKg;
-
-        const totalGrams = gramsPerKg * baseMeatKg;
-        totalRawWeightGrams += totalGrams;
-        totalBatchCost += (totalGrams / 1000) * (item.pricePerKg || 0);
+    let totalMeatKg = 0;
+    let totalMeatCost = 0;
+    data.meats.forEach(m => {
+        let w = parseFloat(m.weightKg) || 0;
+        let p = parseFloat(m.pricePerKg) || 0;
+        totalMeatKg += w;
+        totalMeatCost += w * p;
     });
 
-    const totalRawKg = (totalRawWeightGrams / 1000).toFixed(3);
-    const financialBlock = document.getElementById('financialBlock');
+    let totalAdditivesCost = 0;
+    let totalAdditivesWeightGrams = 0;
+    data.additives.forEach(a => {
+        let grams = (a.gramsPerKg || 0) * totalMeatKg;
+        totalAdditivesWeightGrams += grams;
+        totalAdditivesCost += (grams / 1000) * (a.pricePerKg || 0);
+    });
+
+    let totalRawKg = totalMeatKg + (totalAdditivesWeightGrams / 1000);
+    let totalBatchCost = totalMeatCost + totalAdditivesCost;
 
     if (finishedWeight > 0) {
         const weightLossKg = (totalRawKg - finishedWeight).toFixed(3);
@@ -511,8 +496,8 @@ function calculateFinancialTotalsOnly() {
         const profit = (revenue - totalBatchCost).toFixed(2);
 
         financialBlock.innerHTML = `
-            <div class="fin-row"><span>Общий вес замеса ДО коптильни:</span> <span><strong>${totalRawKg} кг</strong></span></div>
-            <div class="fin-row"><span>Затраты на партию:</span> <span><strong>${totalBatchCost.toFixed(2)} грн</strong></span></div>
+            <div class="fin-row"><span>Общий вес сырья ДО коптильни:</span> <span><strong>${totalRawKg.toFixed(3)} кг</strong> (мясо: ${totalMeatKg.toFixed(2)} кг)</span></div>
+            <div class="fin-row"><span>Затраты на всю партию:</span> <span><strong>${totalBatchCost.toFixed(2)} грн</strong></span></div>
             <div class="fin-row"><span>Потеря веса (усушка):</span> <span style="color:#ff9d9d;">${weightLossKg} кг (${shrinkagePct}%)</span></div>
             <div class="fin-row"><span>Фактический выход:</span> <span style="color:#52d37c; font-weight:bold;">${yieldPct}% (${finishedWeight} кг)</span></div>
             <div class="fin-row" style="font-size:15px;"><span>СЕБЕСТОИМОСТЬ 1 КГ ГОТОВОГО:</span> <span style="color:#ffda79; font-weight:bold;">${costPerKgFinished} грн/кг</span></div>
@@ -523,72 +508,92 @@ function calculateFinancialTotalsOnly() {
         `;
     } else {
         financialBlock.innerHTML = `
-            <div class="fin-row"><span>Общий вес замеса ДО коптильни:</span> <span><strong>${totalRawKg} кг</strong></span></div>
-            <div class="fin-row"><span>Затраты на партию:</span> <span><strong>${totalBatchCost.toFixed(2)} грн</strong></span></div>
+            <div class="fin-row"><span>Общий вес сырья ДО коптильни:</span> <span><strong>${totalRawKg.toFixed(3)} кг</strong> (мясо: ${totalMeatKg.toFixed(2)} кг)</span></div>
+            <div class="fin-row"><span>Затраты на всю партию:</span> <span><strong>${totalBatchCost.toFixed(2)} грн</strong></span></div>
         `;
     }
 }
 
 /* 2. ЗАГРУЗКА КАМЕРЫ */
+function updateChamberDefaultMeats() {
+    const name = document.getElementById('chamberRecipeAddSelect').value;
+    const container = document.getElementById('chamberMeatInputsContainer');
+    container.innerHTML = '';
+
+    const rec = recipes[name];
+    if (!rec) return;
+
+    let title = document.createElement('div');
+    title.style.cssText = "font-size:11px; color:#bda8a8; margin-bottom:4px;";
+    title.innerText = "Вес каждого вида мяса для закладки (кг):";
+    container.appendChild(title);
+
+    rec.meats.forEach((m, idx) => {
+        let div = document.createElement('div');
+        div.style.cssText = "display:flex; gap:6px; margin-bottom:4px; align-items:center;";
+        div.innerHTML = `
+            <span style="font-size:12px; flex:2;">${m.name}:</span>
+            <input type="number" step="0.1" value="${m.weightKg}" class="chamber_meat_input_${idx}" data-meat-idx="${idx}" style="height:34px; font-size:14px; text-align:center; width:90px;">
+        `;
+        container.appendChild(div);
+    });
+}
+
 function addRecipeToChamberBatch() {
     const name = document.getElementById('chamberRecipeAddSelect').value;
-    const meatKg = parseFloat(document.getElementById('chamberMeatKgInput').value) || 0;
     const retailPrice = parseFloat(document.getElementById('chamberRetailPriceInput').value) || 0;
+    const rec = recipes[name];
+    if (!rec) return;
 
-    if (!name || meatKg <= 0) {
-        alert("Укажите правильный вес мяса");
+    let meatsCopy = JSON.parse(JSON.stringify(rec.meats));
+    let totalMeatKg = 0;
+    meatsCopy.forEach((m, idx) => {
+        let inputElem = document.querySelector(`.chamber_meat_input_${idx}`);
+        if (inputElem) {
+            m.weightKg = parseFloat(inputElem.value) || 0;
+        }
+        totalMeatKg += m.weightKg;
+    });
+
+    if (totalMeatKg <= 0) {
+        alert("Укажите вес мяса");
         return;
     }
 
-    let totalRawGrams = 0;
-    if (recipes[name]) {
-        recipes[name].ingredients.forEach((ing, index) => {
-            let g = (activeCustomGrams[name] && activeCustomGrams[name][index] !== undefined)
-                ? activeCustomGrams[name][index]
-                : ing.gramsPerKg;
-            totalRawGrams += g * meatKg;
-        });
-    }
+    let additivesCopy = JSON.parse(JSON.stringify(rec.additives));
+    let totalAdditivesGrams = 0;
+    additivesCopy.forEach(a => {
+        let grams = (a.gramsPerKg || 0) * totalMeatKg;
+        totalAdditivesGrams += grams;
+    });
+
+    let totalRawKg = totalMeatKg + (totalAdditivesGrams / 1000);
 
     chamberBatchList.push({
         recipeName: name,
-        meatKg: meatKg,
-        rawWeightBeforeSmokeKg: (totalRawGrams / 1000),
-        finishedWeightKg: Number(((totalRawGrams / 1000) * 0.8).toFixed(2)),
+        meats: meatsCopy,
+        additives: additivesCopy,
+        finishedWeightKg: Number((totalRawKg * 0.8).toFixed(2)),
         retailPrice: retailPrice
     });
 
-    localStorage.setItem('dg_chamber_batch_v6', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v10', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
-function updateChamberItemField(index, field, value) {
-    chamberBatchList[index][field] = parseFloat(value) || 0;
-    
-    if (field === 'meatKg') {
-        let totalRawGrams = 0;
-        const rec = recipes[chamberBatchList[index].recipeName];
-        const rName = chamberBatchList[index].recipeName;
-        if (rec) {
-            rec.ingredients.forEach((ing, idx) => {
-                let g = (activeCustomGrams[rName] && activeCustomGrams[rName][idx] !== undefined)
-                    ? activeCustomGrams[rName][idx]
-                    : ing.gramsPerKg;
-                totalRawGrams += g * chamberBatchList[index].meatKg;
-            });
-        }
-        chamberBatchList[index].rawWeightBeforeSmokeKg = (totalRawGrams / 1000);
-        
-        const rawInput = document.getElementById(`raw_wt_${index}`);
-        if (rawInput) rawInput.value = chamberBatchList[index].rawWeightBeforeSmokeKg.toFixed(3);
-    }
+function updateChamberItemMeat(itemIdx, meatIdx, val) {
+    chamberBatchList[itemIdx].meats[meatIdx].weightKg = parseFloat(val) || 0;
+    localStorage.setItem('dg_chamber_batch_v10', JSON.stringify(chamberBatchList));
+}
 
-    localStorage.setItem('dg_chamber_batch_v6', JSON.stringify(chamberBatchList));
+function updateChamberItemField(itemIdx, field, val) {
+    chamberBatchList[itemIdx][field] = parseFloat(val) || 0;
+    localStorage.setItem('dg_chamber_batch_v10', JSON.stringify(chamberBatchList));
 }
 
 function removeChamberItem(index) {
     chamberBatchList.splice(index, 1);
-    localStorage.setItem('dg_chamber_batch_v6', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v10', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
@@ -602,18 +607,15 @@ function renderChamberItemsList() {
     }
 
     chamberBatchList.forEach((item, idx) => {
-        let totalRawGrams = 0;
-        const rec = recipes[item.recipeName];
-        const rName = item.recipeName;
-        if (rec) {
-            rec.ingredients.forEach((ing, iIdx) => {
-                let g = (activeCustomGrams[rName] && activeCustomGrams[rName][iIdx] !== undefined)
-                    ? activeCustomGrams[rName][iIdx]
-                    : ing.gramsPerKg;
-                totalRawGrams += g * item.meatKg;
-            });
-        }
-        const rawKg = (totalRawGrams / 1000).toFixed(3);
+        let meatsHtml = '';
+        item.meats.forEach((m, mIdx) => {
+            meatsHtml += `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; font-size:11px;">
+                    <span style="color:#bda8a8;">${m.name} (кг):</span>
+                    <input type="number" step="0.1" value="${m.weightKg}" style="width:75px; height:30px; text-align:center; font-size:12px; background:#2b1819; border:1px solid #5e2c30; color:#ffda79;" oninput="updateChamberItemMeat(${idx}, ${mIdx}, this.value)">
+                </div>
+            `;
+        });
 
         const div = document.createElement('div');
         div.className = 'chamber-item';
@@ -622,15 +624,8 @@ function renderChamberItemsList() {
                 <span>${item.recipeName}</span>
                 <button onclick="removeChamberItem(${idx})" style="width: auto; margin-bottom:0; padding:2px 8px; background:transparent; border:1px solid #d3524b; color:#d3524b;">✕</button>
             </div>
-            <div class="chamber-grid">
-                <div class="chamber-field">
-                    <label>Мясо сырья (кг):</label>
-                    <input type="number" step="0.1" value="${item.meatKg}" oninput="updateChamberItemField(${idx}, 'meatKg', this.value)">
-                </div>
-                <div class="chamber-field">
-                    <label style="color:#ffda79;">Вес ДО копч. (кг):</label>
-                    <input type="number" id="raw_wt_${idx}" value="${rawKg}" readonly style="background:#4a1f23; color:#ffda79; border-color:#d3524b;">
-                </div>
+            ${meatsHtml}
+            <div class="chamber-grid" style="margin-top:6px;">
                 <div class="chamber-field">
                     <label style="color:#52d37c;">Вес ПОСЛЕ (кг):</label>
                     <input type="number" step="0.01" class="green-input" value="${item.finishedWeightKg}" oninput="updateChamberItemField(${idx}, 'finishedWeightKg', this.value)">
@@ -647,7 +642,6 @@ function renderChamberItemsList() {
 
 function calculateMultiBatch() {
     const resultsBlock = document.getElementById('multiResultsBlock');
-
     if (chamberBatchList.length === 0) {
         resultsBlock.innerHTML = '<div style="color:#ff9d9d; text-align:center;">Добавьте изделия в камеру!</div>';
         return;
@@ -656,33 +650,41 @@ function calculateMultiBatch() {
     let totalRawGrams = 0;
     let totalFinishedWeight = 0;
     let totalCost = 0;
-    let consolidatedIngs = {};
     let totalRevenue = 0;
+    let consolidatedMeats = {};
+    let consolidatedAdditives = {};
 
     chamberBatchList.forEach(item => {
         const rec = recipes[item.recipeName];
-        const rName = item.recipeName;
         if (!rec) return;
 
         totalFinishedWeight += item.finishedWeightKg;
         totalRevenue += (item.finishedWeightKg * item.retailPrice);
 
-        rec.ingredients.forEach((ing, idx) => {
-            let g = (activeCustomGrams[rName] && activeCustomGrams[rName][idx] !== undefined)
-                ? activeCustomGrams[rName][idx]
-                : ing.gramsPerKg;
+        let totalMeatKg = 0;
+        item.meats.forEach(m => {
+            let w = parseFloat(m.weightKg) || 0;
+            let p = parseFloat(m.pricePerKg !== undefined ? m.pricePerKg : (rec.meats.find(x=>x.name===m.name)?.pricePerKg || 0));
+            totalMeatKg += w;
+            totalCost += w * p;
 
-            const ingGrams = g * item.meatKg;
-            const ingCost = (ingGrams / 1000) * (ing.pricePerKg || 0);
+            if (!consolidatedMeats[m.name]) consolidatedMeats[m.name] = { weight: 0, cost: 0 };
+            consolidatedMeats[m.name].weight += w;
+            consolidatedMeats[m.name].cost += w * p;
+        });
+
+        totalRawGrams += totalMeatKg * 1000;
+
+        rec.additives.forEach(a => {
+            let ingGrams = (a.gramsPerKg || 0) * totalMeatKg;
+            let ingCost = (ingGrams / 1000) * (a.pricePerKg || 0);
 
             totalRawGrams += ingGrams;
             totalCost += ingCost;
 
-            if (!consolidatedIngs[ing.name]) {
-                consolidatedIngs[ing.name] = { grams: 0, cost: 0 };
-            }
-            consolidatedIngs[ing.name].grams += ingGrams;
-            consolidatedIngs[ing.name].cost += ingCost;
+            if (!consolidatedAdditives[a.name]) consolidatedAdditives[a.name] = { grams: 0, cost: 0 };
+            consolidatedAdditives[a.name].grams += ingGrams;
+            consolidatedAdditives[a.name].cost += ingCost;
         });
     });
 
@@ -693,26 +695,23 @@ function calculateMultiBatch() {
     const avgCostPerKgFinished = totalFinishedWeight > 0 ? (totalCost / totalFinishedWeight).toFixed(2) : 0;
     const totalProfit = (totalRevenue - totalCost).toFixed(2);
 
-    let html = `
-        <h4 style="color:#d3524b; margin-bottom:8px; margin-top:14px;">Общий список закупок на ВСЮ коптильню:</h4>
-    `;
+    let html = `<h4 style="color:#d3524b; margin-bottom:6px; margin-top:10px;">Общий список закупок мяса:</h4>`;
+    for (let mName in consolidatedMeats) {
+        let m = consolidatedMeats[mName];
+        html += `<div class="row"><span class="row-name">${mName}</span><span style="font-size:12px; font-weight:bold; color:#ffda79; width:68px; text-align:center;">${m.weight.toFixed(2)} кг</span><span class="row-cost">${m.cost.toFixed(2)} грн</span></div>`;
+    }
 
-    for (let ingName in consolidatedIngs) {
-        const item = consolidatedIngs[ingName];
-        html += `
-            <div class="row">
-                <span class="row-name">${ingName}</span>
-                <span style="font-size:12px; font-weight:bold; color:#ffda79; width:68px; text-align:center;">${item.grams < 1000 ? item.grams.toFixed(1) + ' г' : (item.grams/1000).toFixed(3) + ' кг'}</span>
-                <span class="row-cost">${item.cost.toFixed(2)} грн</span>
-            </div>
-        `;
+    html += `<h4 style="color:#d3524b; margin-bottom:6px; margin-top:10px;">Общий список специй и воды:</h4>`;
+    for (let aName in consolidatedAdditives) {
+        let a = consolidatedAdditives[aName];
+        html += `<div class="row"><span class="row-name">${aName}</span><span style="font-size:12px; font-weight:bold; color:#ffda79; width:68px; text-align:center;">${a.grams < 1000 ? a.grams.toFixed(1) + ' г' : (a.grams/1000).toFixed(3) + ' кг'}</span><span class="row-cost">${a.cost.toFixed(2)} грн</span></div>`;
     }
 
     html += `
         <h4 style="color:#ffda79; margin-top:14px; margin-bottom:8px;">Сводные итоги коптильной камеры:</h4>
-        <div class="fin-row"><span>Общий вес закладки ДО коптильни:</span> <span><strong>${totalRawKg} кг</strong></span></div>
+        <div class="fin-row"><span>Общая закладка ДО коптильни:</span> <span><strong>${totalRawKg} кг</strong></span></div>
         <div class="fin-row"><span>Общий вес ПОСЛЕ коптильни:</span> <span style="color:#52d37c;"><strong>${totalFinishedWeight.toFixed(3)} кг</strong></span></div>
-        <div class="fin-row"><span>Общая потеря веса (усушка):</span> <span style="color:#ff9d9d;">${weightLossKg} кг (${shrinkagePct}%)</span></div>
+        <div class="fin-row"><span>Потеря веса (усушка):</span> <span style="color:#ff9d9d;">${weightLossKg} кг (${shrinkagePct}%)</span></div>
         <div class="fin-row"><span>Выход готовой продукции:</span> <span style="color:#52d37c; font-weight:bold;">${yieldPct}%</span></div>
         <div class="fin-row" style="font-size:15px;"><span>СРЕДНЯЯ СЕБЕСТОИМОСТЬ 1 КГ:</span> <span style="color:#ffda79; font-weight:bold;">${avgCostPerKgFinished} грн/кг</span></div>
         <div class="fin-row"><span>Общие затраты на партию:</span> <span><strong>${totalCost.toFixed(2)} грн</strong></span></div>
@@ -746,13 +745,16 @@ function renderRecipeManagerList() {
 function showNewRecipeForm() {
     document.getElementById('newRecipeBlock').style.display = 'block';
     document.getElementById('formTitle').innerText = 'Новый рецепт';
-    document.getElementById('newIngredientsInputs').innerHTML = '';
     document.getElementById('newRecipeName').value = '';
-    
-    addIngredientInput("Свинина полужирная", 700, 180);
-    addIngredientInput("Грудинка", 300, 160);
-    addIngredientInput("Вода ледяная", 100, 0);
-    addIngredientInput("Соль нитритная", 18, 50);
+    document.getElementById('editMeatInputs').innerHTML = '';
+    document.getElementById('editAdditiveInputs').innerHTML = '';
+
+    addEditMeatInput("Крылья", 1.0, 120);
+    addEditMeatInput("Голени", 1.0, 100);
+    addEditMeatInput("Окорочка", 1.0, 110);
+
+    addEditAdditiveInput("Вода", 220, 0);
+    addEditAdditiveInput("Фосфат", 2, 220);
 }
 
 function editRecipe(name) {
@@ -762,48 +764,69 @@ function editRecipe(name) {
     document.getElementById('newRecipeBlock').style.display = 'block';
     document.getElementById('formTitle').innerText = 'Редактирование: ' + name;
     document.getElementById('newRecipeName').value = name;
-    document.getElementById('newIngredientsInputs').innerHTML = '';
+    document.getElementById('editMeatInputs').innerHTML = '';
+    document.getElementById('editAdditiveInputs').innerHTML = '';
 
-    rec.ingredients.forEach(ing => {
-        addIngredientInput(ing.name, ing.gramsPerKg, ing.pricePerKg);
-    });
+    rec.meats.forEach(m => addEditMeatInput(m.name, m.weightKg, m.pricePerKg));
+    rec.additives.forEach(a => addEditAdditiveInput(a.name, a.gramsPerKg, a.pricePerKg));
 }
 
-function addIngredientInput(defaultName = '', defaultGrams = '', defaultPrice = '') {
+function addEditMeatInput(name = '', weight = 1, price = 100) {
     const div = document.createElement('div');
     div.className = 'ing-edit-row';
     div.innerHTML = `
-        <input type="text" placeholder="Название" class="ing-name" value="${defaultName}" style="flex:2;">
-        <input type="number" step="0.1" placeholder="г/кг" class="ing-grams" value="${defaultGrams}" style="width:70px;">
-        <input type="number" step="1" placeholder="грн/кг" class="ing-price" value="${defaultPrice}" style="width:80px;">
+        <input type="text" placeholder="Название мяса" class="edit-meat-name" value="${name}" style="flex:1.6;">
+        <input type="number" step="0.1" placeholder="кг" class="edit-meat-weight" value="${weight}" style="width:65px;">
+        <input type="number" step="1" placeholder="грн/кг" class="edit-meat-price" value="${price}" style="width:75px;">
     `;
-    document.getElementById('newIngredientsInputs').appendChild(div);
+    document.getElementById('editMeatInputs').appendChild(div);
+}
+
+function addEditAdditiveInput(name = '', gramsPerKg = 10, price = 0) {
+    const div = document.createElement('div');
+    div.className = 'ing-edit-row';
+    div.innerHTML = `
+        <input type="text" placeholder="Компонент/специя" class="edit-add-name" value="${name}" style="flex:1.6;">
+        <input type="number" step="0.1" placeholder="грамм/кг" class="edit-add-grams" value="${gramsPerKg}" style="width:65px;" title="Грамм на 1 кг мяса">
+        <input type="number" step="1" placeholder="грн/кг" class="edit-add-price" value="${price}" style="width:75px;">
+    `;
+    document.getElementById('editAdditiveInputs').appendChild(div);
 }
 
 function saveRecipe() {
     const name = document.getElementById('newRecipeName').value.trim();
     if (!name) { alert("Укажите название рецепта"); return; }
 
-    const names = document.querySelectorAll('.ing-name');
-    const grams = document.querySelectorAll('.ing-grams');
-    const prices = document.querySelectorAll('.ing-price');
-    
-    let list = [];
-    for (let i = 0; i < names.length; i++) {
-        let ingName = names[i].value.trim();
-        let ingGrams = parseFloat(grams[i].value) || 0;
-        let ingPrice = parseFloat(prices[i].value) || 0;
-        
-        if (ingName && ingGrams > 0) {
-            list.push({ name: ingName, gramsPerGramms: ingGrams, gramsPerKg: ingGrams, pricePerKg: ingPrice });
-        }
+    let meats = [];
+    let mNames = document.querySelectorAll('.edit-meat-name');
+    let mWeights = document.querySelectorAll('.edit-meat-weight');
+    let mPrices = document.querySelectorAll('.edit-meat-price');
+    for (let i = 0; i < mNames.length; i++) {
+        let mName = mNames[i].value.trim();
+        let mWeight = parseFloat(mWeights[i].value) || 0;
+        let mPrice = parseFloat(mPrices[i].value) || 0;
+        if (mName) meats.push({ name: mName, weightKg: mWeight, pricePerKg: mPrice });
     }
 
-    if (list.length === 0) { alert("Добавьте хотя бы один компонент"); return; }
+    let additives = [];
+    let aNames = document.querySelectorAll('.edit-add-name');
+    let aGrams = document.querySelectorAll('.edit-add-grams');
+    let aPrices = document.querySelectorAll('.edit-add-price');
+    for (let i = 0; i < aNames.length; i++) {
+        let aName = aNames[i].value.trim();
+        let aGram = parseFloat(aGrams[i].value) || 0;
+        let aPrice = parseFloat(aPrices[i].value) || 0;
+        if (aName) additives.push({ name: aName, gramsPerKg: aGram, pricePerKg: aPrice });
+    }
 
-    recipes[name] = { ingredients: list };
-    localStorage.setItem('dg_cost_recipes_v6', JSON.stringify(recipes));
+    if (meats.length === 0) { alert("Добавьте хотя бы один вид мяса"); return; }
+
+    recipes[name] = { meats: meats, additives: additives };
+    localStorage.setItem('dg_cost_recipes_v10', JSON.stringify(recipes));
     
+    if (activeRecipeState[name]) delete activeRecipeState[name];
+    localStorage.setItem('dg_active_state_v10', JSON.stringify(activeRecipeState));
+
     cancelNewRecipe();
     init();
 }
@@ -815,7 +838,7 @@ function cancelNewRecipe() {
 function deleteRecipe(name) {
     if (confirm(`Удалить рецепт "${name}"?`)) {
         delete recipes[name];
-        localStorage.setItem('dg_cost_recipes_v6', JSON.stringify(recipes));
+        localStorage.setItem('dg_cost_recipes_v10', JSON.stringify(recipes));
         init();
     }
 }
