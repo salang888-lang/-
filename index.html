@@ -23,6 +23,31 @@
             border: 1px solid #4a2426;
             box-shadow: 0 4px 10px rgba(0,0,0,0.4);
         }
+
+        /* ВКЛАДКИ НАВИГАЦИИ */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px 4px;
+            background: #3b1b1e;
+            border: 1px solid #5e2c30;
+            color: #bda8a8;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+        .tab-btn.active {
+            background: #d3524b;
+            color: white;
+            border-color: #d3524b;
+        }
+
         select, input, button {
             width: 100%;
             padding: 10px;
@@ -76,7 +101,6 @@
         .row-val { font-size: 14px; font-weight: bold; color: #ff9d9d; flex: 1; text-align: right; }
         .row-cost { font-size: 13px; color: #bda8a8; flex: 1; text-align: right; }
 
-        /* Таблица настройки нескольких рецептов */
         .multi-recipe-item {
             display: flex;
             flex-direction: column;
@@ -140,73 +164,92 @@
 
     <h2>🔥 Дымный Гурман</h2>
 
-    <!-- БЛОК 1: ОДИН РЕЦЕПТ -->
-    <div class="card" id="singleBlock">
-        <label style="font-size: 12px; color: #bda8a8; display: block; margin-bottom: 4px;">Выберите рецепт:</label>
-        <select id="recipeSelect" onchange="calculateSingle()"></select>
-        <button class="btn-sec" onclick="showNewRecipeForm()">➕ Добавить / Редактировать рецепт</button>
-        
-        <h3 style="margin-top: 14px;">Параметры партии</h3>
-        <label style="font-size: 12px; color: #bda8a8; margin-bottom: 4px; display: block;">Мясное сырье (кг):</label>
-        <input type="number" id="meatWeight" class="weight-input" style="height: 44px;" value="1.0" step="0.1" oninput="calculateSingle()">
-
-        <div class="input-row">
-            <div class="input-col">
-                <label>Вес ГОТОВОГО (кг):</label>
-                <input type="number" id="finishedWeightInput" class="green-input" placeholder="0.850" step="0.01" oninput="calculateSingle()">
-            </div>
-            <div class="input-col">
-                <label>Цена продажи (грн/кг):</label>
-                <input type="number" id="sellPrice" placeholder="0" oninput="calculateSingle()">
-            </div>
-        </div>
-
-        <h4 style="margin-bottom: 8px; margin-top: 16px; color: #d3524b;">Ингредиенты замеса:</h4>
-        <div id="resultsList"></div>
-
-        <h4 style="margin-bottom: 8px; margin-top: 16px; color: #ffda79;">Итоги по 1 рецепту:</h4>
-        <div id="financialBlock"></div>
-
-        <button class="btn-danger" style="width:100%; margin-top:12px; padding:8px;" onclick="deleteCurrentRecipe()">🗑 Удалить этот рецепт</button>
+    <!-- Вкладки навигации -->
+    <div class="tabs">
+        <div class="tab-btn active" id="tab_single" onclick="switchTab('single')">1 Рецепт</div>
+        <div class="tab-btn" id="tab_multi" onclick="switchTab('multi')">💨 Загрузка Камеры</div>
+        <div class="tab-btn" id="tab_recipes" onclick="switchTab('recipes')">📖 Мои Рецепты</div>
     </div>
 
-    <!-- БЛОК 2: СБОРНАЯ ПАРТИЯ / ЗАГРУЗКА КАМЕРЫ -->
-    <div class="card" style="border: 2px solid #ffda79;">
-        <h3 style="color: #ffda79;">💨 Сборная партия / Загрузка коптильни</h3>
-        <p style="font-size: 12px; color: #bda8a8; margin-top: -6px;">Укажите сырьё и цену продажи для каждого изделия:</p>
-        
-        <div id="multiRecipesList"></div>
+    <!-- 1. ВКТАДКА: ОДИН РЕЦЕПТ -->
+    <div id="section_single">
+        <div class="card">
+            <label style="font-size: 12px; color: #bda8a8; display: block; margin-bottom: 4px;">Выберите рецепт:</label>
+            <select id="recipeSelect" onchange="calculateSingle()"></select>
+            
+            <h3 style="margin-top: 14px;">Параметры партии</h3>
+            <label style="font-size: 12px; color: #bda8a8; margin-bottom: 4px; display: block;">Мясное сырье (кг):</label>
+            <input type="number" id="meatWeight" class="weight-input" style="height: 44px;" value="1.0" step="0.1" oninput="calculateSingle()">
 
-        <hr style="border: 0; border-top: 1px dashed #5e2c30; margin: 16px 0;">
-
-        <div class="input-row">
-            <div class="input-col">
-                <label>Вес всей партии ПОСЛЕ коптильни (кг):</label>
-                <input type="number" id="multiFinishedWeight" class="green-input" placeholder="например: 4.200" step="0.05">
+            <div class="input-row">
+                <div class="input-col">
+                    <label>Вес ГОТОВОГО (кг):</label>
+                    <input type="number" id="finishedWeightInput" class="green-input" placeholder="0.850" step="0.01" oninput="calculateSingle()">
+                </div>
+                <div class="input-col">
+                    <label>Цена продажи (грн/кг):</label>
+                    <input type="number" id="sellPrice" placeholder="0" oninput="calculateSingle()">
+                </div>
             </div>
+
+            <h4 style="margin-bottom: 8px; margin-top: 16px; color: #d3524b;">Ингредиенты замеса:</h4>
+            <div id="resultsList"></div>
+
+            <h4 style="margin-bottom: 8px; margin-top: 16px; color: #ffda79;">Итоги по 1 рецепту:</h4>
+            <div id="financialBlock"></div>
         </div>
-
-        <button class="btn-main" style="margin-top: 12px;" onclick="calculateMultiBatch()">🔥 Посчитать всю партию</button>
-
-        <div id="multiResultsBlock" style="margin-top: 14px;"></div>
     </div>
 
-    <!-- ФОРМА СОЗДАНИЯ РЕЦЕПТА -->
-    <div class="card" id="newRecipeBlock" style="display: none;">
-        <h3>Создание / Правка рецепта</h3>
-        <input type="text" id="newRecipeName" placeholder="Название (например: Краковская)">
+    <!-- 2. ВКЛАДКА: ЗАГРУЗКА КАМЕРЫ -->
+    <div id="section_multi" style="display: none;">
+        <div class="card">
+            <h3 style="color: #ffda79;">💨 Сборная партия / Загрузка коптильни</h3>
+            <p style="font-size: 12px; color: #bda8a8; margin-top: -6px;">Укажите сырьё и цену продажи для каждого изделия:</p>
+            
+            <div id="multiRecipesList"></div>
 
-        <div style="display: flex; gap: 6px; font-size: 11px; color: #bda8a8; margin-top: 8px;">
-            <span style="flex:2;">Ингредиент</span>
-            <span style="width:70px;">г на 1кг</span>
-            <span style="width:80px;">грн/кг</span>
+            <hr style="border: 0; border-top: 1px dashed #5e2c30; margin: 16px 0;">
+
+            <div class="input-row">
+                <div class="input-col">
+                    <label>Вес всей партии ПОСЛЕ коптильни (кг):</label>
+                    <input type="number" id="multiFinishedWeight" class="green-input" placeholder="например: 4.200" step="0.05">
+                </div>
+            </div>
+
+            <button class="btn-main" style="margin-top: 12px;" onclick="calculateMultiBatch()">🔥 Посчитать всю партию</button>
+
+            <div id="multiResultsBlock" style="margin-top: 14px;"></div>
         </div>
-        
-        <div id="newIngredientsInputs"></div>
-        
-        <button class="btn-sec" onclick="addIngredientInput()">+ Добавить компонент</button>
-        <button class="btn-main" style="margin-top: 10px;" onclick="saveRecipe()">💾 Сохранить рецепт</button>
-        <button class="btn-sec" style="margin-top: 5px; background: transparent;" onclick="cancelNewRecipe()">Отмена</button>
+    </div>
+
+    <!-- 3. ВКЛАДКА: МОИ РЕЦЕПТЫ (Управление и создание) -->
+    <div id="section_recipes" style="display: none;">
+        <div class="card">
+            <h3>📖 Управление рецептами</h3>
+            <button class="btn-main" onclick="showNewRecipeForm()">➕ Создать новый рецепт</button>
+            
+            <h4 style="margin-top:16px; color:#ffda79;">Сохранённые рецепты:</h4>
+            <div id="recipeManagerList"></div>
+        </div>
+
+        <!-- ФОРМА СОЗДАНИЯ/РЕДАКТИРОВАНИЯ -->
+        <div class="card" id="newRecipeBlock" style="display: none;">
+            <h3 id="formTitle">Новый рецепт</h3>
+            <input type="text" id="newRecipeName" placeholder="Название (например: Краковская)">
+
+            <div style="display: flex; gap: 6px; font-size: 11px; color: #bda8a8; margin-top: 8px;">
+                <span style="flex:2;">Ингредиент</span>
+                <span style="width:70px;">г на 1кг</span>
+                <span style="width:80px;">грн/кг</span>
+            </div>
+            
+            <div id="newIngredientsInputs"></div>
+            
+            <button class="btn-sec" onclick="addIngredientInput()">+ Добавить компонент</button>
+            <button class="btn-main" style="margin-top: 10px;" onclick="saveRecipe()">💾 Сохранить рецепт</button>
+            <button class="btn-sec" style="margin-top: 5px; background: transparent;" onclick="cancelNewRecipe()">Отмена</button>
+        </div>
     </div>
 
 <script>
@@ -242,6 +285,20 @@ function init() {
     updateRecipeSelect();
     calculateSingle();
     renderMultiRecipesList();
+    renderRecipeManagerList();
+}
+
+function switchTab(tab) {
+    document.getElementById('section_single').style.display = tab === 'single' ? 'block' : 'none';
+    document.getElementById('section_multi').style.display = tab === 'multi' ? 'block' : 'none';
+    document.getElementById('section_recipes').style.display = tab === 'recipes' ? 'block' : 'none';
+
+    document.getElementById('tab_single').classList.toggle('active', tab === 'single');
+    document.getElementById('tab_multi').classList.toggle('active', tab === 'multi');
+    document.getElementById('tab_recipes').classList.toggle('active', tab === 'recipes');
+
+    if (tab === 'multi') renderMultiRecipesList();
+    if (tab === 'recipes') renderRecipeManagerList();
 }
 
 function updateRecipeSelect() {
@@ -361,7 +418,7 @@ function calculateMultiBatch() {
     let totalCost = 0;
     let consolidatedIngs = {};
     let selectedCount = 0;
-    let weightedRevenueSum = 0; // Для подсчета общей выручки с учетом разных цен
+    let weightedRevenueSum = 0;
     let totalMeatKgInBatch = 0;
 
     let index = 0;
@@ -392,7 +449,6 @@ function calculateMultiBatch() {
                 consolidatedIngs[ing.name].cost += ingCost;
             });
 
-            // Запоминаем пропорции мяса для расчета доли готовности
             if (retailPrice > 0) {
                 weightedRevenueSum += (meatKg * retailPrice);
             }
@@ -434,7 +490,6 @@ function calculateMultiBatch() {
         const yieldPct = ((finishedWeight / totalRawKg) * 100).toFixed(1);
         const costPerKgFinished = (totalCost / finishedWeight).toFixed(2);
 
-        // Расчет общей выручки и прибыли пропорционально выходу
         const estimatedRevenue = (weightedRevenueSum * (finishedWeight / totalMeatKgInBatch)).toFixed(2);
         const estimatedProfit = (estimatedRevenue - totalCost).toFixed(2);
 
@@ -456,10 +511,27 @@ function calculateMultiBatch() {
     resultsBlock.innerHTML = html;
 }
 
-/* УПРАВЛЕНИЕ РЕЦЕПТАМИ */
+/* 3. УПРАВЛЕНИЕ РЕЦЕПТАМИ */
+function renderRecipeManagerList() {
+    const list = document.getElementById('recipeManagerList');
+    list.innerHTML = '';
+
+    for (let name in recipes) {
+        const div = document.createElement('div');
+        div.className = 'row';
+        div.style.marginBottom = '8px';
+        div.innerHTML = `
+            <span class="row-name" style="font-weight:bold; font-size:15px;">${name}</span>
+            <button onclick="editRecipe('${name}')" style="width: auto; margin-bottom:0; padding:6px 12px; background:#522429; border:none; margin-right:4px;">✏️</button>
+            <button onclick="deleteRecipe('${name}')" style="width: auto; margin-bottom:0; padding:6px 12px; background:transparent; border:1px solid #d3524b; color:#d3524b;">🗑</button>
+        `;
+        list.appendChild(div);
+    }
+}
+
 function showNewRecipeForm() {
     document.getElementById('newRecipeBlock').style.display = 'block';
-    document.getElementById('singleBlock').style.display = 'none';
+    document.getElementById('formTitle').innerText = 'Новый рецепт';
     document.getElementById('newIngredientsInputs').innerHTML = '';
     document.getElementById('newRecipeName').value = '';
     
@@ -468,6 +540,20 @@ function showNewRecipeForm() {
     addIngredientInput("Вода ледяная", 100, 0);
     addIngredientInput("Соль нитритная", 18, 50);
     addIngredientInput("Специи", 5, 400);
+}
+
+function editRecipe(name) {
+    const rec = recipes[name];
+    if (!rec) return;
+
+    document.getElementById('newRecipeBlock').style.display = 'block';
+    document.getElementById('formTitle').innerText = 'Редактирование: ' + name;
+    document.getElementById('newRecipeName').value = name;
+    document.getElementById('newIngredientsInputs').innerHTML = '';
+
+    rec.ingredients.forEach(ing => {
+        addIngredientInput(ing.name, ing.gramsPerKg, ing.pricePerKg);
+    });
 }
 
 function addIngredientInput(defaultName = '', defaultGrams = '', defaultPrice = '') {
@@ -511,15 +597,11 @@ function saveRecipe() {
 
 function cancelNewRecipe() {
     document.getElementById('newRecipeBlock').style.display = 'none';
-    document.getElementById('singleBlock').style.display = 'block';
 }
 
-function deleteCurrentRecipe() {
-    const recipeName = document.getElementById('recipeSelect').value;
-    if (!recipeName) return;
-
-    if (confirm(`Удалить рецепт "${recipeName}"?`)) {
-        delete recipes[recipeName];
+function deleteRecipe(name) {
+    if (confirm(`Удалить рецепт "${name}"?`)) {
+        delete recipes[name];
         localStorage.setItem('dg_cost_recipes_v2', JSON.stringify(recipes));
         init();
     }
