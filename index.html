@@ -101,49 +101,43 @@
         .row-val { font-size: 14px; font-weight: bold; color: #ff9d9d; flex: 1; text-align: right; }
         .row-cost { font-size: 13px; color: #bda8a8; flex: 1; text-align: right; }
 
-        .multi-recipe-item {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+        /* КАРТОЧКА ИЗДЕЛИЯ В КАМЕРЕ */
+        .chamber-item {
             background: #3a1c1f;
             padding: 10px;
             border-radius: 8px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             border-left: 3px solid #ffda79;
         }
-        .multi-header {
+        .chamber-item-header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 8px;
+            font-weight: bold;
+            font-size: 15px;
+            color: #ffffff;
+            margin-bottom: 8px;
         }
-        .multi-header input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            margin-bottom: 0;
-            cursor: pointer;
-        }
-        .multi-inputs {
+        .chamber-grid {
             display: flex;
-            gap: 8px;
-            align-items: center;
-            padding-left: 28px;
+            gap: 6px;
         }
-        .multi-inputs div {
+        .chamber-grid div {
             flex: 1;
             display: flex;
             flex-direction: column;
         }
-        .multi-inputs label {
+        .chamber-grid label {
             font-size: 10px;
             color: #bda8a8;
             margin-bottom: 2px;
         }
-        .multi-inputs input[type="number"] {
+        .chamber-grid input {
+            height: 38px;
             margin-bottom: 0;
             text-align: center;
-            font-weight: bold;
-            height: 38px;
             font-size: 14px;
+            font-weight: bold;
         }
 
         .fin-row {
@@ -203,21 +197,30 @@
     <!-- 2. ВКЛАДКА: ЗАГРУЗКА КАМЕРЫ -->
     <div id="section_multi" style="display: none;">
         <div class="card">
-            <h3 style="color: #ffda79;">💨 Сборная партия / Загрузка коптильни</h3>
-            <p style="font-size: 12px; color: #bda8a8; margin-top: -6px;">Укажите сырьё и цену продажи для каждого изделия:</p>
+            <h3 style="color: #ffda79;">💨 Добавить изделие в коптильню</h3>
             
-            <div id="multiRecipesList"></div>
+            <label style="font-size: 11px; color: #bda8a8;">Выберите рецепт из списка:</label>
+            <select id="chamberRecipeAddSelect"></select>
 
-            <hr style="border: 0; border-top: 1px dashed #5e2c30; margin: 16px 0;">
-
-            <div class="input-row">
+            <div class="input-row" style="margin-top: 4px;">
                 <div class="input-col">
-                    <label>Вес всей партии ПОСЛЕ коптильни (кг):</label>
-                    <input type="number" id="multiFinishedWeight" class="green-input" placeholder="например: 4.200" step="0.05">
+                    <label>Мясное сырьё (кг):</label>
+                    <input type="number" id="chamberMeatKgInput" placeholder="2.0" value="2.0" step="0.1">
+                </div>
+                <div class="input-col">
+                    <label>Розничная цена (грн/кг):</label>
+                    <input type="number" id="chamberRetailPriceInput" placeholder="380" step="10">
                 </div>
             </div>
 
-            <button class="btn-main" style="margin-top: 12px;" onclick="calculateMultiBatch()">🔥 Посчитать всю партию</button>
+            <button class="btn-main" style="margin-top: 10px;" onclick="addRecipeToChamberBatch()">➕ Добавить в камеру</button>
+        </div>
+
+        <div class="card" style="border: 2px solid #ffda79;">
+            <h3 style="color: #ffda79;">📋 Изделия в камере (введите вес ДО и ПОСЛЕ)</h3>
+            <div id="chamberItemsList"></div>
+
+            <button class="btn-main" style="margin-top: 12px;" onclick="calculateMultiBatch()">🔥 Посчитать всю камеру</button>
 
             <div id="multiResultsBlock" style="margin-top: 14px;"></div>
         </div>
@@ -280,11 +283,12 @@ let defaultRecipes = {
 };
 
 let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v2')) || defaultRecipes;
+let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v3')) || [];
 
 function init() {
-    updateRecipeSelect();
+    updateRecipeSelects();
     calculateSingle();
-    renderMultiRecipesList();
+    renderChamberItemsList();
     renderRecipeManagerList();
 }
 
@@ -297,17 +301,24 @@ function switchTab(tab) {
     document.getElementById('tab_multi').classList.toggle('active', tab === 'multi');
     document.getElementById('tab_recipes').classList.toggle('active', tab === 'recipes');
 
-    if (tab === 'multi') renderMultiRecipesList();
+    if (tab === 'multi') renderChamberItemsList();
     if (tab === 'recipes') renderRecipeManagerList();
 }
 
-function updateRecipeSelect() {
+function updateRecipeSelects() {
     const s1 = document.getElementById('recipeSelect');
+    const s2 = document.getElementById('chamberRecipeAddSelect');
     s1.innerHTML = '';
+    s2.innerHTML = '';
+
     for (let name in recipes) {
         let opt1 = document.createElement('option');
         opt1.value = name; opt1.innerText = name;
         s1.appendChild(opt1);
+
+        let opt2 = document.createElement('option');
+        opt2.value = name; opt2.innerText = name;
+        s2.appendChild(opt2);
     }
 }
 
@@ -362,7 +373,7 @@ function calculateSingle() {
         const profit = (revenue - totalBatchCost).toFixed(2);
 
         financialBlock.innerHTML = `
-            <div class="fin-row"><span>Общий вес замеса до коптильни:</span> <span><strong>${totalRawKg} кг</strong></span></div>
+            <div class="fin-row"><span>Общий вес замеса ДО коптильни:</span> <span><strong>${totalRawKg} кг</strong></span></div>
             <div class="fin-row"><span>Затраты на партию:</span> <span><strong>${totalBatchCost.toFixed(2)} грн</strong></span></div>
             <div class="fin-row"><span>Потеря веса (усушка):</span> <span style="color:#ff9d9d;">${weightLossKg} кг (${shrinkagePct}%)</span></div>
             <div class="fin-row"><span>Фактический выход:</span> <span style="color:#52d37c; font-weight:bold;">${yieldPct}% (${finishedWeight} кг)</span></div>
@@ -374,97 +385,152 @@ function calculateSingle() {
         `;
     } else {
         financialBlock.innerHTML = `
-            <div class="fin-row"><span>Общий вес замеса до коптильни:</span> <span><strong>${totalRawKg} кг</strong></span></div>
+            <div class="fin-row"><span>Общий вес замеса ДО коптильни:</span> <span><strong>${totalRawKg} кг</strong></span></div>
             <div class="fin-row"><span>Затраты на партию:</span> <span><strong>${totalBatchCost.toFixed(2)} грн</strong></span></div>
         `;
     }
 }
 
-/* 2. РАСЧЕТ НЕСКОЛЬКИХ РЕЦЕПТОВ ДЛЯ КАМЕРЫ */
-function renderMultiRecipesList() {
-    const container = document.getElementById('multiRecipesList');
+/* 2. ЗАГРУЗКА КАМЕРЫ (НЕСКОЛЬКО ИЗДЕЛИЙ С ИНДИВИДУАЛЬНЫМ ВЕСОМ) */
+function addRecipeToChamberBatch() {
+    const name = document.getElementById('chamberRecipeAddSelect').value;
+    const meatKg = parseFloat(document.getElementById('chamberMeatKgInput').value) || 0;
+    const retailPrice = parseFloat(document.getElementById('chamberRetailPriceInput').value) || 0;
+
+    if (!name || meatKg <= 0) {
+        alert("Укажите правильный вес мяса");
+        return;
+    }
+
+    // Считаем вес замеса ДО коптильни (мясо + вода + специи)
+    let totalRawGrams = 0;
+    if (recipes[name]) {
+        recipes[name].ingredients.forEach(ing => {
+            totalRawGrams += ing.gramsPerKg * meatKg;
+        });
+    }
+
+    chamberBatchList.push({
+        recipeName: name,
+        meatKg: meatKg,
+        rawWeightBeforeSmokeKg: (totalRawGrams / 1000),
+        finishedWeightKg: (totalRawGrams / 1000) * 0.8, // дефолтный предварительный расчет (выход 80%)
+        retailPrice: retailPrice
+    });
+
+    localStorage.setItem('dg_chamber_batch_v3', JSON.stringify(chamberBatchList));
+    renderChamberItemsList();
+}
+
+function updateChamberItemField(index, field, value) {
+    chamberBatchList[index][field] = parseFloat(value) || 0;
+    
+    // Если поменяли мясо, пересчитываем вес ДО коптильни автоматически
+    if (field === 'meatKg') {
+        let totalRawGrams = 0;
+        const rec = recipes[chamberBatchList[index].recipeName];
+        if (rec) {
+            rec.ingredients.forEach(ing => {
+                totalRawGrams += ing.gramsPerKg * chamberBatchList[index].meatKg;
+            });
+        }
+        chamberBatchList[index].rawWeightBeforeSmokeKg = (totalRawGrams / 1000);
+    }
+
+    localStorage.setItem('dg_chamber_batch_v3', JSON.stringify(chamberBatchList));
+}
+
+function removeChamberItem(index) {
+    chamberBatchList.splice(index, 1);
+    localStorage.setItem('dg_chamber_batch_v3', JSON.stringify(chamberBatchList));
+    renderChamberItemsList();
+}
+
+function renderChamberItemsList() {
+    const container = document.getElementById('chamberItemsList');
     container.innerHTML = '';
 
-    let index = 0;
-    for (let name in recipes) {
+    if (chamberBatchList.length === 0) {
+        container.innerHTML = '<div style="color:#bda8a8; text-align:center; padding:10px; font-size:13px;">Камера пуста. Выберите рецепт выше и нажмите «Добавить»!</div>';
+        return;
+    }
+
+    chamberBatchList.forEach((item, idx) => {
         const div = document.createElement('div');
-        div.className = 'multi-recipe-item';
+        div.className = 'chamber-item';
         div.innerHTML = `
-            <div class="multi-header">
-                <input type="checkbox" id="chk_${index}" value="${name}">
-                <label for="chk_${index}" style="font-weight:bold; cursor:pointer; font-size:14px; color:#ffffff;">${name}</label>
+            <div class="chamber-item-header">
+                <span>${item.recipeName}</span>
+                <button onclick="removeChamberItem(${idx})" style="width: auto; margin-bottom:0; padding:2px 8px; background:transparent; border:1px solid #d3524b; color:#d3524b;">✕</button>
             </div>
-            <div class="multi-inputs">
+            <div class="chamber-grid">
                 <div>
                     <label>Мясо (кг):</label>
-                    <input type="number" id="kg_${index}" value="2.0" step="0.1">
+                    <input type="number" step="0.1" value="${item.meatKg}" oninput="updateChamberItemField(${idx}, 'meatKg', this.value)">
                 </div>
                 <div>
-                    <label>Цена прод. (грн/кг):</label>
-                    <input type="number" id="price_${index}" placeholder="350" step="10">
+                    <label style="color:#ffda79;">До копчения (кг):</label>
+                    <input type="number" step="0.01" value="${item.rawWeightBeforeSmokeKg.toFixed(3)}" readonly style="background:#4a1f23; color:#ffda79; border-color:#d3524b;">
+                </div>
+                <div>
+                    <label style="color:#52d37c;">ПОСЛЕ копчения (кг):</label>
+                    <input type="number" step="0.01" class="green-input" value="${item.finishedWeightKg}" oninput="updateChamberItemField(${idx}, 'finishedWeightKg', this.value)">
+                </div>
+                <div>
+                    <label>Цена (грн/кг):</label>
+                    <input type="number" step="10" value="${item.retailPrice}" oninput="updateChamberItemField(${idx}, 'retailPrice', this.value)">
                 </div>
             </div>
         `;
         container.appendChild(div);
-        index++;
-    }
+    });
 }
 
 function calculateMultiBatch() {
     const resultsBlock = document.getElementById('multiResultsBlock');
-    const finishedWeight = parseFloat(document.getElementById('multiFinishedWeight').value) || 0;
 
-    let totalRawGrams = 0;
-    let totalCost = 0;
-    let consolidatedIngs = {};
-    let selectedCount = 0;
-    let weightedRevenueSum = 0;
-    let totalMeatKgInBatch = 0;
-
-    let index = 0;
-    for (let name in recipes) {
-        const chk = document.getElementById(`chk_${index}`);
-        const kgInput = document.getElementById(`kg_${index}`);
-        const priceInput = document.getElementById(`price_${index}`);
-
-        if (chk && chk.checked) {
-            selectedCount++;
-            const meatKg = parseFloat(kgInput.value) || 0;
-            const retailPrice = parseFloat(priceInput.value) || 0;
-            const rec = recipes[name];
-
-            totalMeatKgInBatch += meatKg;
-
-            rec.ingredients.forEach(ing => {
-                const ingGrams = ing.gramsPerKg * meatKg;
-                const ingCost = (ingGrams / 1000) * (ing.pricePerKg || 0);
-
-                totalRawGrams += ingGrams;
-                totalCost += ingCost;
-
-                if (!consolidatedIngs[ing.name]) {
-                    consolidatedIngs[ing.name] = { grams: 0, cost: 0 };
-                }
-                consolidatedIngs[ing.name].grams += ingGrams;
-                consolidatedIngs[ing.name].cost += ingCost;
-            });
-
-            if (retailPrice > 0) {
-                weightedRevenueSum += (meatKg * retailPrice);
-            }
-        }
-        index++;
-    }
-
-    if (selectedCount === 0) {
-        resultsBlock.innerHTML = '<div style="color:#ff9d9d; text-align:center;">Выберите хотя бы один рецепт галочкой!</div>';
+    if (chamberBatchList.length === 0) {
+        resultsBlock.innerHTML = '<div style="color:#ff9d9d; text-align:center;">Добавьте хотя бы одно изделие в камеру!</div>';
         return;
     }
 
+    let totalRawGrams = 0;
+    let totalFinishedWeight = 0;
+    let totalCost = 0;
+    let consolidatedIngs = {};
+    let totalRevenue = 0;
+
+    chamberBatchList.forEach(item => {
+        const rec = recipes[item.recipeName];
+        if (!rec) return;
+
+        totalFinishedWeight += item.finishedWeightKg;
+        totalRevenue += (item.finishedWeightKg * item.retailPrice);
+
+        rec.ingredients.forEach(ing => {
+            const ingGrams = ing.gramsPerKg * item.meatKg;
+            const ingCost = (ingGrams / 1000) * (ing.pricePerKg || 0);
+
+            totalRawGrams += ingGrams;
+            totalCost += ingCost;
+
+            if (!consolidatedIngs[ing.name]) {
+                consolidatedIngs[ing.name] = { grams: 0, cost: 0 };
+            }
+            consolidatedIngs[ing.name].grams += ingGrams;
+            consolidatedIngs[ing.name].cost += ingCost;
+        });
+    });
+
     const totalRawKg = (totalRawGrams / 1000).toFixed(3);
+    const weightLossKg = (totalRawKg - totalFinishedWeight).toFixed(3);
+    const shrinkagePct = totalRawKg > 0 ? ((weightLossKg / totalRawKg) * 100).toFixed(1) : 0;
+    const yieldPct = totalRawKg > 0 ? ((totalFinishedWeight / totalRawKg) * 100).toFixed(1) : 0;
+    const avgCostPerKgFinished = totalFinishedWeight > 0 ? (totalCost / totalFinishedWeight).toFixed(2) : 0;
+    const totalProfit = (totalRevenue - totalCost).toFixed(2);
 
     let html = `
-        <h4 style="color:#d3524b; margin-bottom:8px;">Общий список закупок на ВСЮ коптильню:</h4>
+        <h4 style="color:#d3524b; margin-bottom:8px; margin-top:14px;">Общий список закупок на ВСЮ коптильню:</h4>
     `;
 
     for (let ingName in consolidatedIngs) {
@@ -479,34 +545,18 @@ function calculateMultiBatch() {
     }
 
     html += `
-        <h4 style="color:#ffda79; margin-top:14px; margin-bottom:8px;">Итоги сборной партии:</h4>
+        <h4 style="color:#ffda79; margin-top:14px; margin-bottom:8px;">Сводные итоги коптильной камеры:</h4>
         <div class="fin-row"><span>Общий вес закладки ДО коптильни:</span> <span><strong>${totalRawKg} кг</strong></span></div>
-        <div class="fin-row"><span>Общая стоимость сырья/партии:</span> <span><strong>${totalCost.toFixed(2)} грн</strong></span></div>
+        <div class="fin-row"><span>Общий вес ПОСЛЕ коптильни:</span> <span style="color:#52d37c;"><strong>${totalFinishedWeight.toFixed(3)} кг</strong></span></div>
+        <div class="fin-row"><span>Общая потеря веса (усушка):</span> <span style="color:#ff9d9d;">${weightLossKg} кг (${shrinkagePct}%)</span></div>
+        <div class="fin-row"><span>Выход готовой продукции:</span> <span style="color:#52d37c; font-weight:bold;">${yieldPct}%</span></div>
+        <div class="fin-row" style="font-size:15px;"><span>СРЕДНЯЯ СЕБЕСТОИМОСТЬ 1 КГ:</span> <span style="color:#ffda79; font-weight:bold;">${avgCostPerKgFinished} грн/кг</span></div>
+        <div class="fin-row"><span>Общие затраты на партию:</span> <span><strong>${totalCost.toFixed(2)} грн</strong></span></div>
+        ${totalRevenue > 0 ? `
+            <div class="fin-row"><span>Ожидаемая выручка с камеры:</span> <span style="color:#52d37c;">${totalRevenue.toFixed(2)} грн</span></div>
+            <div class="fin-row" style="font-size:16px;"><span>ЧИСТАЯ ПРИБЫЛЬ С КАМЕРЫ:</span> <span style="color:#52d37c; font-weight:bold;">${totalProfit} грн</span></div>
+        ` : ''}
     `;
-
-    if (finishedWeight > 0) {
-        const weightLossKg = (totalRawKg - finishedWeight).toFixed(3);
-        const shrinkagePct = ((weightLossKg / totalRawKg) * 100).toFixed(1);
-        const yieldPct = ((finishedWeight / totalRawKg) * 100).toFixed(1);
-        const costPerKgFinished = (totalCost / finishedWeight).toFixed(2);
-
-        const estimatedRevenue = (weightedRevenueSum * (finishedWeight / totalMeatKgInBatch)).toFixed(2);
-        const estimatedProfit = (estimatedRevenue - totalCost).toFixed(2);
-
-        html += `
-            <div class="fin-row"><span>Общая потеря веса (усушка):</span> <span style="color:#ff9d9d;">${weightLossKg} кг (${shrinkagePct}%)</span></div>
-            <div class="fin-row"><span>Выход готовой продукции:</span> <span style="color:#52d37c; font-weight:bold;">${yieldPct}% (${finishedWeight} кг)</span></div>
-            <div class="fin-row" style="font-size:15px;"><span>СРЕДНЯЯ СЕБЕСТОИМОСТЬ ГОТОВОГО:</span> <span style="color:#ffda79; font-weight:bold;">${costPerKgFinished} грн/кг</span></div>
-            ${weightedRevenueSum > 0 ? `
-                <div class="fin-row"><span>Ожидаемая выручка с камеры:</span> <span style="color:#52d37c;">${estimatedRevenue} грн</span></div>
-                <div class="fin-row" style="font-size:16px;"><span>ЧИСТАЯ ПРИБЫЛЬ С КАМЕРЫ:</span> <span style="color:#52d37c; font-weight:bold;">${estimatedProfit} грн</span></div>
-            ` : ''}
-        `;
-    } else {
-        html += `
-            <div style="color:#bda8a8; font-size:12px; margin-top:8px; text-align:center;">👈 Введите вес всей партии ПОСЛЕ коптильни в поле выше, чтобы посчитать готовую себестоимость и прибыль.</div>
-        `;
-    }
 
     resultsBlock.innerHTML = html;
 }
