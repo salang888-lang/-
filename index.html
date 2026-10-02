@@ -76,28 +76,50 @@
         .row-val { font-size: 14px; font-weight: bold; color: #ff9d9d; flex: 1; text-align: right; }
         .row-cost { font-size: 13px; color: #bda8a8; flex: 1; text-align: right; }
 
+        /* Таблица настройки нескольких рецептов */
         .multi-recipe-item {
             display: flex;
-            align-items: center;
-            gap: 10px;
+            flex-direction: column;
+            gap: 6px;
             background: #3a1c1f;
             padding: 10px;
             border-radius: 8px;
             margin-bottom: 8px;
             border-left: 3px solid #ffda79;
         }
-        .multi-recipe-item input[type="checkbox"] {
-            width: 22px;
-            height: 22px;
+        .multi-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .multi-header input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
             margin-bottom: 0;
             cursor: pointer;
         }
-        .multi-recipe-item input[type="number"] {
-            width: 90px;
+        .multi-inputs {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding-left: 28px;
+        }
+        .multi-inputs div {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .multi-inputs label {
+            font-size: 10px;
+            color: #bda8a8;
+            margin-bottom: 2px;
+        }
+        .multi-inputs input[type="number"] {
             margin-bottom: 0;
             text-align: center;
             font-weight: bold;
             height: 38px;
+            font-size: 14px;
         }
 
         .fin-row {
@@ -148,10 +170,10 @@
         <button class="btn-danger" style="width:100%; margin-top:12px; padding:8px;" onclick="deleteCurrentRecipe()">🗑 Удалить этот рецепт</button>
     </div>
 
-    <!-- БЛОК 2: ОТДЕЛЬНЫЙ БЛОК ДЛЯ НЕСКОЛЬКИХ РЕЦЕПТОВ / ЗАГРУЗКИ КАМЕРЫ -->
+    <!-- БЛОК 2: СБОРНАЯ ПАРТИЯ / ЗАГРУЗКА КАМЕРЫ -->
     <div class="card" style="border: 2px solid #ffda79;">
         <h3 style="color: #ffda79;">💨 Сборная партия / Загрузка коптильни</h3>
-        <p style="font-size: 12px; color: #bda8a8; margin-top: -6px;">Отметьте рецепты для закладки и укажите вес мяса:</p>
+        <p style="font-size: 12px; color: #bda8a8; margin-top: -6px;">Укажите сырьё и цену продажи для каждого изделия:</p>
         
         <div id="multiRecipesList"></div>
 
@@ -311,10 +333,20 @@ function renderMultiRecipesList() {
         const div = document.createElement('div');
         div.className = 'multi-recipe-item';
         div.innerHTML = `
-            <input type="checkbox" id="chk_${index}" value="${name}">
-            <label for="chk_${index}" style="flex:2; font-weight:bold; cursor:pointer; font-size:14px;">${name}</label>
-            <span style="font-size:12px; color:#bda8a8;">мясо:</span>
-            <input type="number" id="kg_${index}" value="2.0" step="0.1"> <span style="font-size:12px;">кг</span>
+            <div class="multi-header">
+                <input type="checkbox" id="chk_${index}" value="${name}">
+                <label for="chk_${index}" style="font-weight:bold; cursor:pointer; font-size:14px; color:#ffffff;">${name}</label>
+            </div>
+            <div class="multi-inputs">
+                <div>
+                    <label>Мясо (кг):</label>
+                    <input type="number" id="kg_${index}" value="2.0" step="0.1">
+                </div>
+                <div>
+                    <label>Цена прод. (грн/кг):</label>
+                    <input type="number" id="price_${index}" placeholder="350" step="10">
+                </div>
+            </div>
         `;
         container.appendChild(div);
         index++;
@@ -329,16 +361,22 @@ function calculateMultiBatch() {
     let totalCost = 0;
     let consolidatedIngs = {};
     let selectedCount = 0;
+    let weightedRevenueSum = 0; // Для подсчета общей выручки с учетом разных цен
+    let totalMeatKgInBatch = 0;
 
     let index = 0;
     for (let name in recipes) {
         const chk = document.getElementById(`chk_${index}`);
         const kgInput = document.getElementById(`kg_${index}`);
+        const priceInput = document.getElementById(`price_${index}`);
 
         if (chk && chk.checked) {
             selectedCount++;
             const meatKg = parseFloat(kgInput.value) || 0;
+            const retailPrice = parseFloat(priceInput.value) || 0;
             const rec = recipes[name];
+
+            totalMeatKgInBatch += meatKg;
 
             rec.ingredients.forEach(ing => {
                 const ingGrams = ing.gramsPerKg * meatKg;
@@ -353,6 +391,11 @@ function calculateMultiBatch() {
                 consolidatedIngs[ing.name].grams += ingGrams;
                 consolidatedIngs[ing.name].cost += ingCost;
             });
+
+            // Запоминаем пропорции мяса для расчета доли готовности
+            if (retailPrice > 0) {
+                weightedRevenueSum += (meatKg * retailPrice);
+            }
         }
         index++;
     }
@@ -391,14 +434,22 @@ function calculateMultiBatch() {
         const yieldPct = ((finishedWeight / totalRawKg) * 100).toFixed(1);
         const costPerKgFinished = (totalCost / finishedWeight).toFixed(2);
 
+        // Расчет общей выручки и прибыли пропорционально выходу
+        const estimatedRevenue = (weightedRevenueSum * (finishedWeight / totalMeatKgInBatch)).toFixed(2);
+        const estimatedProfit = (estimatedRevenue - totalCost).toFixed(2);
+
         html += `
             <div class="fin-row"><span>Общая потеря веса (усушка):</span> <span style="color:#ff9d9d;">${weightLossKg} кг (${shrinkagePct}%)</span></div>
             <div class="fin-row"><span>Выход готовой продукции:</span> <span style="color:#52d37c; font-weight:bold;">${yieldPct}% (${finishedWeight} кг)</span></div>
-            <div class="fin-row" style="font-size:16px;"><span>СЕБЕСТОИМОСТЬ 1 КГ ГОТОВОГО:</span> <span style="color:#ffda79; font-weight:bold;">${costPerKgFinished} грн/кг</span></div>
+            <div class="fin-row" style="font-size:15px;"><span>СРЕДНЯЯ СЕБЕСТОИМОСТЬ ГОТОВОГО:</span> <span style="color:#ffda79; font-weight:bold;">${costPerKgFinished} грн/кг</span></div>
+            ${weightedRevenueSum > 0 ? `
+                <div class="fin-row"><span>Ожидаемая выручка с камеры:</span> <span style="color:#52d37c;">${estimatedRevenue} грн</span></div>
+                <div class="fin-row" style="font-size:16px;"><span>ЧИСТАЯ ПРИБЫЛЬ С КАМЕРЫ:</span> <span style="color:#52d37c; font-weight:bold;">${estimatedProfit} грн</span></div>
+            ` : ''}
         `;
     } else {
         html += `
-            <div style="color:#bda8a8; font-size:12px; margin-top:8px; text-align:center;">👈 Введите вес всей партии ПОСЛЕ коптильни в поле выше, чтобы посчитать готовую себестоимость 1 кг.</div>
+            <div style="color:#bda8a8; font-size:12px; margin-top:8px; text-align:center;">👈 Введите вес всей партии ПОСЛЕ коптильни в поле выше, чтобы посчитать готовую себестоимость и прибыль.</div>
         `;
     }
 
