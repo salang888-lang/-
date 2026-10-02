@@ -211,7 +211,7 @@
                 </div>
                 <div class="input-col">
                     <label>Розничная цена (грн/кг):</label>
-                    <input type="number" id="chamberRetailPriceInput" placeholder="380" step="10">
+                    <input type="number" id="chamberRetailPriceInput" placeholder="380" step="10" value="380">
                 </div>
             </div>
 
@@ -310,6 +310,9 @@ function switchTab(tab) {
 function updateRecipeSelects() {
     const s1 = document.getElementById('recipeSelect');
     const s2 = document.getElementById('chamberRecipeAddSelect');
+    const currentVal1 = s1.value;
+    const currentVal2 = s2.value;
+
     s1.innerHTML = '';
     s2.innerHTML = '';
 
@@ -322,6 +325,9 @@ function updateRecipeSelects() {
         opt2.value = name; opt2.innerText = name;
         s2.appendChild(opt2);
     }
+
+    if (currentVal1 && recipes[currentVal1]) s1.value = currentVal1;
+    if (currentVal2 && recipes[currentVal2]) s2.value = currentVal2;
 }
 
 /* 1. РАСЧЕТ ОДНОГО РЕЦЕПТА */
@@ -436,7 +442,6 @@ function updateChamberItemField(index, field, value) {
         }
         chamberBatchList[index].rawWeightBeforeSmokeKg = (totalRawGrams / 1000);
         
-        // Обновляем поле "ДО коптильни" в DOM без перерисовки всей таблицы (чтобы не терялся фокус)
         const rawInput = document.getElementById(`raw_wt_${index}`);
         if (rawInput) rawInput.value = chamberBatchList[index].rawWeightBeforeSmokeKg.toFixed(3);
     }
