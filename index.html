@@ -6,6 +6,9 @@
     <title>Дымный Гурман — Калькулятор и Себестоимость</title>
     <link rel="manifest" href="manifest.json">
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: #1a1110;
@@ -29,50 +32,53 @@
             border: 1px solid #5e2c30;
             background: #3b1b1e;
             color: white;
-            box-sizing: border-box;
             font-size: 15px;
             margin-bottom: 8px;
         }
-        .weight-input {
-            background: #4a1f23;
-            border: 2px solid #d3524b;
-            font-weight: bold;
-            font-size: 16px;
-            text-align: center;
-            color: #ffda79;
-            height: 44px;
+        
+        /* Выравнивание полей в один ряд */
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+            align-items: flex-end;
         }
-        .green-input {
-            background: #1e382b;
-            border: 2px solid #52d37c;
-            color: #52d37c;
-            font-weight: bold;
-            font-size: 16px;
-            text-align: center;
-            height: 44px;
-        }
-        .sell-input {
-            background: #3b1b1e;
-            border: 2px solid #5e2c30;
-            color: #ffffff;
-            font-weight: bold;
-            font-size: 16px;
-            text-align: center;
-            height: 44px;
-        }
-        .input-group {
+        .input-col {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            flex: 1;
         }
-        .input-group label {
+        .input-col label {
             font-size: 11px;
             color: #bda8a8;
             margin-bottom: 4px;
-            height: 28px;
-            display: flex;
-            align-items: center;
+            white-space: nowrap;
+            height: 16px;
         }
+        .input-col input {
+            height: 46px;
+            margin-bottom: 0;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .weight-input {
+            background: #4a1f23;
+            border: 2px solid #d3524b !important;
+            color: #ffda79;
+        }
+        .green-input {
+            background: #1e382b;
+            border: 2px solid #52d37c !important;
+            color: #52d37c;
+        }
+        .sell-input {
+            background: #3b1b1e;
+            border: 2px solid #5e2c30 !important;
+            color: #ffffff;
+        }
+
         .row {
             display: flex;
             justify-content: space-between;
@@ -86,6 +92,7 @@
         .row-name { font-size: 14px; flex: 2; }
         .row-val { font-size: 14px; font-weight: bold; color: #ff9d9d; flex: 1; text-align: right; }
         .row-cost { font-size: 13px; color: #bda8a8; flex: 1; text-align: right; }
+        
         .fin-row {
             display: flex;
             justify-content: space-between;
@@ -128,7 +135,7 @@
 
     <!-- ВЫБОР РЕЦЕПТА -->
     <div class="card">
-        <label style="font-size: 12px; color: #bda8a8;">Выберите рецепт:</label>
+        <label style="font-size: 12px; color: #bda8a8; display: block; margin-bottom: 4px;">Выберите рецепт:</label>
         <select id="recipeSelect" onchange="calculate()"></select>
         <button class="btn-sec" onclick="showNewRecipeForm()">➕ Добавить / Редактировать рецепт</button>
     </div>
@@ -138,20 +145,21 @@
         <h3>Параметры партии и термообработки</h3>
         
         <label style="font-size: 12px; color: #bda8a8; margin-bottom: 4px; display: block;">Основное мясное сырье (кг):</label>
-        <input type="number" id="meatWeight" class="weight-input" value="1.0" step="0.1" oninput="calculate()">
+        <input type="number" id="meatWeight" class="weight-input" style="height: 46px;" value="1.0" step="0.1" oninput="calculate()">
 
-        <div style="display: flex; gap: 8px; margin-top: 6px;">
-            <div class="input-group">
+        <!-- ВЫРОВНЕННЫЙ РЯД ПОЛЕЙ -->
+        <div class="input-row">
+            <div class="input-col">
                 <label>Вес ГОТОВОГО (кг):</label>
                 <input type="number" id="finishedWeightInput" class="green-input" placeholder="0.850" step="0.01" oninput="calculate()">
             </div>
-            <div class="input-group">
+            <div class="input-col">
                 <label>Цена продажи (грн/кг):</label>
                 <input type="number" id="sellPrice" class="sell-input" placeholder="0" oninput="calculate()">
             </div>
         </div>
 
-        <h4 style="margin-bottom: 8px; margin-top: 16px; color: #d3524b;">Ингредиенты замеса (до коптильни):</h4>
+        <h4 style="margin-bottom: 8px; margin-top: 18px; color: #d3524b;">Ингредиенты замеса (до коптильни):</h4>
         <div id="resultsList"></div>
 
         <h4 style="margin-bottom: 8px; margin-top: 16px; color: #ffda79;">Итоговые показатели партии:</h4>
