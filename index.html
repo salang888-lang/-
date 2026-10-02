@@ -256,7 +256,7 @@
 
         <div class="card" id="newRecipeBlock" style="display: none;">
             <h3 id="formTitle">Новый рецепт</h3>
-            <input type="text" id="newRecipeName" placeholder="Название (например: Куриные части)">
+            <input type="text" id="newRecipeName" placeholder="Название (например: Балык)">
 
             <h4 style="color:#d3524b; margin-top:10px; margin-bottom:4px; font-size:13px;">Мясная база (базовый вес и цена):</h4>
             <div id="editMeatInputs"></div>
@@ -273,41 +273,25 @@
 
 <script>
 let defaultRecipes = {
-    "Куриные части": {
+    "Балык": {
         meats: [
-            { name: "Крылья", weightKg: 1.0, pricePerKg: 120 },
-            { name: "Голени", weightKg: 1.0, pricePerKg: 100 },
-            { name: "Окорочка", weightKg: 1.0, pricePerKg: 110 }
+            { name: "Балык", weightKg: 1.0, pricePerKg: 190 }
         ],
         additives: [
-            { name: "Вода", gramsPerKg: 220, pricePerKg: 0 },
-            { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
-            { name: "Чили перец", gramsPerKg: 0.5, pricePerKg: 350 },
-            { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
-            { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 300 }
-        ]
-    },
-    "Краковская классика": {
-        meats: [
-            { name: "Свинина полужирная", weightKg: 0.7, pricePerKg: 180 },
-            { name: "Грудинка свиная", weightKg: 0.3, pricePerKg: 160 }
-        ],
-        additives: [
-            { name: "Вода ледяная / Лёд", gramsPerKg: 100, pricePerKg: 0 },
+            { name: "Вода", gramsPerKg: 100, pricePerKg: 0 },
             { name: "Соль нитритная", gramsPerKg: 18, pricePerKg: 50 },
-            { name: "Сахар / Декстроза", gramsPerKg: 2, pricePerKg: 40 },
-            { name: "Перец чёрный молотый", gramsPerKg: 2, pricePerKg: 400 },
-            { name: "Чеснок свежий", gramsPerKg: 2, pricePerKg: 120 },
-            { name: "Фосфат пищевой", gramsPerKg: 3, pricePerKg: 220 },
             { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 300 },
-            { name: "Оболочка коллаген 45мм", gramsPerKg: 2, pricePerKg: 15 }
+            { name: "Экстракт черного перца", gramsPerKg: 1.5, pricePerKg: 400 },
+            { name: "Экстракт чеснока", gramsPerKg: 1, pricePerKg: 350 },
+            { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
+            { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 300 }
         ]
     }
 };
 
-let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v10')) || defaultRecipes;
-let activeRecipeState = JSON.parse(localStorage.getItem('dg_active_state_v10')) || {};
-let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v10')) || [];
+let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v12')) || defaultRecipes;
+let activeRecipeState = JSON.parse(localStorage.getItem('dg_active_state_v12')) || {};
+let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v12')) || [];
 
 function init() {
     updateRecipeSelects();
@@ -578,23 +562,23 @@ function addRecipeToChamberBatch() {
         retailPrice: retailPrice
     });
 
-    localStorage.setItem('dg_chamber_batch_v10', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v12', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
 function updateChamberItemMeat(itemIdx, meatIdx, val) {
     chamberBatchList[itemIdx].meats[meatIdx].weightKg = parseFloat(val) || 0;
-    localStorage.setItem('dg_chamber_batch_v10', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v12', JSON.stringify(chamberBatchList));
 }
 
 function updateChamberItemField(itemIdx, field, val) {
     chamberBatchList[itemIdx][field] = parseFloat(val) || 0;
-    localStorage.setItem('dg_chamber_batch_v10', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v12', JSON.stringify(chamberBatchList));
 }
 
 function removeChamberItem(index) {
     chamberBatchList.splice(index, 1);
-    localStorage.setItem('dg_chamber_batch_v10', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v12', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
@@ -750,12 +734,8 @@ function showNewRecipeForm() {
     document.getElementById('editMeatInputs').innerHTML = '';
     document.getElementById('editAdditiveInputs').innerHTML = '';
 
-    addEditMeatInput("Крылья", 1.0, 120);
-    addEditMeatInput("Голени", 1.0, 100);
-    addEditMeatInput("Окорочка", 1.0, 110);
-
-    addEditAdditiveInput("Вода", 220, 0);
-    addEditAdditiveInput("Фосфат", 2, 220);
+    addEditMeatInput("Балык", 1.0, 190);
+    addEditAdditiveInput("Соль нитритная", 18, 50);
     addEditAdditiveInput("Глутамат натрия", 2, 300);
 }
 
@@ -824,10 +804,10 @@ function saveRecipe() {
     if (meats.length === 0) { alert("Добавьте хотя бы один вид мяса"); return; }
 
     recipes[name] = { meats: meats, additives: additives };
-    localStorage.setItem('dg_cost_recipes_v10', JSON.stringify(recipes));
+    localStorage.setItem('dg_cost_recipes_v12', JSON.stringify(recipes));
     
     if (activeRecipeState[name]) delete activeRecipeState[name];
-    localStorage.setItem('dg_active_state_v10', JSON.stringify(activeRecipeState));
+    localStorage.setItem('dg_active_state_v12', JSON.stringify(activeRecipeState));
 
     cancelNewRecipe();
     init();
@@ -840,7 +820,7 @@ function cancelNewRecipe() {
 function deleteRecipe(name) {
     if (confirm(`Удалить рецепт "${name}"?`)) {
         delete recipes[name];
-        localStorage.setItem('dg_cost_recipes_v10', JSON.stringify(recipes));
+        localStorage.setItem('dg_cost_recipes_v12', JSON.stringify(recipes));
         init();
     }
 }
