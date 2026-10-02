@@ -286,12 +286,26 @@ let defaultRecipes = {
             { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
             { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 300 }
         ]
+    },
+    "Куриные части": {
+        meats: [
+            { name: "Крылья", weightKg: 1.0, pricePerKg: 120 },
+            { name: "Голени", weightKg: 1.0, pricePerKg: 100 },
+            { name: "Окорочка", weightKg: 1.0, pricePerKg: 110 }
+        ],
+        additives: [
+            { name: "Вода", gramsPerKg: 220, pricePerKg: 0 },
+            { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
+            { name: "Чили перец", gramsPerKg: 0.5, pricePerKg: 350 },
+            { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
+            { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 300 }
+        ]
     }
 };
 
-let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v12')) || defaultRecipes;
-let activeRecipeState = JSON.parse(localStorage.getItem('dg_active_state_v12')) || {};
-let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v12')) || [];
+let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v13')) || defaultRecipes;
+let activeRecipeState = JSON.parse(localStorage.getItem('dg_active_state_v13')) || {};
+let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v13')) || [];
 
 function init() {
     updateRecipeSelects();
@@ -562,23 +576,23 @@ function addRecipeToChamberBatch() {
         retailPrice: retailPrice
     });
 
-    localStorage.setItem('dg_chamber_batch_v12', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v13', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
 function updateChamberItemMeat(itemIdx, meatIdx, val) {
     chamberBatchList[itemIdx].meats[meatIdx].weightKg = parseFloat(val) || 0;
-    localStorage.setItem('dg_chamber_batch_v12', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v13', JSON.stringify(chamberBatchList));
 }
 
 function updateChamberItemField(itemIdx, field, val) {
     chamberBatchList[itemIdx][field] = parseFloat(val) || 0;
-    localStorage.setItem('dg_chamber_batch_v12', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v13', JSON.stringify(chamberBatchList));
 }
 
 function removeChamberItem(index) {
     chamberBatchList.splice(index, 1);
-    localStorage.setItem('dg_chamber_batch_v12', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v13', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
@@ -734,9 +748,8 @@ function showNewRecipeForm() {
     document.getElementById('editMeatInputs').innerHTML = '';
     document.getElementById('editAdditiveInputs').innerHTML = '';
 
-    addEditMeatInput("Балык", 1.0, 190);
+    addEditMeatInput("Мясо", 1.0, 150);
     addEditAdditiveInput("Соль нитритная", 18, 50);
-    addEditAdditiveInput("Глутамат натрия", 2, 300);
 }
 
 function editRecipe(name) {
@@ -804,10 +817,10 @@ function saveRecipe() {
     if (meats.length === 0) { alert("Добавьте хотя бы один вид мяса"); return; }
 
     recipes[name] = { meats: meats, additives: additives };
-    localStorage.setItem('dg_cost_recipes_v12', JSON.stringify(recipes));
+    localStorage.setItem('dg_cost_recipes_v13', JSON.stringify(recipes));
     
     if (activeRecipeState[name]) delete activeRecipeState[name];
-    localStorage.setItem('dg_active_state_v12', JSON.stringify(activeRecipeState));
+    localStorage.setItem('dg_active_state_v13', JSON.stringify(activeRecipeState));
 
     cancelNewRecipe();
     init();
@@ -820,7 +833,7 @@ function cancelNewRecipe() {
 function deleteRecipe(name) {
     if (confirm(`Удалить рецепт "${name}"?`)) {
         delete recipes[name];
-        localStorage.setItem('dg_cost_recipes_v12', JSON.stringify(recipes));
+        localStorage.setItem('dg_cost_recipes_v13', JSON.stringify(recipes));
         init();
     }
 }
