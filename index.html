@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Дымный Гурман — Калькулятор</title>
-    <link rel="manifest" href="manifest.json">
     <style>
         * { box-sizing: border-box; }
         body {
@@ -99,11 +98,11 @@
             gap: 8px;
         }
         .row-name { font-size: 13px; flex: 2; }
-        .row-val { font-size: 13px; font-weight: bold; color: #ff9d9d; width: 75px; text-align: center; }
+        .row-val { font-size: 13px; font-weight: bold; color: #ff9d9d; width: 65px; text-align: center; }
         .row-price-input { width: 75px !important; height: 36px !important; margin-bottom: 0 !important; text-align: center; font-size: 13px !important; padding: 4px !important; background: #2b1819 !important; border: 1px solid #5e2c30 !important; color: #ffda79 !important; }
-        .row-cost { font-size: 13px; color: #bda8a8; width: 75px; text-align: right; }
+        .row-cost { font-size: 13px; color: #bda8a8; width: 70px; text-align: right; }
 
-        /* ИДЕАЛЬНО ВЫРАВНЕННАЯ СЕТКА КАМЕРЫ */
+        /* СЕТКА КАМЕРЫ */
         .chamber-item {
             background: #3a1c1f;
             padding: 12px;
@@ -154,7 +153,6 @@
         
         .btn-main { background: #d3524b; color: white; font-weight: bold; border: none; cursor: pointer; padding: 12px; font-size: 16px; }
         .btn-sec { background: #522429; color: white; border: none; cursor: pointer; }
-        .btn-danger { background: transparent; color: #d3524b; border: 1px solid #d3524b; cursor: pointer; }
         .ing-edit-row { display: flex; gap: 6px; margin-bottom: 6px; }
     </style>
 </head>
@@ -190,10 +188,7 @@
                 </div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; margin-bottom: 8px;">
-                <h4 style="margin: 0; color: #d3524b;">Ингредиенты и цены:</h4>
-                <span style="font-size: 11px; color: #bda8a8;">Цена за 1 кг изменяема</span>
-            </div>
+            <h4 style="margin-top: 16px; margin-bottom: 8px; color: #d3524b;">Ингредиенты замеса (цена за 1 кг меняется здесь):</h4>
             <div id="resultsList"></div>
 
             <h4 style="margin-bottom: 8px; margin-top: 16px; color: #ffda79;">Итоги по 1 рецепту:</h4>
@@ -243,7 +238,6 @@
             <div id="recipeManagerList"></div>
         </div>
 
-        <!-- ФОРМА СОЗДАНИЯ ИЛИ РЕДАКТИРОВАНИЯ -->
         <div class="card" id="newRecipeBlock" style="display: none;">
             <h3 id="formTitle">Новый рецепт</h3>
             <input type="text" id="newRecipeName" placeholder="Название (например: Краковская)">
@@ -289,7 +283,7 @@ let defaultRecipes = {
     }
 };
 
-let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v3')) || defaultRecipes;
+let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v4')) || defaultRecipes;
 let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v5')) || [];
 
 function init() {
@@ -409,9 +403,8 @@ function calculateSingle() {
 function updateSingleIngredientPrice(recipeName, ingIndex, newPrice) {
     if (recipes[recipeName] && recipes[recipeName].ingredients[ingIndex]) {
         recipes[recipeName].ingredients[ingIndex].pricePerKg = parseFloat(newPrice) || 0;
-        localStorage.setItem('dg_cost_recipes_v3', JSON.stringify(recipes));
+        localStorage.setItem('dg_cost_recipes_v4', JSON.stringify(recipes));
         
-        // Быстрый пересчет стоимости без полной перерисовки всего списка (чтобы клавиатура не закрывалась)
         const baseMeatKg = parseFloat(document.getElementById('meatWeight').value) || 0;
         const ing = recipes[recipeName].ingredients[ingIndex];
         const totalGrams = ing.gramsPerKg * baseMeatKg;
@@ -420,7 +413,6 @@ function updateSingleIngredientPrice(recipeName, ingIndex, newPrice) {
         const costSpan = document.getElementById(`cost_row_${ingIndex}`);
         if (costSpan) costSpan.innerText = newItemCost.toFixed(2) + ' грн';
         
-        // Пересчитываем итоги
         calculateFinancialTotalsOnly();
     }
 }
@@ -534,7 +526,7 @@ function renderChamberItemsList() {
     container.innerHTML = '';
 
     if (chamberBatchList.length === 0) {
-        container.innerHTML = '<div style="color:#bda8a8; text-align:center; padding:10px; font-size:13px;">Камера пуста. Выберите рецепт выше и нажмите «Добавить»!</div>';
+        container.innerHTML = '<div style="color:#bda8a8; text-align:center; padding:10px; font-size:13px;">Камера пуста. Добавьте изделие выше!</div>';
         return;
     }
 
@@ -582,7 +574,7 @@ function calculateMultiBatch() {
     const resultsBlock = document.getElementById('multiResultsBlock');
 
     if (chamberBatchList.length === 0) {
-        resultsBlock.innerHTML = '<div style="color:#ff9d9d; text-align:center;">Добавьте хотя бы одно изделие в камеру!</div>';
+        resultsBlock.innerHTML = '<div style="color:#ff9d9d; text-align:center;">Добавьте изделия в камеру!</div>';
         return;
     }
 
@@ -681,7 +673,6 @@ function showNewRecipeForm() {
     addIngredientInput("Грудинка", 300, 160);
     addIngredientInput("Вода ледяная", 100, 0);
     addIngredientInput("Соль нитритная", 18, 50);
-    addIngredientInput("Специи", 5, 400);
 }
 
 function editRecipe(name) {
@@ -731,7 +722,7 @@ function saveRecipe() {
     if (list.length === 0) { alert("Добавьте хотя бы один компонент"); return; }
 
     recipes[name] = { ingredients: list };
-    localStorage.setItem('dg_cost_recipes_v3', JSON.stringify(recipes));
+    localStorage.setItem('dg_cost_recipes_v4', JSON.stringify(recipes));
     
     cancelNewRecipe();
     init();
@@ -744,7 +735,7 @@ function cancelNewRecipe() {
 function deleteRecipe(name) {
     if (confirm(`Удалить рецепт "${name}"?`)) {
         delete recipes[name];
-        localStorage.setItem('dg_cost_recipes_v3', JSON.stringify(recipes));
+        localStorage.setItem('dg_cost_recipes_v4', JSON.stringify(recipes));
         init();
     }
 }
@@ -753,3 +744,4 @@ init();
 </script>
 </body>
 </html>
+
