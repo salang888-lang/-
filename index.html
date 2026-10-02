@@ -91,16 +91,15 @@
             justify-content: space-between;
             align-items: center;
             background: #34171a;
-            padding: 8px 12px;
+            padding: 8px 10px;
             border-radius: 8px;
             margin-bottom: 6px;
             border-left: 3px solid #d3524b;
-            gap: 8px;
+            gap: 6px;
         }
-        .row-name { font-size: 13px; flex: 2; }
-        .row-val { font-size: 13px; font-weight: bold; color: #ff9d9d; width: 65px; text-align: center; }
-        .row-price-input { width: 75px !important; height: 36px !important; margin-bottom: 0 !important; text-align: center; font-size: 13px !important; padding: 4px !important; background: #2b1819 !important; border: 1px solid #5e2c30 !important; color: #ffda79 !important; }
-        .row-cost { font-size: 13px; color: #bda8a8; width: 70px; text-align: right; }
+        .row-name { font-size: 12px; flex: 1.8; word-break: break-word; }
+        .row-input-small { width: 68px !important; height: 34px !important; margin-bottom: 0 !important; text-align: center; font-size: 12px !important; padding: 2px !important; background: #2b1819 !important; border: 1px solid #5e2c30 !important; color: #ffda79 !important; }
+        .row-cost { font-size: 12px; color: #bda8a8; width: 60px; text-align: right; }
 
         /* СЕТКА КАМЕРЫ */
         .chamber-item {
@@ -188,7 +187,17 @@
                 </div>
             </div>
 
-            <h4 style="margin-top: 16px; margin-bottom: 8px; color: #d3524b;">Ингредиенты замеса (цена за 1 кг меняется здесь):</h4>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; margin-bottom: 8px;">
+                <h4 style="margin: 0; color: #d3524b; font-size: 13px;">Ингредиенты (вес и цену можно менять):</h4>
+                <button onclick="resetRecipeToDefault()" style="width: auto; margin-bottom: 0; padding: 4px 8px; font-size: 11px; background: #3b1b1e; border: 1px solid #5e2c30; color: #bda8a8;">🔄 Сбросить вес</button>
+            </div>
+            
+            <div style="display: flex; gap: 4px; font-size: 10px; color: #bda8a8; margin-bottom: 4px; padding: 0 4px;">
+                <span style="flex:1.8;">Компонент</span>
+                <span style="width:68px; text-align:center;">Кол-во</span>
+                <span style="width:68px; text-align:center;">Цена/кг</span>
+                <span style="width:60px; text-align:right;">Итог</span>
+            </div>
             <div id="resultsList"></div>
 
             <h4 style="margin-bottom: 8px; margin-top: 16px; color: #ffda79;">Итоги по 1 рецепту:</h4>
@@ -283,7 +292,9 @@ let defaultRecipes = {
     }
 };
 
-let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v4')) || defaultRecipes;
+let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v5')) || defaultRecipes;
+// Хранилище измененных прямо в калькуляторе граммовок для конкретных сессий
+let activeCustomGrams = JSON.parse(localStorage.getItem('dg_custom_grams_v5')) || {};
 let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v5')) || [];
 
 function init() {
@@ -346,13 +357,22 @@ function calculateSingle() {
     }
 
     const ingredients = recipes[recipeName].ingredients;
+    if (!activeCustomGrams[recipeName]) {
+        activeCustomGrams[recipeName] = {};
+    }
+
     resultsList.innerHTML = '';
     
     let totalBatchCost = 0;
     let totalRawWeightGrams = 0;
 
     ingredients.forEach((item, index) => {
-        const totalGrams = item.gramsPerKg * baseMeatKg;
+        // Если пользователь менял граммы на 1 кг мяса, берем их, иначе базовые из рецепта
+        let gramsPerKg = (activeCustomGrams[recipeName][index] !== undefined) 
+            ? activeCustomGrams[recipeName][index] 
+            : item.gramsPerKg;
+
+        const totalGrams = gramsPerKg * baseMeatKg;
         totalRawWeightGrams += totalGrams;
 
         const currentPricePerKg = item.pricePerKg || 0;
@@ -363,8 +383,8 @@ function calculateSingle() {
         row.className = 'row';
         row.innerHTML = `
             <span class="row-name">${item.name}</span>
-            <span class="row-val">${totalGrams < 1000 ? totalGrams.toFixed(1) + ' г' : (totalGrams/1000).toFixed(3) + ' кг'}</span>
-            <input type="number" step="1" class="row-price-input" value="${currentPricePerKg}" title="Цена за 1 кг" oninput="updateSingleIngredientPrice('${recipeName}', ${index}, this.value)">
+            <input type="number" step="0.1" class="row-input-small" value="${gramsPerKg}" title="Гр на 1кг сырья" oninput="updateSingleGrams('${recipeName}', ${index}, this.value)">
+            <input type="number" step="1" class="row-input-small" value="${currentPricePerKg}" title="Цена за 1 кг" oninput="updateSingleIngredientPrice('${recipeName}', ${index}, this.value)">
             <span class="row-cost" id="cost_row_${index}">${itemCost.toFixed(2)} грн</span>
         `;
         resultsList.appendChild(row);
@@ -400,20 +420,50 @@ function calculateSingle() {
     }
 }
 
+function updateSingleGrams(recipeName, ingIndex, newGrams) {
+    if (!activeCustomGrams[recipeName]) activeCustomGrams[recipeName] = {};
+    activeCustomGrams[recipeName][ingIndex] = parseFloat(newGrams) || 0;
+    localStorage.setItem('dg_custom_grams_v5', JSON.stringify(activeCustomGrams));
+
+    const baseMeatKg = parseFloat(document.getElementById('meatWeight').value) || 0;
+    const ing = recipes[recipeName].ingredients[ingIndex];
+    const gramsPerKg = activeCustomGrams[recipeName][ingIndex];
+    const totalGrams = gramsPerKg * baseMeatKg;
+    const newItemCost = (totalGrams / 1000) * (ing.pricePerKg || 0);
+
+    const costSpan = document.getElementById(`cost_row_${ingIndex}`);
+    if (costSpan) costSpan.innerText = newItemCost.toFixed(2) + ' грн';
+
+    calculateFinancialTotalsOnly();
+}
+
 function updateSingleIngredientPrice(recipeName, ingIndex, newPrice) {
     if (recipes[recipeName] && recipes[recipeName].ingredients[ingIndex]) {
         recipes[recipeName].ingredients[ingIndex].pricePerKg = parseFloat(newPrice) || 0;
-        localStorage.setItem('dg_cost_recipes_v4', JSON.stringify(recipes));
+        localStorage.setItem('dg_cost_recipes_v5', JSON.stringify(recipes));
         
         const baseMeatKg = parseFloat(document.getElementById('meatWeight').value) || 0;
         const ing = recipes[recipeName].ingredients[ingIndex];
-        const totalGrams = ing.gramsPerKg * baseMeatKg;
+        let gramsPerKg = (activeCustomGrams[recipeName] && activeCustomGrams[recipeName][ingIndex] !== undefined)
+            ? activeCustomGrams[recipeName][ingIndex]
+            : ing.gramsPerKg;
+
+        const totalGrams = gramsPerKg * baseMeatKg;
         const newItemCost = (totalGrams / 1000) * ing.pricePerKg;
         
         const costSpan = document.getElementById(`cost_row_${ingIndex}`);
         if (costSpan) costSpan.innerText = newItemCost.toFixed(2) + ' грн';
         
         calculateFinancialTotalsOnly();
+    }
+}
+
+function resetRecipeToDefault() {
+    const recipeName = document.getElementById('recipeSelect').value;
+    if (recipeName && activeCustomGrams[recipeName]) {
+        delete activeCustomGrams[recipeName];
+        localStorage.setItem('dg_custom_grams_v5', JSON.stringify(activeCustomGrams));
+        calculateSingle();
     }
 }
 
@@ -428,8 +478,12 @@ function calculateFinancialTotalsOnly() {
     let totalBatchCost = 0;
     let totalRawWeightGrams = 0;
 
-    recipes[recipeName].ingredients.forEach(item => {
-        const totalGrams = item.gramsPerKg * baseMeatKg;
+    recipes[recipeName].ingredients.forEach((item, index) => {
+        let gramsPerKg = (activeCustomGrams[recipeName] && activeCustomGrams[recipeName][index] !== undefined)
+            ? activeCustomGrams[recipeName][index]
+            : item.gramsPerKg;
+
+        const totalGrams = gramsPerKg * baseMeatKg;
         totalRawWeightGrams += totalGrams;
         totalBatchCost += (totalGrams / 1000) * (item.pricePerKg || 0);
     });
@@ -478,8 +532,11 @@ function addRecipeToChamberBatch() {
 
     let totalRawGrams = 0;
     if (recipes[name]) {
-        recipes[name].ingredients.forEach(ing => {
-            totalRawGrams += ing.gramsPerKg * meatKg;
+        recipes[name].ingredients.forEach((ing, index) => {
+            let g = (activeCustomGrams[name] && activeCustomGrams[name][index] !== undefined)
+                ? activeCustomGrams[name][index]
+                : ing.gramsPerKg;
+            totalRawGrams += g * meatKg;
         });
     }
 
@@ -501,9 +558,13 @@ function updateChamberItemField(index, field, value) {
     if (field === 'meatKg') {
         let totalRawGrams = 0;
         const rec = recipes[chamberBatchList[index].recipeName];
+        const rName = chamberBatchList[index].recipeName;
         if (rec) {
-            rec.ingredients.forEach(ing => {
-                totalRawGrams += ing.gramsPerKg * chamberBatchList[index].meatKg;
+            rec.ingredients.forEach((ing, idx) => {
+                let g = (activeCustomGrams[rName] && activeCustomGrams[rName][idx] !== undefined)
+                    ? activeCustomGrams[rName][idx]
+                    : ing.gramsPerKg;
+                totalRawGrams += g * chamberBatchList[index].meatKg;
             });
         }
         chamberBatchList[index].rawWeightBeforeSmokeKg = (totalRawGrams / 1000);
@@ -533,9 +594,13 @@ function renderChamberItemsList() {
     chamberBatchList.forEach((item, idx) => {
         let totalRawGrams = 0;
         const rec = recipes[item.recipeName];
+        const rName = item.recipeName;
         if (rec) {
-            rec.ingredients.forEach(ing => {
-                totalRawGrams += ing.gramsPerKg * item.meatKg;
+            rec.ingredients.forEach((ing, iIdx) => {
+                let g = (activeCustomGrams[rName] && activeCustomGrams[rName][iIdx] !== undefined)
+                    ? activeCustomGrams[rName][iIdx]
+                    : ing.gramsPerKg;
+                totalRawGrams += g * item.meatKg;
             });
         }
         const rawKg = (totalRawGrams / 1000).toFixed(3);
@@ -586,13 +651,18 @@ function calculateMultiBatch() {
 
     chamberBatchList.forEach(item => {
         const rec = recipes[item.recipeName];
+        const rName = item.recipeName;
         if (!rec) return;
 
         totalFinishedWeight += item.finishedWeightKg;
         totalRevenue += (item.finishedWeightKg * item.retailPrice);
 
-        rec.ingredients.forEach(ing => {
-            const ingGrams = ing.gramsPerKg * item.meatKg;
+        rec.ingredients.forEach((ing, idx) => {
+            let g = (activeCustomGrams[rName] && activeCustomGrams[rName][idx] !== undefined)
+                ? activeCustomGrams[rName][idx]
+                : ing.gramsPerKg;
+
+            const ingGrams = g * item.meatKg;
             const ingCost = (ingGrams / 1000) * (ing.pricePerKg || 0);
 
             totalRawGrams += ingGrams;
@@ -622,7 +692,7 @@ function calculateMultiBatch() {
         html += `
             <div class="row">
                 <span class="row-name">${ingName}</span>
-                <span class="row-val">${item.grams < 1000 ? item.grams.toFixed(1) + ' г' : (item.grams/1000).toFixed(3) + ' кг'}</span>
+                <span style="font-size:12px; font-weight:bold; color:#ffda79; width:68px; text-align:center;">${item.grams < 1000 ? item.grams.toFixed(1) + ' г' : (item.grams/1000).toFixed(3) + ' кг'}</span>
                 <span class="row-cost">${item.cost.toFixed(2)} грн</span>
             </div>
         `;
@@ -655,9 +725,9 @@ function renderRecipeManagerList() {
         div.className = 'row';
         div.style.marginBottom = '8px';
         div.innerHTML = `
-            <span class="row-name" style="font-weight:bold; font-size:15px;">${name}</span>
-            <button onclick="editRecipe('${name}')" style="width: auto; margin-bottom:0; padding:6px 12px; background:#522429; border:none; margin-right:4px;">✏️</button>
-            <button onclick="deleteRecipe('${name}')" style="width: auto; margin-bottom:0; padding:6px 12px; background:transparent; border:1px solid #d3524b; color:#d3524b;">🗑</button>
+            <span class="row-name" style="font-weight:bold; font-size:14px; flex:2;">${name}</span>
+            <button onclick="editRecipe('${name}')" style="width: auto; margin-bottom:0; padding:6px 10px; background:#522429; border:none; margin-right:4px;">✏️️</button>
+            <button onclick="deleteRecipe('${name}')" style="width: auto; margin-bottom:0; padding:6px 10px; background:transparent; border:1px solid #d3524b; color:#d3524b;">🗑</button>
         `;
         list.appendChild(div);
     }
@@ -722,7 +792,7 @@ function saveRecipe() {
     if (list.length === 0) { alert("Добавьте хотя бы один компонент"); return; }
 
     recipes[name] = { ingredients: list };
-    localStorage.setItem('dg_cost_recipes_v4', JSON.stringify(recipes));
+    localStorage.setItem('dg_cost_recipes_v5', JSON.stringify(recipes));
     
     cancelNewRecipe();
     init();
@@ -735,7 +805,7 @@ function cancelNewRecipe() {
 function deleteRecipe(name) {
     if (confirm(`Удалить рецепт "${name}"?`)) {
         delete recipes[name];
-        localStorage.setItem('dg_cost_recipes_v4', JSON.stringify(recipes));
+        localStorage.setItem('dg_cost_recipes_v5', JSON.stringify(recipes));
         init();
     }
 }
@@ -744,4 +814,3 @@ init();
 </script>
 </body>
 </html>
-
