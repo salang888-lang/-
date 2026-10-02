@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Дымный Гурман - Калькулятор и База Рецептов</title>
+    <title>Дымный Гурман - Полный калькулятор</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2b1819">
     <style>
@@ -43,9 +43,10 @@
         }
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 500;
             color: var(--text-muted);
+            font-size: 13px;
         }
         select, input {
             width: 100%;
@@ -68,17 +69,17 @@
             margin-top: 10px;
         }
         th, td {
-            padding: 8px 6px;
+            padding: 8px 4px;
             text-align: left;
-            font-size: 14px;
+            font-size: 13px;
             border-bottom: 1px solid #3d2423;
         }
         th {
             color: var(--accent-gold);
-            font-size: 13px;
+            font-size: 12px;
         }
         .calc-input {
-            width: 70px;
+            width: 65px;
             padding: 6px;
             background: #1a1110;
             border: 1px solid var(--border-color);
@@ -89,8 +90,12 @@
             margin-bottom: 0;
         }
         .price-input {
-            width: 85px;
+            width: 75px;
             border-color: #8c6d33;
+        }
+        .calc-input:focus, .price-input:focus {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 4px rgba(230, 184, 76, 0.4);
         }
         .results {
             background: #231413;
@@ -101,7 +106,7 @@
         }
         .results p {
             margin: 6px 0;
-            font-size: 15px;
+            font-size: 14px;
         }
         .highlight {
             color: var(--accent-gold);
@@ -115,24 +120,32 @@
     <h1>🔥 Дымный Гурман</h1>
 
     <div class="card">
-        <label for="recipe-select">Выберите рецепт:</label>
+        <label for="recipe-select">Выберите рецепт из базы:</label>
         <select id="recipe-select" onchange="onRecipeChange()">
             <!-- Заполняется динамически -->
         </select>
 
-        <label for="batch-weight">Объем сырья (кг):</label>
-        <input type="number" id="batch-weight" value="1.0" step="0.1" min="0.1" oninput="calculateTotalCost()">
+        <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <label for="batch-weight">Сырье (кг партии):</label>
+                <input type="number" id="batch-weight" value="1.0" step="0.1" min="0.1" oninput="calculateTotalCost()">
+            </div>
+            <div style="flex: 1;">
+                <label for="yield-percent">Выход готового (%):</label>
+                <input type="number" id="yield-percent" value="75" step="1" min="10" max="100" oninput="calculateTotalCost()">
+            </div>
+        </div>
     </div>
 
     <div class="card">
-        <h3>Состав и регулировка цен закупки</h3>
+        <h3>Состав, граммовки и цены закупки</h3>
         <div style="overflow-x: auto;">
             <table>
                 <thead>
                     <tr>
                         <th>Ингредиент</th>
-                        <th>Гр / 1кг</th>
-                        <th>Цена / кг</th>
+                        <th>Гр/кг</th>
+                        <th>Цена</th>
                         <th>Сумма</th>
                     </tr>
                 </thead>
@@ -143,16 +156,19 @@
         </div>
 
         <div class="results">
-            <p>Себестоимость 1 кг готового: <span id="total-cost-per-kg" class="highlight">0.00 грн</span></p>
+            <p>Стоимость сырья (на 1 кг сырья): <span id="total-cost-per-kg" class="highlight">0.00 грн</span></p>
+            <p>Себестоимость 1 кг **готового**: <span id="cost-per-finished-kg" class="highlight">0.00 грн</span></p>
             <p>Общая стоимость партии: <span id="total-batch-cost" class="highlight">0.00 грн</span></p>
+            <p>Ожидаемый вес готового: <span id="total-finished-weight" class="highlight">0.00 кг</span></p>
         </div>
     </div>
 </div>
 
 <script>
-// База рецептов по умолчанию
+// Полная база рецептов с расширенными параметрами
 let defaultRecipes = {
     "Краковская классика": {
+        yieldPercent: 75,
         ingredients: [
             { name: "Свинина полужирная", gramsPerKg: 700, pricePerKg: 180 },
             { name: "Грудинка свиная", gramsPerKg: 300, pricePerKg: 160 },
@@ -166,6 +182,7 @@ let defaultRecipes = {
         ]
     },
     "Кабаноси": {
+        yieldPercent: 65,
         ingredients: [
             { name: "Свинина постная", gramsPerKg: 1000, pricePerKg: 190 },
             { name: "Вода ледяная", gramsPerKg: 50, pricePerKg: 0 },
@@ -174,11 +191,22 @@ let defaultRecipes = {
             { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
             { name: "Стартовые культуры", gramsPerKg: 0.6, pricePerKg: 2500 }
         ]
+    },
+    "Сервелат ГОСТ": {
+        yieldPercent: 72,
+        ingredients: [
+            { name: "Говядина высший сорт", gramsPerKg: 250, pricePerKg: 220 },
+            { name: "Свинина нежирная", gramsPerKg: 500, pricePerKg: 190 },
+            { name: "Грудинка свиная", gramsPerKg: 250, pricePerKg: 160 },
+            { name: "Соль нитритная", gramsPerKg: 20, pricePerKg: 50 },
+            { name: "Сахар / Декстроза", gramsPerKg: 2, pricePerKg: 40 },
+            { name: "Перец белый молотый", gramsPerKg: 2, pricePerKg: 450 },
+            { name: "Орех мускатный", gramsPerKg: 0.5, pricePerKg: 600 }
+        ]
     }
 };
 
-// Загружаем из localStorage или берем дефолтные
-let recipes = JSON.parse(localStorage.getItem('dg_recipes_v3')) || defaultRecipes;
+let recipes = JSON.parse(localStorage.getItem('dg_recipes_v5')) || defaultRecipes;
 let currentActiveRecipeName = "";
 
 function initApp() {
@@ -194,18 +222,23 @@ function initApp() {
     
     if (select.options.length > 0) {
         currentActiveRecipeName = select.value;
-        renderRecipeIngredients(currentActiveRecipeName);
+        loadRecipeData(currentActiveRecipeName);
     }
 }
 
 function onRecipeChange() {
     let select = document.getElementById('recipe-select');
     currentActiveRecipeName = select.value;
-    renderRecipeIngredients(currentActiveRecipeName);
+    loadRecipeData(currentActiveRecipeName);
 }
 
-function renderRecipeIngredients(recipeName) {
+function loadRecipeData(recipeName) {
     let recipe = recipes[recipeName];
+    document.getElementById('yield-percent').value = recipe.yieldPercent || 75;
+    renderRecipeIngredients(recipe);
+}
+
+function renderRecipeIngredients(recipe) {
     let container = document.getElementById('ingredients-table-body');
     container.innerHTML = '';
 
@@ -234,14 +267,23 @@ function renderRecipeIngredients(recipeName) {
 function updateIngredient(index, field, value) {
     let recipe = recipes[currentActiveRecipeName];
     recipe.ingredients[index][field] = parseFloat(value) || 0;
-    
-    // Сохраняем изменения в память телефона
-    localStorage.setItem('dg_recipes_v3', JSON.stringify(recipes));
+    saveAndCalc();
+}
+
+function saveAndCalc() {
+    let recipe = recipes[currentActiveRecipeName];
+    recipe.yieldPercent = parseFloat(document.getElementById('yield-percent').value) || 75;
+    localStorage.setItem('dg_recipes_v5', JSON.stringify(recipes));
     calculateTotalCost();
 }
 
 function calculateTotalCost() {
+    // Синхронизируем выход в объекте рецепта
     let recipe = recipes[currentActiveRecipeName];
+    let yieldPct = parseFloat(document.getElementById('yield-percent').value) || 75;
+    recipe.yieldPercent = yieldPct;
+    localStorage.setItem('dg_recipes_v5', JSON.stringify(recipes));
+
     let batchWeight = parseFloat(document.getElementById('batch-weight').value) || 1.0;
     let totalCostPerKg = 0;
 
@@ -257,9 +299,13 @@ function calculateTotalCost() {
     });
 
     let totalBatchCost = totalCostPerKg * batchWeight;
+    let finishedWeight = batchWeight * (yieldPct / 100);
+    let costPerFinishedKg = finishedWeight > 0 ? totalBatchCost / finishedWeight : 0;
 
     document.getElementById('total-cost-per-kg').innerText = totalCostPerKg.toFixed(2) + " грн";
+    document.getElementById('cost-per-finished-kg').innerText = costPerFinishedKg.toFixed(2) + " грн";
     document.getElementById('total-batch-cost').innerText = totalBatchCost.toFixed(2) + " грн";
+    document.getElementById('total-finished-weight').innerText = finishedWeight.toFixed(2) + " кг";
 }
 
 window.onload = initApp;
