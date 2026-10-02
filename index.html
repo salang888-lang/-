@@ -101,7 +101,7 @@
         .row-val { font-size: 14px; font-weight: bold; color: #ff9d9d; flex: 1; text-align: right; }
         .row-cost { font-size: 13px; color: #bda8a8; flex: 1; text-align: right; }
 
-        /* ВЫРАВНЕННАЯ СЕТКА ИЗДЕЛИЯ В КАМЕРЕ */
+        /* ИДЕАЛЬНО ВЫРАВНЕННАЯ СЕТКА КАМЕРЫ */
         .chamber-item {
             background: #3a1c1f;
             padding: 12px;
@@ -219,7 +219,7 @@
         </div>
 
         <div class="card" style="border: 2px solid #ffda79;">
-            <h3 style="color: #ffda79;">📋 Изделия в камере</h3>
+            <h3 style="color: #ffda79;">📋 Изделия в коптильне</h3>
             <div id="chamberItemsList"></div>
 
             <button class="btn-main" style="margin-top: 12px;" onclick="calculateMultiBatch()">🔥 Посчитать всю камеру</button>
@@ -285,7 +285,7 @@ let defaultRecipes = {
 };
 
 let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v2')) || defaultRecipes;
-let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v4')) || [];
+let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v5')) || [];
 
 function init() {
     updateRecipeSelects();
@@ -419,7 +419,7 @@ function addRecipeToChamberBatch() {
         retailPrice: retailPrice
     });
 
-    localStorage.setItem('dg_chamber_batch_v4', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v5', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
@@ -435,14 +435,18 @@ function updateChamberItemField(index, field, value) {
             });
         }
         chamberBatchList[index].rawWeightBeforeSmokeKg = (totalRawGrams / 1000);
+        
+        // Обновляем поле "ДО коптильни" в DOM без перерисовки всей таблицы (чтобы не терялся фокус)
+        const rawInput = document.getElementById(`raw_wt_${index}`);
+        if (rawInput) rawInput.value = chamberBatchList[index].rawWeightBeforeSmokeKg.toFixed(3);
     }
 
-    localStorage.setItem('dg_chamber_batch_v4', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v5', JSON.stringify(chamberBatchList));
 }
 
 function removeChamberItem(index) {
     chamberBatchList.splice(index, 1);
-    localStorage.setItem('dg_chamber_batch_v4', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v5', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
@@ -475,11 +479,11 @@ function renderChamberItemsList() {
             <div class="chamber-grid">
                 <div class="chamber-field">
                     <label>Мясо сырья (кг):</label>
-                    <input type="number" step="0.1" value="${item.meatKg}" oninput="updateChamberItemField(${idx}, 'meatKg', this.value); renderChamberItemsList();">
+                    <input type="number" step="0.1" value="${item.meatKg}" oninput="updateChamberItemField(${idx}, 'meatKg', this.value)">
                 </div>
                 <div class="chamber-field">
                     <label style="color:#ffda79;">Вес ДО копч. (кг):</label>
-                    <input type="number" value="${rawKg}" readonly style="background:#4a1f23; color:#ffda79; border-color:#d3524b;">
+                    <input type="number" id="raw_wt_${idx}" value="${rawKg}" readonly style="background:#4a1f23; color:#ffda79; border-color:#d3524b;">
                 </div>
                 <div class="chamber-field">
                     <label style="color:#52d37c;">Вес ПОСЛЕ (кг):</label>
