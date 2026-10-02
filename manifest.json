@@ -1,0 +1,15 @@
+{
+  "name": "Дымный Гурман Калькулятор",
+  "short_name": "Калькулятор",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1e0e10",
+  "theme_color": "#d3524b",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3082/3081995.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
