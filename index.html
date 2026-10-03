@@ -833,7 +833,6 @@ function submitGroupPurchase() {
 
     localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
 
-    // Сохраняем сгруппированную накладную в Историю закупок
     let purchaseRecord = {
         id: Date.now(),
         date: nowIso,
@@ -843,7 +842,6 @@ function submitGroupPurchase() {
     purchaseHistoryLogs.push(purchaseRecord);
     localStorage.setItem('dg_purchase_history_v17', JSON.stringify(purchaseHistoryLogs));
 
-    // Записываем списывание в кассу
     if (totalBatchCost > 0) {
         manualCashAdjustment -= totalBatchCost;
         localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
@@ -950,7 +948,7 @@ function renderPurchaseHistoryLogs() {
     });
 }
 
-/* РЕДАКТИРОВАНИЕ ЦЕНЫ В ИСТОРИИ ЗАКУПОК */
+/* РЕДАКТИРОВАНИЕ ЦЕНЫ И ВЕСА В ИСТОРИИ ЗАКУПОК */
 function editPurchaseItemPrice(purchaseId, itemIdx) {
     const p = purchaseHistoryLogs.find(x => x.id === purchaseId);
     if (!p || !p.items[itemIdx]) return;
@@ -969,11 +967,12 @@ function editPurchaseItemPrice(purchaseId, itemIdx) {
     item.weight = newWeight;
     item.itemCost = newWeight * newPrice;
 
-    // Корректировка склада
+    // Скорректировать склад именно на разницу веса этой позиции
     if (meatStock[item.name]) {
-        meatStock[item.name].weightKg = meatStock[item.name].weightKg - oldWeight + newWeight;
+        let weightDiff = newWeight - oldWeight;
+        meatStock[item.name].weightKg += weightDiff;
         if (meatStock[item.name].weightKg < 0) meatStock[item.name].weightKg = 0;
-        meatStock[item.name].pricePerKg = newPrice; // обновляем на свежую цену
+        meatStock[item.name].pricePerKg = newPrice;
     }
 
     // Пересчет суммы накладной
@@ -1003,15 +1002,17 @@ function editPurchaseItemPrice(purchaseId, itemIdx) {
     renderAnalytics();
 }
 
-/* ПОЛНОЕ УДАЛЕНИЕ ИЗ ЗАКУПОК + СКЛАДА + ФИНАНСОВ */
+/* ПОЛНОЕ И ТОЧНОЕ УДАЛЕНИЕ ТОЛЬКО ВЕСА ЭТОЙ НАКЛАДНОЙ */
 function deletePurchaseRecord(id) {
     const idx = purchaseHistoryLogs.findIndex(x => x.id === id);
     if (idx === -1) return;
 
-    if (confirm("Удалить эту накладную закупки?\n\n- Товар спишется со склада;\n- Потраченная сумма ВЕРНЕТСЯ в Кассу;\n- Запись удалится из финансов.")) {
-        let p = purchaseHistoryLogs[idx];
+    let p = purchaseHistoryLogs[idx];
+    let summaryList = p.items.map(i => `${i.name}: ${i.weight} кг`).join('\n');
 
-        // 1. Списываем вес со склада
+    if (confirm(`Удалить эту накладную закупки?\n\nСпишется только вес из этой накладной:\n${summaryList}\n\nСумма ${p.totalCost.toFixed(2)} грн ВЕРНЕТСЯ в Кассу.`)) {
+
+        // 1. Списываем ровно тот вес, который был закуплен в ЭТОЙ накладной
         p.items.forEach(it => {
             if (meatStock[it.name]) {
                 meatStock[it.name].weightKg -= it.weight;
@@ -1020,11 +1021,11 @@ function deletePurchaseRecord(id) {
         });
         localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
 
-        // 2. Возвращаем деньги в Кассу
+        // 2. Возвращаем потраченную сумму накладной в Кассу
         manualCashAdjustment += p.totalCost;
         localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
 
-        // 3. Удаляем из финансовой истории
+        // 3. Удаляем накладную из финансового отчета
         salesHistory = salesHistory.filter(x => x.id !== id);
         localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
 
