@@ -532,6 +532,19 @@
 
 <script>
 let defaultRecipes = {
+    "Рёбра свиные": {
+        meats: [
+            { name: "Рёбра свиные", weightKg: 1.0, pricePerKg: 170 }
+        ],
+        additives: [
+            { name: "Соль нитритная", gramsPerKg: 18, pricePerKg: 50 },
+            { name: "Сахар", gramsPerKg: 2, pricePerKg: 30 },
+            { name: "Перец чёрный молотый", gramsPerKg: 2, pricePerKg: 400 },
+            { name: "Паприка копченая", gramsPerKg: 3, pricePerKg: 350 },
+            { name: "Кориандр молотый", gramsPerKg: 1, pricePerKg: 250 },
+            { name: "Чеснок сушеный", gramsPerKg: 2, pricePerKg: 300 }
+        ]
+    },
     "Краковская колбаса": {
         meats: [
             { name: "Свинина полужирная", weightKg: 0.7, pricePerKg: 160 },
@@ -577,6 +590,7 @@ let defaultRecipes = {
 };
 
 let defaultStock = {
+    "Рёбра свиные": { weightKg: 10.0, pricePerKg: 170, lastUpdated: new Date().toISOString() },
     "Краковская колбаса": { weightKg: 10.0, pricePerKg: 170, lastUpdated: new Date().toISOString() },
     "Свинина полужирная": { weightKg: 15.0, pricePerKg: 160, lastUpdated: new Date().toISOString() },
     "Грудинка свиная": { weightKg: 10.0, pricePerKg: 180, lastUpdated: new Date().toISOString() },
@@ -785,7 +799,7 @@ function addPurchaseFormRow() {
             <label style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase;">Наименование сырья:</label>
             <button onclick="removePurchaseFormRow(this)" style="width:auto; margin-bottom:0; padding:2px 6px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; font-size:11px;">✕</button>
         </div>
-        <input type="text" class="p-name" placeholder="например: Свинина полужирная, Грудинка" style="margin-bottom:8px;">
+        <input type="text" class="p-name" placeholder="например: Рёбра свиные, Свинина" style="margin-bottom:8px;">
         <div class="input-row">
             <div class="input-col">
                 <label>Вес (кг):</label>
@@ -793,7 +807,7 @@ function addPurchaseFormRow() {
             </div>
             <div class="input-col">
                 <label>Цена (грн/кг):</label>
-                <input type="number" class="p-price" placeholder="160" step="1">
+                <input type="number" class="p-price" placeholder="170" step="1">
             </div>
         </div>
     `;
