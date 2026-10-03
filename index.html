@@ -694,7 +694,7 @@ function editSaleRecord(id) {
     renderAnalytics();
 }
 
-/* --- СКЛАД СЫРЬЯ --- */
+/* --- СКЛАД СЫРЬЯ (С АВТОМАТИЧЕСКИМ СПИСАНИЕМ ИЗ КАССЫ) --- */
 function addMeatStock() {
     const name = document.getElementById('stockMeatName').value.trim();
     const weight = parseFloat(document.getElementById('stockMeatWeight').value) || 0;
@@ -705,22 +705,44 @@ function addMeatStock() {
         return;
     }
 
+    let purchaseTotalCost = weight * price;
+
     if (!meatStock[name]) {
         meatStock[name] = { weightKg: weight, pricePerKg: price };
     } else {
-        let currentTotalCost = (meatStock[name].weightKg * meatStock[name].pricePerKg) + (weight * price);
+        let currentTotalCost = (meatStock[name].weightKg * meatStock[name].pricePerKg) + purchaseTotalCost;
         let newTotalWeight = meatStock[name].weightKg + weight;
         meatStock[name].weightKg = newTotalWeight;
         meatStock[name].pricePerKg = newTotalWeight > 0 ? (currentTotalCost / newTotalWeight) : price;
     }
 
     localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
+
+    // Вычитаем сумму закупки из наличных средств кассы
+    if (purchaseTotalCost > 0) {
+        manualCashAdjustment -= purchaseTotalCost;
+        localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
+
+        // Записываем операцию закупки в историю кассы
+        salesHistory.push({
+            id: Date.now(),
+            date: new Date().toISOString(),
+            title: `Закупка сырья (${name})`,
+            finishedWeightKg: 0,
+            cost: purchaseTotalCost,
+            revenue: 0,
+            profit: -purchaseTotalCost
+        });
+        localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
+    }
+
     document.getElementById('stockMeatName').value = '';
     document.getElementById('stockMeatWeight').value = '';
     document.getElementById('stockMeatPrice').value = '';
 
     renderStockBalance();
-    alert(`Приход сырья "${name}" (${weight} кг) успешно записан на склад!`);
+    renderAnalytics();
+    alert(`Приход сырья "${name}" (${weight} кг) записан!\nСумма ${purchaseTotalCost.toFixed(2)} грн списана из Кассы.`);
 }
 
 function renderStockBalance() {
