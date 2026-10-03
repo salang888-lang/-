@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Дымный Гурман — Премиум Учёт, Калькулятор и Склад</title>
+    <title>Дымный Гурман — Премиум Учёт, Калькулятор, Склад и Касса</title>
     <style>
         :root {
             --bg-primary: #0f172a;
@@ -183,7 +183,6 @@
             gap: 6px;
         }
 
-        /* СКЛАДСКИЕ КАРТОЧКИ И ЭЛЕМЕНТЫ */
         .stock-item, .history-item, .chamber-item {
             background: rgba(15, 23, 42, 0.6);
             padding: 14px;
@@ -264,7 +263,7 @@
 <div class="container">
     <div class="brand-header">
         <h1>Дымный Гурман</h1>
-        <p>Craft Meat & Smoke Production • Warehouse & Financial System</p>
+        <p>Craft Meat & Smoke Production • Warehouse & Cash Control</p>
     </div>
 
     <!-- ВКЛАДКИ НАВИГАЦИИ -->
@@ -276,7 +275,7 @@
         <div class="tab-btn" id="tab_recipes" onclick="switchTab('recipes')">📖 Рецепты</div>
     </div>
 
-    <!-- 0. ВКЛАДКА: СКЛАД СЫРЬЯ (ПРИХОД / ОСТАТКИ) -->
+    <!-- 0. ВКЛАДКА: СКЛАД СЫРЬЯ -->
     <div id="section_stock">
         <div class="card">
             <h3 style="color: var(--accent-gold); font-size: 16px; margin-bottom: 12px;">➕ Приход сырья (Закупка)</h3>
@@ -341,7 +340,7 @@
             <div class="section-title" style="margin-top: 20px;">📊 Финансовый итог партии:</div>
             <div id="financialBlock"></div>
 
-            <button class="btn-main" style="margin-top: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="processAndDeductSingleBatch()">✅ Готово: Списать мясо со склада и провести партию</button>
+            <button class="btn-main" style="margin-top: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="processAndDeductSingleBatch()">✅ Готово: Списать мясо и передать товар на продажу</button>
         </div>
     </div>
 
@@ -371,12 +370,52 @@
 
             <div id="multiResultsBlock" style="margin-top: 16px;"></div>
             
-            <button class="btn-main" id="btnSaveChamberHistory" style="margin-top: 14px; display: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="processAndDeductChamberBatch()">✅ Проведено: Списать всё мясо со склада и в финансы</button>
+            <button class="btn-main" id="btnSaveChamberHistory" style="margin-top: 14px; display: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="processAndDeductChamberBatch()">✅ Проведено: Списать мясо и передать в Кассу на продажу</button>
         </div>
     </div>
 
-    <!-- 3. ВКЛАДКА: ФИНАНСОВАЯ АНАЛИТИКА -->
+    <!-- 3. ВКЛАДКА: ФИНАНСЫ И КАССА -->
     <div id="section_analytics" style="display: none;">
+        <!-- БЛОК КАССЫ И ПРОДАЖ -->
+        <div class="card" style="border-left: 4px solid var(--success);">
+            <h3 style="font-size: 16px; margin-bottom: 12px; color: #34d399;">💵 Касса и Продажи</h3>
+            
+            <div class="input-row" style="margin-bottom: 12px;">
+                <div class="input-col">
+                    <label>Начальный остаток кассы (грн):</label>
+                    <input type="number" id="initialCashInput" placeholder="0" step="50" onchange="updateInitialCash(this.value)">
+                </div>
+                <div class="input-col">
+                    <label>НАЛИЧНЫЕ В КАССЕ:</label>
+                    <div id="currentCashDisplay" style="height: 46px; display: flex; align-items: center; justify-content: center; background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); border-radius: 10px; color: #34d399; font-weight: 800; font-size: 18px;">
+                        0.00 грн
+                    </div>
+                </div>
+            </div>
+
+            <!-- БЛОК КОНТРОЛЯ ТОВАРА НА ПРОДАЖУ (ИЗ КАМЕРЫ) -->
+            <div style="background: rgba(15, 23, 42, 0.8); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 14px;">
+                <div class="fin-row" style="padding: 4px 0;">
+                    <span>Товара на продажу (из камеры):</span>
+                    <span style="color: var(--accent-gold); font-weight: 800; font-size: 16px;" id="pendingChamberSalesDisplay">0.00 грн</span>
+                </div>
+            </div>
+
+            <!-- ВВОД ФАКТИЧЕСКОЙ ПРОДАЖИ -->
+            <div class="input-col" style="margin-bottom: 10px;">
+                <label style="color: var(--accent-gold);">Продажа (сумма фактически проданного товара):</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="number" id="saleInputAmount" placeholder="Введите сумму продажи" step="10" style="height: 46px; font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 0;">
+                    <button class="btn-main" style="width: 140px; margin-bottom: 0; padding: 0; height: 46px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="registerSaleFromCamera()">💰 Продать</button>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 14px;">
+                <button class="btn-sec" style="font-size: 12px; padding: 8px;" onclick="adjustCashManual('add')">➕ Ручной внос</button>
+                <button class="btn-sec" style="font-size: 12px; padding: 8px; border-color: var(--danger); color: var(--danger);" onclick="adjustCashManual('sub')">➖ Инкассация / Изъятие</button>
+            </div>
+        </div>
+
         <div class="card">
             <h3 style="font-size: 16px; margin-bottom: 12px;">📈 Финансовый отчёт коптильни</h3>
             
@@ -389,7 +428,7 @@
 
             <div class="stat-grid">
                 <div class="stat-card">
-                    <div class="stat-card-title">Общая выручка</div>
+                    <div class="stat-card-title">Фактическая выручка</div>
                     <div class="stat-card-value" id="statRevenue" style="color: var(--text-main);">0 грн</div>
                 </div>
                 <div class="stat-card">
@@ -397,7 +436,7 @@
                     <div class="stat-card-value" id="statCost" style="color: var(--danger);">0 грн</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-card-title">Чистая прибыль</div>
+                    <div class="stat-card-title">Фактическая прибыль</div>
                     <div class="stat-card-value" id="statProfit" style="color: var(--success);">0 грн</div>
                 </div>
                 <div class="stat-card">
@@ -406,7 +445,7 @@
                 </div>
             </div>
 
-            <div class="section-title">📋 История проведенных партий:</div>
+            <div class="section-title">📋 История операций и продаж:</div>
             <div id="historyLogsList"></div>
             
             <button class="btn-sec" style="margin-top: 10px; width: 100%; color: var(--danger); border-color: var(--danger);" onclick="clearHistoryLogs()">🗑 Очистить историю продаж</button>
@@ -480,11 +519,15 @@ let defaultStock = {
     "Окорочка": { weightKg: 5.0, pricePerKg: 110 }
 };
 
-let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v16')) || defaultRecipes;
-let activeRecipeState = JSON.parse(localStorage.getItem('dg_active_state_v16')) || {};
-let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v16')) || [];
-let salesHistory = JSON.parse(localStorage.getItem('dg_sales_history_v16')) || [];
-let meatStock = JSON.parse(localStorage.getItem('dg_meat_stock_v16')) || defaultStock;
+let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v17')) || defaultRecipes;
+let activeRecipeState = JSON.parse(localStorage.getItem('dg_active_state_v17')) || {};
+let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v17')) || [];
+let salesHistory = JSON.parse(localStorage.getItem('dg_sales_history_v17')) || [];
+let meatStock = JSON.parse(localStorage.getItem('dg_meat_stock_v17')) || defaultStock;
+
+let initialCash = parseFloat(localStorage.getItem('dg_initial_cash_v17')) || 0;
+let manualCashAdjustment = parseFloat(localStorage.getItem('dg_manual_cash_v17')) || 0;
+let pendingChamberSales = parseFloat(localStorage.getItem('dg_pending_sales_v17')) || 0; // На сколько надо еще продать товара из камеры
 let selectedPeriod = 'week';
 
 function init() {
@@ -494,6 +537,7 @@ function init() {
     renderRecipeManagerList();
     renderAnalytics();
     renderStockBalance();
+    document.getElementById('initialCashInput').value = initialCash;
 }
 
 function switchTab(tab) {
@@ -516,7 +560,53 @@ function switchTab(tab) {
     if (tab === 'recipes') renderRecipeManagerList();
 }
 
-/* --- СКЛАД СЫРЬЯ (ПРИХОД / ОСТАТКИ) --- */
+/* --- КАССА И ВНОС ПРОДАЖ --- */
+function updateInitialCash(val) {
+    initialCash = parseFloat(val) || 0;
+    localStorage.setItem('dg_initial_cash_v17', initialCash);
+    renderAnalytics();
+}
+
+function adjustCashManual(type) {
+    let amount = parseFloat(prompt(type === 'add' ? "Введите сумму ВНОСА в кассу (грн):" : "Введите сумму ИЗЪЯТИЯ из кассы (грн):"));
+    if (!amount || amount <= 0) return;
+
+    if (type === 'sub') amount = -amount;
+    manualCashAdjustment += amount;
+    localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
+    renderAnalytics();
+}
+
+/* ФУНКЦИЯ ПРОДАЖИ (СПИСАНИЕ ИЗ ОЖИДАЕМОЙ ПРОДАЖИ КАМЕРЫ В ПОЛУЧЕННЫЕ НАЛИЧНЫЕ) */
+function registerSaleFromCamera() {
+    const saleAmount = parseFloat(document.getElementById('saleInputAmount').value) || 0;
+    if (saleAmount <= 0) {
+        alert("Введите сумму продажи!");
+        return;
+    }
+
+    pendingChamberSales -= saleAmount;
+    if (pendingChamberSales < 0) pendingChamberSales = 0;
+    localStorage.setItem('dg_pending_sales_v17', pendingChamberSales);
+
+    salesHistory.push({
+        id: Date.now(),
+        date: new Date().toISOString(),
+        title: "Продажа готовой продукции",
+        finishedWeightKg: 0,
+        cost: 0,
+        revenue: saleAmount,
+        profit: saleAmount
+    });
+
+    localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
+    document.getElementById('saleInputAmount').value = '';
+
+    renderAnalytics();
+    alert(`Продажа на ${saleAmount.toFixed(2)} грн записана!\nДеньги поступили в кассу, а сумма к продаже из камеры уменьшена.`);
+}
+
+/* --- СКЛАД СЫРЬЯ --- */
 function addMeatStock() {
     const name = document.getElementById('stockMeatName').value.trim();
     const weight = parseFloat(document.getElementById('stockMeatWeight').value) || 0;
@@ -536,7 +626,7 @@ function addMeatStock() {
         meatStock[name].pricePerKg = newTotalWeight > 0 ? (currentTotalCost / newTotalWeight) : price;
     }
 
-    localStorage.setItem('dg_meat_stock_v16', JSON.stringify(meatStock));
+    localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
     document.getElementById('stockMeatName').value = '';
     document.getElementById('stockMeatWeight').value = '';
     document.getElementById('stockMeatPrice').value = '';
@@ -579,7 +669,7 @@ function renderStockBalance() {
 function deleteStockItem(name) {
     if (confirm(`Удалить позицию "${name}" со склада?`)) {
         delete meatStock[name];
-        localStorage.setItem('dg_meat_stock_v16', JSON.stringify(meatStock));
+        localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
         renderStockBalance();
     }
 }
@@ -762,8 +852,7 @@ function calculateSingle() {
             <div class="fin-row"><span>Фактический выход:</span> <span style="color:var(--success); font-weight:700;">${yieldPct}% (${res.finishedWeight} кг)</span></div>
             <div class="fin-row" style="font-size:15px; border-bottom: none; padding-top: 12px;"><span>СЕБЕСТОИМОСТЬ 1 КГ:</span> <span style="color:var(--accent-gold); font-weight:800; font-size: 17px;">${costPerKgFinished} грн/кг</span></div>
             ${res.revenue > 0 ? `
-                <div class="fin-row"><span>Выручка от продажи:</span> <span>${res.revenue.toFixed(2)} грн</span></div>
-                <div class="fin-row" style="border-bottom: none;"><span>Чистая прибыль:</span> <span style="color:var(--success); font-weight:800; font-size: 18px;">${res.profit.toFixed(2)} грн</span></div>
+                <div class="fin-row"><span>Ожидаемая сумма продажи:</span> <span>${res.revenue.toFixed(2)} грн</span></div>
             ` : ''}
         `;
     } else {
@@ -774,7 +863,6 @@ function calculateSingle() {
     }
 }
 
-/* СПИСАНИЕ МЯСА И ПРОВЕДЕНИЕ В ФИНАНСЫ */
 function processAndDeductSingleBatch() {
     const res = getSingleCalculatedData();
     if (!res || res.finishedWeight <= 0) {
@@ -803,20 +891,15 @@ function processAndDeductSingleBatch() {
         }
     });
 
-    localStorage.setItem('dg_meat_stock_v16', JSON.stringify(meatStock));
+    localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
 
-    salesHistory.push({
-        id: Date.now(),
-        date: new Date().toISOString(),
-        title: res.recipeName,
-        finishedWeightKg: res.finishedWeight,
-        cost: res.totalBatchCost,
-        revenue: res.revenue,
-        profit: res.profit
-    });
+    // Начисление в сумму "Товара на продажу"
+    if (res.revenue > 0) {
+        pendingChamberSales += res.revenue;
+        localStorage.setItem('dg_pending_sales_v17', pendingChamberSales);
+    }
 
-    localStorage.setItem('dg_sales_history_v16', JSON.stringify(salesHistory));
-    alert(`Партия "${res.recipeName}" проведена!\nМясо успешно списано со склада, а финансы записаны в отчёт.`);
+    alert(`Партия "${res.recipeName}" проведена!\nМясо успешно списано со склада, а товар на сумму ${res.revenue.toFixed(2)} грн добавлен в раздел продажи.`);
     renderStockBalance();
 }
 
@@ -884,23 +967,23 @@ function addRecipeToChamberBatch() {
         retailPrice: retailPrice
     });
 
-    localStorage.setItem('dg_chamber_batch_v16', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v17', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
 function updateChamberItemMeat(itemIdx, meatIdx, val) {
     chamberBatchList[itemIdx].meats[meatIdx].weightKg = parseFloat(val) || 0;
-    localStorage.setItem('dg_chamber_batch_v16', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v17', JSON.stringify(chamberBatchList));
 }
 
 function updateChamberItemField(itemIdx, field, val) {
     chamberBatchList[itemIdx][field] = parseFloat(val) || 0;
-    localStorage.setItem('dg_chamber_batch_v16', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v17', JSON.stringify(chamberBatchList));
 }
 
 function removeChamberItem(index) {
     chamberBatchList.splice(index, 1);
-    localStorage.setItem('dg_chamber_batch_v16', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v17', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
@@ -1025,8 +1108,7 @@ function calculateMultiBatch() {
         <div class="fin-row"><span>Общие затраты:</span> <span><strong>${totalCost.toFixed(2)} грн</strong></span></div>
         <div class="fin-row" style="font-size:15px;"><span>СРЕДНЯЯ СЕБЕСТОИМОСТЬ 1 КГ:</span> <span style="color:var(--accent-gold); font-weight:800; font-size: 17px;">${avgCostPerKgFinished} грн/кг</span></div>
         ${totalRevenue > 0 ? `
-            <div class="fin-row"><span>Ожидаемая выручка:</span> <span style="color:var(--success);">${totalRevenue.toFixed(2)} грн</span></div>
-            <div class="fin-row" style="border-bottom: none; font-size: 16px;"><span>ЧИСТАЯ ПРИБЫЛЬ:</span> <span style="color:var(--success); font-weight:800; font-size: 18px;">${totalProfit} грн</span></div>
+            <div class="fin-row" style="border-bottom: none; font-size: 16px;"><span>ОЖИДАЕМАЯ СУММА ПРОДАЖИ:</span> <span style="color:var(--success); font-weight:800; font-size: 18px;">${totalRevenue.toFixed(2)} грн</span></div>
         ` : ''}
     `;
 
@@ -1038,34 +1120,18 @@ function processAndDeductChamberBatch() {
     if (chamberBatchList.length === 0) return;
 
     let requiredMeat = {};
-    let totalWeight = 0;
-    let totalCost = 0;
     let totalRevenue = 0;
-    let titles = [];
 
     chamberBatchList.forEach(item => {
         const rec = recipes[item.recipeName];
         if (!rec) return;
 
-        titles.push(item.recipeName);
-        totalWeight += item.finishedWeightKg;
         totalRevenue += (item.finishedWeightKg * item.retailPrice);
 
-        let totalMeatKg = 0;
         item.meats.forEach(m => {
             let w = parseFloat(m.weightKg) || 0;
-            let p = parseFloat(m.pricePerKg !== undefined ? m.pricePerKg : (rec.meats.find(x=>x.name===m.name)?.pricePerKg || 0));
-            totalMeatKg += w;
-            totalCost += w * p;
-
             if (!requiredMeat[m.name]) requiredMeat[m.name] = 0;
             requiredMeat[m.name] += w;
-        });
-
-        rec.additives.forEach(a => {
-            let ingGrams = (a.gramsPerKg || 0) * totalMeatKg;
-            let ingCost = (ingGrams / 1000) * (a.pricePerKg || 0);
-            totalCost += ingCost;
         });
     });
 
@@ -1077,24 +1143,17 @@ function processAndDeductChamberBatch() {
         }
     }
 
-    localStorage.setItem('dg_meat_stock_v16', JSON.stringify(meatStock));
+    localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
 
-    salesHistory.push({
-        id: Date.now(),
-        date: new Date().toISOString(),
-        title: "Загрузка камеры (" + [...new Set(titles)].join(", ") + ")",
-        finishedWeightKg: totalWeight,
-        cost: totalCost,
-        revenue: totalRevenue,
-        profit: totalRevenue - totalCost
-    });
+    // Начисление всей суммы камеры в "Товара на продажу"
+    pendingChamberSales += totalRevenue;
+    localStorage.setItem('dg_pending_sales_v17', pendingChamberSales);
 
-    localStorage.setItem('dg_sales_history_v16', JSON.stringify(salesHistory));
-    alert("Загрузка камеры проведена!\nВсё мясо успешно списано со склада, а финансы записаны в отчёт.");
+    alert(`Камера успешно проведена!\nМясо списано со склада. В Кассу добавлено +${totalRevenue.toFixed(2)} грн товара на продажу.`);
     renderStockBalance();
 }
 
-/* --- ФИНАНСОВАЯ АНАЛИТИКА --- */
+/* --- ФИНАНСОВАЯ АНАЛИТИКА И РАСЧЕТ КАССЫ --- */
 function setPeriod(p) {
     selectedPeriod = p;
     document.getElementById('p_week').classList.toggle('active', p === 'week');
@@ -1120,6 +1179,11 @@ function renderAnalytics() {
     });
 
     let totRevenue = 0; let totCost = 0; let totProfit = 0; let totWeight = 0;
+    let totalAllTimeRevenue = 0;
+
+    salesHistory.forEach(item => {
+        totalAllTimeRevenue += item.revenue || 0;
+    });
 
     filteredLogs.sort((a,b) => b.id - a.id).forEach(item => {
         totRevenue += item.revenue || 0;
@@ -1136,13 +1200,8 @@ function renderAnalytics() {
                 <strong style="color:var(--text-main); font-size:14px;">${item.title}</strong>
                 <span style="font-size:11px; color:var(--text-muted);">${dateStr}</span>
             </div>
-            <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted);">
-                <span>Выход: <strong>${item.finishedWeightKg.toFixed(2)} кг</strong></span>
-                <span>Себестоимость: <strong style="color:var(--danger);">${item.cost.toFixed(2)} грн</strong></span>
-            </div>
             <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:4px;">
                 <span>Выручка: <strong>${item.revenue.toFixed(2)} грн</strong></span>
-                <span style="color:var(--success); font-weight:800;">Прибыль: +${item.profit.toFixed(2)} грн</span>
             </div>
         `;
         container.appendChild(div);
@@ -1153,15 +1212,20 @@ function renderAnalytics() {
     document.getElementById('statProfit').innerText = totProfit.toFixed(2) + ' грн';
     document.getElementById('statWeight').innerText = totWeight.toFixed(2) + ' кг';
 
+    // РАСЧЕТ И ОТОБРАЖЕНИЕ КАССЫ И ОСТАТКА ПРОДАЖ
+    document.getElementById('pendingChamberSalesDisplay').innerText = pendingChamberSales.toFixed(2) + ' грн';
+    let currentCash = initialCash + totalAllTimeRevenue + manualCashAdjustment;
+    document.getElementById('currentCashDisplay').innerText = currentCash.toFixed(2) + ' грн';
+
     if (filteredLogs.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">За выбранный период нет проведенных партий.</div>';
+        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">За выбранный период нет проведенных продаж.</div>';
     }
 }
 
 function clearHistoryLogs() {
     if (confirm("Вы действительно хотите очистить всю историю финансов и продаж?")) {
         salesHistory = [];
-        localStorage.setItem('dg_sales_history_v16', JSON.stringify(salesHistory));
+        localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
         renderAnalytics();
     }
 }
@@ -1260,10 +1324,10 @@ function saveRecipe() {
     if (meats.length === 0) { alert("Добавьте хотя бы один вид мяса"); return; }
 
     recipes[name] = { meats: meats, additives: additives };
-    localStorage.setItem('dg_cost_recipes_v16', JSON.stringify(recipes));
+    localStorage.setItem('dg_cost_recipes_v17', JSON.stringify(recipes));
     
     if (activeRecipeState[name]) delete activeRecipeState[name];
-    localStorage.setItem('dg_active_state_v16', JSON.stringify(activeRecipeState));
+    localStorage.setItem('dg_active_state_v17', JSON.stringify(activeRecipeState));
 
     cancelNewRecipe();
     init();
@@ -1274,7 +1338,7 @@ function cancelNewRecipe() { document.getElementById('newRecipeBlock').style.dis
 function deleteRecipe(name) {
     if (confirm(`Удалить рецепт "${name}"?`)) {
         delete recipes[name];
-        localStorage.setItem('dg_cost_recipes_v16', JSON.stringify(recipes));
+        localStorage.setItem('dg_cost_recipes_v17', JSON.stringify(recipes));
         init();
     }
 }
