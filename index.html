@@ -651,6 +651,28 @@ function registerSaleFromCamera() {
     alert(`Продажа на ${saleAmount.toFixed(2)} грн записана!\nСебестоимость: ${calculatedCost.toFixed(2)} грн. Прибыль: ${(saleAmount - calculatedCost).toFixed(2)} грн.`);
 }
 
+/* ФУНКЦИЯ РЕДАКТИРОВАНИЯ СУММЫ ПРОДАЖИ В ИСТОРИИ */
+function editSaleRecord(id) {
+    const record = salesHistory.find(item => item.id === id);
+    if (!record) return;
+
+    let newRevenue = parseFloat(prompt("Введите новую сумму продажи (грн):", record.revenue));
+    if (isNaN(newRevenue) || newRevenue < 0) return;
+
+    let oldRevenue = record.revenue;
+    if (oldRevenue > 0) {
+        let ratio = newRevenue / oldRevenue;
+        record.cost = record.cost * ratio;
+        record.finishedWeightKg = record.finishedWeightKg * ratio;
+    }
+
+    record.revenue = newRevenue;
+    record.profit = newRevenue - record.cost;
+
+    localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
+    renderAnalytics();
+}
+
 /* --- СКЛАД СЫРЬЯ --- */
 function addMeatStock() {
     const name = document.getElementById('stockMeatName').value.trim();
@@ -1263,9 +1285,12 @@ function renderAnalytics() {
         const div = document.createElement('div');
         div.className = 'history-item';
         div.innerHTML = `
-            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                 <strong style="color:var(--text-main); font-size:14px;">${item.title}</strong>
-                <span style="font-size:11px; color:var(--text-muted);">${dateStr}</span>
+                <div>
+                    <span style="font-size:11px; color:var(--text-muted); margin-right:8px;">${dateStr}</span>
+                    <button onclick="editSaleRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-main); border-radius:6px; font-size:11px; cursor:pointer;" title="Редактировать сумму">✏️</button>
+                </div>
             </div>
             <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:4px;">
                 <span>Выручка: <strong>${item.revenue.toFixed(2)} грн</strong></span>
