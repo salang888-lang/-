@@ -329,6 +329,7 @@
         <div class="card">
             <div class="section-title" style="margin-top:0;">📊 Текущие остатки сырья на складе:</div>
             <div id="stockBalanceList"></div>
+            <button class="btn-sec" style="margin-top: 10px; width: 100%; color: var(--danger); border-color: var(--danger);" onclick="clearAllStock()">🗑 Полностью очистить и обнулить склад</button>
         </div>
 
         <!-- ИСТОРИЯ ЗАКУПОК ПО ДАТАМ -->
@@ -605,43 +606,44 @@ let defaultRecipes = {
     }
 };
 
+// Склад по умолчанию теперь пустой (веса = 0)
 let defaultStock = {
-    "Свинина нежирная (лопатка / окорок)": { weightKg: 10.0, pricePerKg: 180, lastUpdated: new Date().toISOString() },
-    "Грудинка свиная": { weightKg: 5.0, pricePerKg: 160, lastUpdated: new Date().toISOString() },
-    "Балык": { weightKg: 10.0, pricePerKg: 190, lastUpdated: new Date().toISOString() },
-    "Крылья": { weightKg: 5.0, pricePerKg: 120, lastUpdated: new Date().toISOString() },
-    "Голени": { weightKg: 5.0, pricePerKg: 100, lastUpdated: new Date().toISOString() },
-    "Окорочка": { weightKg: 5.0, pricePerKg: 110, lastUpdated: new Date().toISOString() },
-    "Ребра свиные": { weightKg: 10.0, pricePerKg: 170, lastUpdated: new Date().toISOString() }
+    "Свинина нежирная (лопатка / окорок)": { weightKg: 0, pricePerKg: 180, lastUpdated: new Date().toISOString() },
+    "Грудинка свиная": { weightKg: 0, pricePerKg: 160, lastUpdated: new Date().toISOString() },
+    "Балык": { weightKg: 0, pricePerKg: 190, lastUpdated: new Date().toISOString() },
+    "Крылья": { weightKg: 0, pricePerKg: 120, lastUpdated: new Date().toISOString() },
+    "Голени": { weightKg: 0, pricePerKg: 100, lastUpdated: new Date().toISOString() },
+    "Окорочка": { weightKg: 0, pricePerKg: 110, lastUpdated: new Date().toISOString() },
+    "Ребра свиные": { weightKg: 0, pricePerKg: 170, lastUpdated: new Date().toISOString() }
 };
 
-let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v20')) || defaultRecipes;
+let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v21')) || defaultRecipes;
 for (let key in defaultRecipes) {
     if (!recipes[key]) {
         recipes[key] = defaultRecipes[key];
     }
 }
-localStorage.setItem('dg_cost_recipes_v20', JSON.stringify(recipes));
+localStorage.setItem('dg_cost_recipes_v21', JSON.stringify(recipes));
 
-let activeRecipeState = JSON.parse(localStorage.getItem('dg_active_state_v20')) || {};
-let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v20')) || [];
-let chamberHistoryLogs = JSON.parse(localStorage.getItem('dg_chamber_history_v20')) || [];
-let purchaseHistoryLogs = JSON.parse(localStorage.getItem('dg_purchase_history_v20')) || [];
-let salesHistory = JSON.parse(localStorage.getItem('dg_sales_history_v20')) || [];
+let activeRecipeState = JSON.parse(localStorage.getItem('dg_active_state_v21')) || {};
+let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v21')) || [];
+let chamberHistoryLogs = JSON.parse(localStorage.getItem('dg_chamber_history_v21')) || [];
+let purchaseHistoryLogs = JSON.parse(localStorage.getItem('dg_purchase_history_v21')) || [];
+let salesHistory = JSON.parse(localStorage.getItem('dg_sales_history_v21')) || [];
 
-let meatStock = JSON.parse(localStorage.getItem('dg_meat_stock_v20')) || defaultStock;
+let meatStock = JSON.parse(localStorage.getItem('dg_meat_stock_v21')) || defaultStock;
 for (let key in defaultStock) {
     if (!meatStock[key]) {
         meatStock[key] = defaultStock[key];
     }
 }
-localStorage.setItem('dg_meat_stock_v20', JSON.stringify(meatStock));
+localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
 
-let initialCash = parseFloat(localStorage.getItem('dg_initial_cash_v20')) || 0;
-let manualCashAdjustment = parseFloat(localStorage.getItem('dg_manual_cash_v20')) || 0;
-let pendingChamberSales = parseFloat(localStorage.getItem('dg_pending_sales_v20')) || 0; 
-let pendingChamberCost = parseFloat(localStorage.getItem('dg_pending_cost_v20')) || 0; 
-let pendingChamberWeight = parseFloat(localStorage.getItem('dg_pending_weight_v20')) || 0; 
+let initialCash = parseFloat(localStorage.getItem('dg_initial_cash_v21')) || 0;
+let manualCashAdjustment = parseFloat(localStorage.getItem('dg_manual_cash_v21')) || 0;
+let pendingChamberSales = parseFloat(localStorage.getItem('dg_pending_sales_v21')) || 0; 
+let pendingChamberCost = parseFloat(localStorage.getItem('dg_pending_cost_v21')) || 0; 
+let pendingChamberWeight = parseFloat(localStorage.getItem('dg_pending_weight_v21')) || 0; 
 let selectedPeriod = 'week';
 
 function formatDate(isoString) {
@@ -685,13 +687,13 @@ function switchTab(tab) {
 
 function updateInitialCash(val) {
     initialCash = parseFloat(val) || 0;
-    localStorage.setItem('dg_initial_cash_v20', initialCash);
+    localStorage.setItem('dg_initial_cash_v21', initialCash);
     renderAnalytics();
 }
 
 function updatePendingSalesManual(val) {
     pendingChamberSales = parseFloat(val) || 0;
-    localStorage.setItem('dg_pending_sales_v20', pendingChamberSales);
+    localStorage.setItem('dg_pending_sales_v21', pendingChamberSales);
     renderAnalytics();
 }
 
@@ -701,7 +703,7 @@ function adjustCashManual(type) {
 
     if (type === 'sub') amount = -amount;
     manualCashAdjustment += amount;
-    localStorage.setItem('dg_manual_cash_v20', manualCashAdjustment);
+    localStorage.setItem('dg_manual_cash_v21', manualCashAdjustment);
 
     salesHistory.push({
         id: Date.now(),
@@ -713,7 +715,7 @@ function adjustCashManual(type) {
         revenue: type === 'add' ? amount : 0,
         profit: 0
     });
-    localStorage.setItem('dg_sales_history_v20', JSON.stringify(salesHistory));
+    localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
 
     renderAnalytics();
 }
@@ -745,9 +747,9 @@ function registerSaleFromCamera() {
         if (pendingChamberWeight < 0) pendingChamberWeight = 0;
     }
 
-    localStorage.setItem('dg_pending_sales_v20', pendingChamberSales);
-    localStorage.setItem('dg_pending_cost_v20', pendingChamberCost);
-    localStorage.setItem('dg_pending_weight_v20', pendingChamberWeight);
+    localStorage.setItem('dg_pending_sales_v21', pendingChamberSales);
+    localStorage.setItem('dg_pending_cost_v21', pendingChamberCost);
+    localStorage.setItem('dg_pending_weight_v21', pendingChamberWeight);
 
     salesHistory.push({
         id: Date.now(),
@@ -760,7 +762,7 @@ function registerSaleFromCamera() {
         profit: saleAmount - calculatedCost
     });
 
-    localStorage.setItem('dg_sales_history_v20', JSON.stringify(salesHistory));
+    localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
     document.getElementById('saleInputAmount').value = '';
 
     renderAnalytics();
@@ -784,7 +786,7 @@ function editSaleRecord(id) {
     record.revenue = newRevenue;
     record.profit = newRevenue - record.cost;
 
-    localStorage.setItem('dg_sales_history_v20', JSON.stringify(salesHistory));
+    localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
     renderAnalytics();
 }
 
@@ -799,14 +801,14 @@ function deleteHistoryRecord(id) {
             return;
         } else if (record.type === 'cash_in') {
             manualCashAdjustment -= record.revenue;
-            localStorage.setItem('dg_manual_cash_v20', manualCashAdjustment);
+            localStorage.setItem('dg_manual_cash_v21', manualCashAdjustment);
         } else if (record.type === 'cash_out') {
             manualCashAdjustment += record.cost;
-            localStorage.setItem('dg_manual_cash_v20', manualCashAdjustment);
+            localStorage.setItem('dg_manual_cash_v21', manualCashAdjustment);
         }
 
         salesHistory.splice(index, 1);
-        localStorage.setItem('dg_sales_history_v20', JSON.stringify(salesHistory));
+        localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
         renderAnalytics();
     }
 }
@@ -920,7 +922,7 @@ function submitGroupPurchase() {
         }
     });
 
-    localStorage.setItem('dg_meat_stock_v20', JSON.stringify(meatStock));
+    localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
 
     let purchaseRecord = {
         id: Date.now(),
@@ -929,11 +931,11 @@ function submitGroupPurchase() {
         totalCost: totalBatchCost
     };
     purchaseHistoryLogs.push(purchaseRecord);
-    localStorage.setItem('dg_purchase_history_v20', JSON.stringify(purchaseHistoryLogs));
+    localStorage.setItem('dg_purchase_history_v21', JSON.stringify(purchaseHistoryLogs));
 
     if (totalBatchCost > 0) {
         manualCashAdjustment -= totalBatchCost;
-        localStorage.setItem('dg_manual_cash_v20', manualCashAdjustment);
+        localStorage.setItem('dg_manual_cash_v21', manualCashAdjustment);
 
         let itemTitles = items.map(x => `${x.name} (${x.weight}кг)`).join(', ');
 
@@ -947,7 +949,7 @@ function submitGroupPurchase() {
             revenue: 0,
             profit: -totalBatchCost
         });
-        localStorage.setItem('dg_sales_history_v20', JSON.stringify(salesHistory));
+        localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
     }
 
     initPurchaseForm();
@@ -990,6 +992,15 @@ function renderStockBalance() {
         `;
         container.appendChild(div);
     });
+}
+
+function clearAllStock() {
+    if (confirm("Вы действительно хотите полностью очистить и обнулить все остатки на складе?")) {
+        meatStock = {};
+        localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
+        renderStockBalance();
+        alert("Склад полностью обнулен!");
+    }
 }
 
 function renderPurchaseHistoryLogs() {
@@ -1067,7 +1078,7 @@ function editPurchaseItemPrice(purchaseId, itemIdx) {
     let costDiff = p.totalCost - oldTotalCost;
 
     manualCashAdjustment -= costDiff;
-    localStorage.setItem('dg_manual_cash_v20', manualCashAdjustment);
+    localStorage.setItem('dg_manual_cash_v21', manualCashAdjustment);
 
     let salesRec = salesHistory.find(x => x.id === purchaseId);
     if (salesRec) {
@@ -1077,9 +1088,9 @@ function editPurchaseItemPrice(purchaseId, itemIdx) {
         salesRec.title = `Накладная закупки: ${itemTitles}`;
     }
 
-    localStorage.setItem('dg_meat_stock_v20', JSON.stringify(meatStock));
-    localStorage.setItem('dg_purchase_history_v20', JSON.stringify(purchaseHistoryLogs));
-    localStorage.setItem('dg_sales_history_v20', JSON.stringify(salesHistory));
+    localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
+    localStorage.setItem('dg_purchase_history_v21', JSON.stringify(purchaseHistoryLogs));
+    localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
 
     renderStockBalance();
     renderPurchaseHistoryLogs();
@@ -1101,16 +1112,16 @@ function deletePurchaseRecord(id) {
                 if (meatStock[it.name].weightKg < 0) meatStock[it.name].weightKg = 0;
             }
         });
-        localStorage.setItem('dg_meat_stock_v20', JSON.stringify(meatStock));
+        localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
 
         manualCashAdjustment += p.totalCost;
-        localStorage.setItem('dg_manual_cash_v20', manualCashAdjustment);
+        localStorage.setItem('dg_manual_cash_v21', manualCashAdjustment);
 
         salesHistory = salesHistory.filter(x => x.id !== id);
-        localStorage.setItem('dg_sales_history_v20', JSON.stringify(salesHistory));
+        localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
 
         purchaseHistoryLogs.splice(idx, 1);
-        localStorage.setItem('dg_purchase_history_v20', JSON.stringify(purchaseHistoryLogs));
+        localStorage.setItem('dg_purchase_history_v21', JSON.stringify(purchaseHistoryLogs));
 
         renderStockBalance();
         renderPurchaseHistoryLogs();
@@ -1131,16 +1142,16 @@ function clearPurchaseHistoryLogs() {
                 }
             });
         });
-        localStorage.setItem('dg_meat_stock_v20', JSON.stringify(meatStock));
+        localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
 
         manualCashAdjustment += totalRefundCost;
-        localStorage.setItem('dg_manual_cash_v20', manualCashAdjustment);
+        localStorage.setItem('dg_manual_cash_v21', manualCashAdjustment);
 
         salesHistory = salesHistory.filter(x => !purchaseIds.has(x.id));
-        localStorage.setItem('dg_sales_history_v20', JSON.stringify(salesHistory));
+        localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
 
         purchaseHistoryLogs = [];
-        localStorage.setItem('dg_purchase_history_v20', JSON.stringify(purchaseHistoryLogs));
+        localStorage.setItem('dg_purchase_history_v21', JSON.stringify(purchaseHistoryLogs));
 
         renderStockBalance();
         renderPurchaseHistoryLogs();
@@ -1151,7 +1162,7 @@ function clearPurchaseHistoryLogs() {
 function deleteStockItem(name) {
     if (confirm(`Удалить позицию "${name}" со склада?`)) {
         delete meatStock[name];
-        localStorage.setItem('dg_meat_stock_v20', JSON.stringify(meatStock));
+        localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
         renderStockBalance();
     }
 }
@@ -1375,16 +1386,16 @@ function processAndDeductSingleBatch() {
         }
     });
 
-    localStorage.setItem('dg_meat_stock_v20', JSON.stringify(meatStock));
+    localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
 
     if (res.revenue > 0) {
         pendingChamberSales += res.revenue;
         pendingChamberCost += res.totalAdditivesCost;
         pendingChamberWeight += res.finishedWeight;
 
-        localStorage.setItem('dg_pending_sales_v20', pendingChamberSales);
-        localStorage.setItem('dg_pending_cost_v20', pendingChamberCost);
-        localStorage.setItem('dg_pending_weight_v20', pendingChamberWeight);
+        localStorage.setItem('dg_pending_sales_v21', pendingChamberSales);
+        localStorage.setItem('dg_pending_cost_v21', pendingChamberCost);
+        localStorage.setItem('dg_pending_weight_v21', pendingChamberWeight);
     }
 
     alert(`Партия "${res.recipeName}" проведена!\nМясо успешно списано со склада, а товар на сумму ${res.revenue.toFixed(2)} грн добавлен в раздел продажи.`);
@@ -1455,23 +1466,23 @@ function addRecipeToChamberBatch() {
         addedDate: new Date().toISOString()
     });
 
-    localStorage.setItem('dg_chamber_batch_v20', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v21', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
 function updateChamberItemMeat(itemIdx, meatIdx, val) {
     chamberBatchList[itemIdx].meats[meatIdx].weightKg = parseFloat(val) || 0;
-    localStorage.setItem('dg_chamber_batch_v20', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v21', JSON.stringify(chamberBatchList));
 }
 
 function updateChamberItemField(itemIdx, field, val) {
     chamberBatchList[itemIdx][field] = parseFloat(val) || 0;
-    localStorage.setItem('dg_chamber_batch_v20', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v21', JSON.stringify(chamberBatchList));
 }
 
 function removeChamberItem(index) {
     chamberBatchList.splice(index, 1);
-    localStorage.setItem('dg_chamber_batch_v20', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v21', JSON.stringify(chamberBatchList));
     renderChamberItemsList();
 }
 
@@ -1653,15 +1664,15 @@ function processAndDeductChamberBatch() {
         }
     }
 
-    localStorage.setItem('dg_meat_stock_v20', JSON.stringify(meatStock));
+    localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
 
     pendingChamberSales += totalRevenue;
     pendingChamberCost += totalAdditivesCost;
     pendingChamberWeight += totalFinishedWeight;
 
-    localStorage.setItem('dg_pending_sales_v20', pendingChamberSales);
-    localStorage.setItem('dg_pending_cost_v20', pendingChamberCost);
-    localStorage.setItem('dg_pending_weight_v20', pendingChamberWeight);
+    localStorage.setItem('dg_pending_sales_v21', pendingChamberSales);
+    localStorage.setItem('dg_pending_cost_v21', pendingChamberCost);
+    localStorage.setItem('dg_pending_weight_v21', pendingChamberWeight);
 
     chamberHistoryLogs.push({
         id: Date.now(),
@@ -1672,12 +1683,12 @@ function processAndDeductChamberBatch() {
         fullMeatCost: totalMeatCost,
         projectedRevenue: totalRevenue
     });
-    localStorage.setItem('dg_chamber_history_v20', JSON.stringify(chamberHistoryLogs));
+    localStorage.setItem('dg_chamber_history_v21', JSON.stringify(chamberHistoryLogs));
 
     alert(`Камера успешно проведена!\nМясо списано со склада. В Кассу добавлено +${totalRevenue.toFixed(2)} грн товара на продажу (с учетом затрат только на ингредиенты: ${totalAdditivesCost.toFixed(2)} грн).`);
     
     chamberBatchList = [];
-    localStorage.setItem('dg_chamber_batch_v20', JSON.stringify(chamberBatchList));
+    localStorage.setItem('dg_chamber_batch_v21', JSON.stringify(chamberBatchList));
 
     renderChamberItemsList();
     renderChamberHistoryLogs();
@@ -1726,7 +1737,7 @@ function deleteChamberHistoryRecord(id) {
 
     if (confirm(`Удалить эту запись из истории копчения?`)) {
         chamberHistoryLogs.splice(index, 1);
-        localStorage.setItem('dg_chamber_history_v20', JSON.stringify(chamberHistoryLogs));
+        localStorage.setItem('dg_chamber_history_v21', JSON.stringify(chamberHistoryLogs));
         renderChamberHistoryLogs();
     }
 }
@@ -1734,7 +1745,7 @@ function deleteChamberHistoryRecord(id) {
 function clearChamberHistoryLogs() {
     if (confirm("Вы действительно хотите очистить ВСЮ историю копчения в камере?")) {
         chamberHistoryLogs = [];
-        localStorage.setItem('dg_chamber_history_v20', JSON.stringify(chamberHistoryLogs));
+        localStorage.setItem('dg_chamber_history_v21', JSON.stringify(chamberHistoryLogs));
         renderChamberHistoryLogs();
     }
 }
@@ -1826,11 +1837,11 @@ function clearHistoryLogs() {
         pendingChamberWeight = 0;
         manualCashAdjustment = 0;
 
-        localStorage.setItem('dg_sales_history_v20', JSON.stringify(salesHistory));
-        localStorage.setItem('dg_pending_sales_v20', 0);
-        localStorage.setItem('dg_pending_cost_v20', 0);
-        localStorage.setItem('dg_pending_weight_v20', 0);
-        localStorage.setItem('dg_manual_cash_v20', 0);
+        localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
+        localStorage.setItem('dg_pending_sales_v21', 0);
+        localStorage.setItem('dg_pending_cost_v21', 0);
+        localStorage.setItem('dg_pending_weight_v21', 0);
+        localStorage.setItem('dg_manual_cash_v21', 0);
 
         renderAnalytics();
     }
@@ -1929,10 +1940,10 @@ function saveRecipe() {
     if (meats.length === 0) { alert("Добавьте хотя бы один вид мяса"); return; }
 
     recipes[name] = { meats: meats, additives: additives };
-    localStorage.setItem('dg_cost_recipes_v20', JSON.stringify(recipes));
+    localStorage.setItem('dg_cost_recipes_v21', JSON.stringify(recipes));
     
     if (activeRecipeState[name]) delete activeRecipeState[name];
-    localStorage.setItem('dg_active_state_v20', JSON.stringify(activeRecipeState));
+    localStorage.setItem('dg_active_state_v21', JSON.stringify(activeRecipeState));
 
     cancelNewRecipe();
     init();
@@ -1940,10 +1951,12 @@ function saveRecipe() {
 
 function cancelNewRecipe() { document.getElementById('newRecipeBlock').style.display = 'none'; }
 
+defaultRecipes = null; // Clean reference
+
 function deleteRecipe(name) {
     if (confirm(`Удалить рецепт "${name}"?`)) {
         delete recipes[name];
-        localStorage.setItem('dg_cost_recipes_v20', JSON.stringify(recipes));
+        localStorage.setItem('dg_cost_recipes_v21', JSON.stringify(recipes));
         init();
     }
 }
