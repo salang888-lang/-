@@ -684,6 +684,7 @@ let defaultState = {
 
 let appState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultState;
 
+// Если в локальном хранилище старые/пустые данные — сбрасываем на правильные актуальные
 if (!appState.meatStock["Балык"] || appState.meatStock["Балык"].weightKg === 0) {
     appState = defaultState;
     saveAppData();
@@ -1097,7 +1098,7 @@ function renderPurchaseHistoryLogs() {
 
     appState.purchaseHistoryLogs.slice().sort((a,b) => b.id - a.id).forEach(p => {
         let itemsHtml = '';
-        p.items.forEach((it, itemIdx) => {
+        p.items.forEach((it) => {
             itemsHtml += `
                 <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding:4px 0; color:var(--text-muted);">
                     <span>• <strong>${it.name}</strong>: ${it.weight.toFixed(2)} кг x ${it.price.toFixed(2)} грн</span>
