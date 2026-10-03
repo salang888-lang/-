@@ -532,8 +532,8 @@ let defaultState = {
     recipes: {
         "Краковская (100% Свинина)": {
             meats: [
-                { name: "Свинина нежирная (лопатка / окорок)", weightKg: 0.70, pricePerKg: 180 },
-                { name: "Грудинка свиная", weightKg: 0.30, pricePerKg: 160 }
+                { name: "Свинина нежирная (лопатка / окорок)", weightKg: 0.7, pricePerKg: 180 },
+                { name: "Грудинка свиная", weightKg: 0.3, pricePerKg: 160 }
             ],
             additives: [
                 { name: "Нитритная соль", gramsPerKg: 19, pricePerKg: 50 },
@@ -547,52 +547,54 @@ let defaultState = {
             ]
         },
         "Балык": {
-            meats: [{ name: "Балык", weightKg: 1.0, pricePerKg: 190 }],
+            meats: [{ name: "Балык", weightKg: 1, pricePerKg: 220 }],
             additives: [
                 { name: "Вода", gramsPerKg: 100, pricePerKg: 0 },
-                { name: "Соль нитритная", gramsPerKg: 18, pricePerKg: 50 },
-                { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 300 },
-                { name: "Экстракт черного перца", gramsPerKg: 1.5, pricePerKg: 400 },
-                { name: "Экстракт чеснока", gramsPerKg: 1, pricePerKg: 350 },
-                { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
-                { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 300 }
+                { name: "Соль нитритная", gramsPerKg: 18, pricePerKg: 65 },
+                { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 245 },
+                { name: "Экстракт черного перца", gramsPerKg: 1.5, pricePerKg: 1200 },
+                { name: "Экстракт чеснока", gramsPerKg: 1, pricePerKg: 920 },
+                { name: "Фосфат", gramsPerKg: 2, pricePerKg: 335 },
+                { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 370 }
             ]
         },
         "Куриные части": {
             meats: [
-                { name: "Крылья", weightKg: 1.0, pricePerKg: 120 },
-                { name: "Голени", weightKg: 1.0, pricePerKg: 100 },
-                { name: "Окорочка", weightKg: 1.0, pricePerKg: 110 }
+                { name: "Крылья", weightKg: 1, pricePerKg: 99.97 },
+                { name: "Голени", weightKg: 1, pricePerKg: 84.97 },
+                { name: "Окорочка", weightKg: 1, pricePerKg: 99.97 },
+                { name: "Филе", weightKg: 1, pricePerKg: 185 }
             ],
             additives: [
                 { name: "Вода", gramsPerKg: 220, pricePerKg: 0 },
-                { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
-                { name: "Чили перец", gramsPerKg: 0.5, pricePerKg: 350 },
-                { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
-                { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 300 }
+                { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 550 },
+                { name: "Чили перец", gramsPerKg: 0.5, pricePerKg: 220 },
+                { name: "Фосфат", gramsPerKg: 2, pricePerKg: 335 },
+                { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 245 },
+                { name: "Чеснок", gramsPerKg: 2, pricePerKg: 385 }
             ]
         },
         "Ребра": {
-            meats: [{ name: "Ребра свиные", weightKg: 1.0, pricePerKg: 170 }],
+            meats: [{ name: "Ребра свиные", weightKg: 1, pricePerKg: 205 }],
             additives: [
-                { name: "Нитритная соль", gramsPerKg: 18, pricePerKg: 50 },
-                { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
-                { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 300 },
-                { name: "Перец кайенский", gramsPerKg: 1.5, pricePerKg: 350 },
-                { name: "Чеснок сушеный", gramsPerKg: 2, pricePerKg: 350 },
-                { name: "Кориандр", gramsPerKg: 1, pricePerKg: 300 },
+                { name: "Нитритная соль", gramsPerKg: 18, pricePerKg: 65 },
+                { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 550 },
+                { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 370 },
+                { name: "Перец кайенский", gramsPerKg: 1.5, pricePerKg: 540 },
+                { name: "Чеснок сушеный", gramsPerKg: 2, pricePerKg: 385 },
+                { name: "Кориандр", gramsPerKg: 1, pricePerKg: 98 },
                 { name: "Сахар", gramsPerKg: 2, pricePerKg: 30 }
             ]
         },
         "Грудинка": {
-            meats: [{ name: "Грудинка свиная", weightKg: 1.0, pricePerKg: 160 }],
+            meats: [{ name: "Грудинка свиная", weightKg: 1, pricePerKg: 209 }],
             additives: [
-                { name: "Нитритная соль", gramsPerKg: 18, pricePerKg: 50 },
-                { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
-                { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 300 },
-                { name: "Перец чили", gramsPerKg: 1.5, pricePerKg: 350 },
-                { name: "Чеснок сушеный", gramsPerKg: 2, pricePerKg: 350 },
-                { name: "Кориандр", gramsPerKg: 1, pricePerKg: 300 },
+                { name: "Нитритная соль", gramsPerKg: 18, pricePerKg: 65 },
+                { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 550 },
+                { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 370 },
+                { name: "Перец чили", gramsPerKg: 1.5, pricePerKg: 200 },
+                { name: "Чеснок сушеный", gramsPerKg: 2, pricePerKg: 385 },
+                { name: "Кориандр", gramsPerKg: 1, pricePerKg: 98 },
                 { name: "Сахар", gramsPerKg: 2, pricePerKg: 30 }
             ]
         }
@@ -600,25 +602,93 @@ let defaultState = {
     meatStock: {
         "Свинина нежирная (лопатка / окорок)": { weightKg: 0, pricePerKg: 180, lastUpdated: new Date().toISOString() },
         "Грудинка свиная": { weightKg: 0, pricePerKg: 160, lastUpdated: new Date().toISOString() },
-        "Балык": { weightKg: 0, pricePerKg: 190, lastUpdated: new Date().toISOString() },
-        "Крылья": { weightKg: 0, pricePerKg: 120, lastUpdated: new Date().toISOString() },
-        "Голени": { weightKg: 0, pricePerKg: 100, lastUpdated: new Date().toISOString() },
-        "Окорочка": { weightKg: 0, pricePerKg: 110, lastUpdated: new Date().toISOString() },
-        "Ребра свиные": { weightKg: 0, pricePerKg: 170, lastUpdated: new Date().toISOString() }
+        "Балык": { weightKg: 2.0, pricePerKg: 220.0, lastUpdated: new Date().toISOString() },
+        "Крылья": { weightKg: 1.912, pricePerKg: 99.97, lastUpdated: new Date().toISOString() },
+        "Голени": { weightKg: 1.806, pricePerKg: 84.97, lastUpdated: new Date().toISOString() },
+        "Окорочка": { weightKg: 2.664, pricePerKg: 99.97, lastUpdated: new Date().toISOString() },
+        "Ребра свиные": { weightKg: 5.4, pricePerKg: 205, lastUpdated: new Date().toISOString() },
+        "Ухо": { weightKg: 1.15, pricePerKg: 130, lastUpdated: new Date().toISOString() },
+        "Филе": { weightKg: 1.59, pricePerKg: 185, lastUpdated: new Date().toISOString() }
     },
     activeRecipeState: {},
     chamberBatchList: [],
     chamberHistoryLogs: [],
-    purchaseHistoryLogs: [],
-    salesHistory: [],
-    initialCash: 0,
-    manualCashAdjustment: 0,
+    purchaseHistoryLogs: [
+        {
+            id: 1791025267679,
+            date: "2026-10-03T11:01:07.678Z",
+            items: [
+                { name: "Крылья", weight: 1.912, price: 99.97, itemCost: 191.14264 },
+                { name: "Окорочка", weight: 2.664, price: 99.97, itemCost: 266.32008 },
+                { name: "Голени", weight: 1.806, price: 84.97, itemCost: 153.45582 },
+                { name: "Ухо", weight: 1.15, price: 130, itemCost: 149.5 }
+            ],
+            totalCost: 760.41854
+        },
+        {
+            id: 1791025427954,
+            date: "2026-10-03T11:03:47.954Z",
+            items: [
+                { name: "Филе", weight: 1.59, price: 185, itemCost: 294.15 }
+            ],
+            totalCost: 294.15
+        },
+        {
+            id: 1791025581057,
+            date: "2026-10-03T11:06:21.056Z",
+            items: [
+                { name: "Балык", weight: 2, price: 220, itemCost: 440 },
+                { name: "Ребра свиные", weight: 5.4, price: 205, itemCost: 1107 }
+            ],
+            totalCost: 1547
+        }
+    ],
+    salesHistory: [
+        {
+            id: 1791025267679,
+            date: "2026-10-03T11:01:07.678Z",
+            title: "Накладная закупки: Крылья (1.912кг), Окорочка (2.664кг), Голени (1.806кг), Ухо (1.15кг)",
+            type: "purchase",
+            finishedWeightKg: 0,
+            cost: 760.41854,
+            revenue: 0,
+            profit: -760.41854
+        },
+        {
+            id: 1791025427954,
+            date: "2026-10-03T11:03:47.954Z",
+            title: "Накладная закупки: Филе (1.59кг)",
+            type: "purchase",
+            finishedWeightKg: 0,
+            cost: 294.15,
+            revenue: 0,
+            profit: -294.15
+        },
+        {
+            id: 1791025581057,
+            date: "2026-10-03T11:06:21.056Z",
+            title: "Накладная закупки: Балык (2кг), Ребра свиные (5.4кг)",
+            type: "purchase",
+            finishedWeightKg: 0,
+            cost: 1547,
+            revenue: 0,
+            profit: -1547
+        }
+    ],
+    initialCash: 26822,
+    manualCashAdjustment: -2601.56854,
     pendingChamberSales: 0,
     pendingChamberCost: 0,
     pendingChamberWeight: 0
 };
 
 let appState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultState;
+
+// Если в localStorage были старые данные без нашего исправления Балыка, гарантируем точное состояние:
+if (!appState.meatStock["Балык"] || appState.meatStock["Балык"].weightKg === 0) {
+    appState = defaultState;
+    saveAppData();
+}
 
 function saveAppData() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
