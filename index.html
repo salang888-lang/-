@@ -139,9 +139,9 @@
             text-transform: uppercase;
         }
         .input-col input {
-            height: 46px;
+            height: 42px;
             margin-bottom: 0;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             text-align: center;
         }
@@ -183,7 +183,7 @@
             gap: 6px;
         }
 
-        .stock-item, .history-item, .chamber-item {
+        .stock-item, .history-item, .chamber-item, .purchase-group-card {
             background: rgba(15, 23, 42, 0.6);
             padding: 14px;
             border-radius: 12px;
@@ -288,6 +288,14 @@
         #pendingChamberSalesInput[type=number] {
             -moz-appearance: textfield;
         }
+
+        .purchase-item-row {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border-color);
+        }
     </style>
 </head>
 <body>
@@ -310,27 +318,25 @@
     <!-- 0. ВКЛАДКА: СКЛАД СЫРЬЯ -->
     <div id="section_stock">
         <div class="card">
-            <h3 style="color: var(--accent-gold); font-size: 16px; margin-bottom: 12px;">➕ Приход сырья (Закупка)</h3>
-            <div class="input-col" style="margin-bottom: 10px;">
-                <label>Вид / Наименование сырья:</label>
-                <input type="text" id="stockMeatName" placeholder="например: Балык, Свиная лопатка, Крылья">
-            </div>
-            <div class="input-row">
-                <div class="input-col">
-                    <label>Закупленный вес (кг):</label>
-                    <input type="number" id="stockMeatWeight" placeholder="10.0" step="0.05">
-                </div>
-                <div class="input-col">
-                    <label>Цена закупки (грн/кг):</label>
-                    <input type="number" id="stockMeatPrice" placeholder="190" step="1">
-                </div>
-            </div>
-            <button class="btn-main" style="margin-top: 12px;" onclick="addMeatStock()">📥 Записать приход на склад</button>
+            <h3 style="color: var(--accent-gold); font-size: 16px; margin-bottom: 12px;">📥 Оформление накладной закупки сырья</h3>
+            
+            <div id="purchaseFormItemsContainer"></div>
+
+            <button class="btn-sec" style="margin-bottom: 12px; font-size: 13px;" onclick="addPurchaseFormRow()">➕ Добавить ещё позицию в закупку</button>
+
+            <button class="btn-main" onclick="submitGroupPurchase()">💾 Сохранить всю закупку и списать из Кассы</button>
         </div>
 
         <div class="card">
             <div class="section-title" style="margin-top:0;">📊 Текущие остатки сырья на складе:</div>
             <div id="stockBalanceList"></div>
+        </div>
+
+        <!-- ИСТОРИЯ ЗАКУПОК ПО ДАТАМ -->
+        <div class="card">
+            <div class="section-title" style="margin-top:0;">📜 История закупок по датам:</div>
+            <div id="purchaseHistoryLogsList"></div>
+            <button class="btn-sec" style="margin-top: 10px; width: 100%; color: var(--danger); border-color: var(--danger);" onclick="clearPurchaseHistoryLogs()">🗑 Очистить историю закупок</button>
         </div>
     </div>
 
@@ -567,6 +573,7 @@ let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v17')) || default
 let activeRecipeState = JSON.parse(localStorage.getItem('dg_active_state_v17')) || {};
 let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v17')) || [];
 let chamberHistoryLogs = JSON.parse(localStorage.getItem('dg_chamber_history_v17')) || [];
+let purchaseHistoryLogs = JSON.parse(localStorage.getItem('dg_purchase_history_v17')) || [];
 let salesHistory = JSON.parse(localStorage.getItem('dg_sales_history_v17')) || [];
 let meatStock = JSON.parse(localStorage.getItem('dg_meat_stock_v17')) || defaultStock;
 
@@ -591,6 +598,8 @@ function init() {
     renderRecipeManagerList();
     renderAnalytics();
     renderStockBalance();
+    renderPurchaseHistoryLogs();
+    initPurchaseForm();
     document.getElementById('initialCashInput').value = initialCash;
 }
 
@@ -607,7 +616,7 @@ function switchTab(tab) {
     document.getElementById('tab_analytics').classList.toggle('active', tab === 'analytics');
     document.getElementById('tab_recipes').classList.toggle('active', tab === 'recipes');
 
-    if (tab === 'stock') renderStockBalance();
+    if (tab === 'stock') { renderStockBalance(); renderPurchaseHistoryLogs(); }
     if (tab === 'single') onRecipeSelectChange();
     if (tab === 'multi') { updateChamberDefaultMeats(); renderChamberItemsList(); renderChamberHistoryLogs(); }
     if (tab === 'analytics') renderAnalytics();
@@ -743,56 +752,123 @@ function deleteHistoryRecord(id) {
     }
 }
 
-/* --- СКЛАД СЫРЬЯ --- */
-function addMeatStock() {
-    const name = document.getElementById('stockMeatName').value.trim();
-    const weight = parseFloat(document.getElementById('stockMeatWeight').value) || 0;
-    const price = parseFloat(document.getElementById('stockMeatPrice').value) || 0;
+/* --- СКЛАД СЫРЬЯ И ИСТОРИЯ ЗАКУПОК ПО ДАТАМ --- */
+function initPurchaseForm() {
+    const container = document.getElementById('purchaseFormItemsContainer');
+    container.innerHTML = '';
+    addPurchaseFormRow();
+}
+
+function addPurchaseFormRow() {
+    const container = document.getElementById('purchaseFormItemsContainer');
+    const div = document.createElement('div');
+    div.className = 'purchase-item-row';
+    div.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase;">Наименование сырья:</label>
+            <button onclick="removePurchaseFormRow(this)" style="width:auto; margin-bottom:0; padding:2px 6px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; font-size:11px;">✕</button>
+        </div>
+        <input type="text" class="p-name" placeholder="например: Балык, Крылья, Лопатка" style="margin-bottom:8px;">
+        <div class="input-row">
+            <div class="input-col">
+                <label>Вес (кг):</label>
+                <input type="number" class="p-weight" placeholder="10.0" step="0.05">
+            </div>
+            <div class="input-col">
+                <label>Цена (грн/кг):</label>
+                <input type="number" class="p-price" placeholder="190" step="1">
+            </div>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+function removePurchaseFormRow(btn) {
+    const container = document.getElementById('purchaseFormItemsContainer');
+    if (container.children.length > 1) {
+        btn.closest('.purchase-item-row').remove();
+    } else {
+        alert("Закупка должна содержать хотя бы одну позицию!");
+    }
+}
+
+function submitGroupPurchase() {
+    const nameElems = document.querySelectorAll('.p-name');
+    const weightElems = document.querySelectorAll('.p-weight');
+    const priceElems = document.querySelectorAll('.p-price');
+
+    let items = [];
+    let totalBatchCost = 0;
     const nowIso = new Date().toISOString();
 
-    if (!name || weight <= 0) {
-        alert("Укажите правильное наименование и закупленный вес!");
+    for (let i = 0; i < nameElems.length; i++) {
+        let name = nameElems[i].value.trim();
+        let weight = parseFloat(weightElems[i].value) || 0;
+        let price = parseFloat(priceElems[i].value) || 0;
+
+        if (name && weight > 0) {
+            let itemCost = weight * price;
+            items.push({ name, weight, price, itemCost });
+            totalBatchCost += itemCost;
+        }
+    }
+
+    if (items.length === 0) {
+        alert("Заполните корректно хотя бы одну позицию закупки (название и вес)!");
         return;
     }
 
-    let purchaseTotalCost = weight * price;
-
-    if (!meatStock[name]) {
-        meatStock[name] = { weightKg: weight, pricePerKg: price, lastUpdated: nowIso };
-    } else {
-        let currentTotalCost = (meatStock[name].weightKg * meatStock[name].pricePerKg) + purchaseTotalCost;
-        let newTotalWeight = meatStock[name].weightKg + weight;
-        meatStock[name].weightKg = newTotalWeight;
-        meatStock[name].pricePerKg = newTotalWeight > 0 ? (currentTotalCost / newTotalWeight) : price;
-        meatStock[name].lastUpdated = nowIso;
-    }
+    // Обновляем складские остатки
+    items.forEach(item => {
+        if (!meatStock[item.name]) {
+            meatStock[item.name] = { weightKg: item.weight, pricePerKg: item.price, lastUpdated: nowIso };
+        } else {
+            let currentTotalCost = (meatStock[item.name].weightKg * meatStock[item.name].pricePerKg) + item.itemCost;
+            let newTotalWeight = meatStock[item.name].weightKg + item.weight;
+            meatStock[item.name].weightKg = newTotalWeight;
+            meatStock[item.name].pricePerKg = newTotalWeight > 0 ? (currentTotalCost / newTotalWeight) : item.price;
+            meatStock[item.name].lastUpdated = nowIso;
+        }
+    });
 
     localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
 
-    if (purchaseTotalCost > 0) {
-        manualCashAdjustment -= purchaseTotalCost;
+    // Сохраняем сгруппированную накладную в Историю закупок
+    let purchaseRecord = {
+        id: Date.now(),
+        date: nowIso,
+        items: items,
+        totalCost: totalBatchCost
+    };
+    purchaseHistoryLogs.push(purchaseRecord);
+    localStorage.setItem('dg_purchase_history_v17', JSON.stringify(purchaseHistoryLogs));
+
+    // Записываем списывание в кассу
+    if (totalBatchCost > 0) {
+        manualCashAdjustment -= totalBatchCost;
         localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
 
+        let itemTitles = items.map(x => `${x.name} (${x.weight}кг)`).join(', ');
+
         salesHistory.push({
-            id: Date.now(),
+            id: purchaseRecord.id,
             date: nowIso,
-            title: `Закупка сырья (${name})`,
+            title: `Накладная закупки: ${itemTitles}`,
             type: "purchase",
             finishedWeightKg: 0,
-            cost: purchaseTotalCost,
+            cost: totalBatchCost,
             revenue: 0,
-            profit: -purchaseTotalCost
+            profit: -totalBatchCost
         });
         localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
     }
 
-    document.getElementById('stockMeatName').value = '';
-    document.getElementById('stockMeatWeight').value = '';
-    document.getElementById('stockMeatPrice').value = '';
-
+    initPurchaseForm();
     renderStockBalance();
+    renderPurchaseHistoryLogs();
     renderAnalytics();
-    alert(`Приход сырья "${name}" (${weight} кг) записан!\nСумма ${purchaseTotalCost.toFixed(2)} грн списана из Кассы.`);
+
+    alert(`Накладная закупки на сумму ${totalBatchCost.toFixed(2)} грн успешно сохранена!\nСумма списана из Кассы.`);
 }
 
 function renderStockBalance() {
@@ -801,7 +877,7 @@ function renderStockBalance() {
 
     let keys = Object.keys(meatStock);
     if (keys.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">Склад пуст. Добавьте приход сырья выше.</div>';
+        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">Склад пуст. Добавьте закупку выше.</div>';
         return;
     }
 
@@ -827,6 +903,77 @@ function renderStockBalance() {
         `;
         container.appendChild(div);
     });
+}
+
+function renderPurchaseHistoryLogs() {
+    const container = document.getElementById('purchaseHistoryLogsList');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (purchaseHistoryLogs.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">История закупок пуста.</div>';
+        return;
+    }
+
+    purchaseHistoryLogs.slice().sort((a,b) => b.id - a.id).forEach(p => {
+        let itemsHtml = '';
+        p.items.forEach(it => {
+            itemsHtml += `
+                <div style="display:flex; justify-content:space-between; font-size:12px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding:3px 0; color:var(--text-muted);">
+                    <span>• ${it.name}: <strong>${it.weight.toFixed(2)} кг</strong> x ${it.price.toFixed(2)} грн</span>
+                    <span style="color:var(--text-main); font-weight:600;">${it.itemCost.toFixed(2)} грн</span>
+                </div>
+            `;
+        });
+
+        const div = document.createElement('div');
+        div.className = 'purchase-group-card';
+        div.style.borderLeftColor = 'var(--danger)';
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <strong style="color:var(--accent-gold); font-size:14px;">📦 Накладная закупки</strong>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:11px; color:var(--text-muted);">📅 ${formatDate(p.date)}</span>
+                    <button onclick="deletePurchaseRecord(${p.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; font-size:11px; cursor:pointer;" title="Удалить накладную">✕</button>
+                </div>
+            </div>
+            <div style="margin-bottom:8px;">${itemsHtml}</div>
+            <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:700; border-top:1px solid var(--border-color); padding-top:6px; margin-top:6px;">
+                <span>ИТОГО ЗАКУПКА ЗА ДЕНЬ:</span>
+                <span style="color:var(--danger);">${p.totalCost.toFixed(2)} грн</span>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function deletePurchaseRecord(id) {
+    const idx = purchaseHistoryLogs.findIndex(x => x.id === id);
+    if (idx === -1) return;
+
+    if (confirm("Удалить эту накладную из истории закупки? (Остатки на складе и финансовый отчёт будут скорректированы)")) {
+        let p = purchaseHistoryLogs[idx];
+
+        manualCashAdjustment += p.totalCost;
+        localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
+
+        salesHistory = salesHistory.filter(x => x.id !== id);
+        localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
+
+        purchaseHistoryLogs.splice(idx, 1);
+        localStorage.setItem('dg_purchase_history_v17', JSON.stringify(purchaseHistoryLogs));
+
+        renderPurchaseHistoryLogs();
+        renderAnalytics();
+    }
+}
+
+function clearPurchaseHistoryLogs() {
+    if (confirm("Вы действительно хотите очистить ВСЮ историю закупок сырья?")) {
+        purchaseHistoryLogs = [];
+        localStorage.setItem('dg_purchase_history_v17', JSON.stringify(purchaseHistoryLogs));
+        renderPurchaseHistoryLogs();
+    }
 }
 
 function deleteStockItem(name) {
@@ -1061,7 +1208,7 @@ function processAndDeductSingleBatch() {
 
     if (res.revenue > 0) {
         pendingChamberSales += res.revenue;
-        pendingChamberCost += res.totalAdditivesCost; // Учитываем только специи, исключая двойной списанный мясо
+        pendingChamberCost += res.totalAdditivesCost;
         pendingChamberWeight += res.finishedWeight;
 
         localStorage.setItem('dg_pending_sales_v17', pendingChamberSales);
@@ -1338,7 +1485,6 @@ function processAndDeductChamberBatch() {
 
     localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
 
-    // Учитываем в затраты Кассы только Специи/Ингредиенты (чтобы исключить удвоение затрат на мясо)
     pendingChamberSales += totalRevenue;
     pendingChamberCost += totalAdditivesCost;
     pendingChamberWeight += totalFinishedWeight;
@@ -1347,7 +1493,6 @@ function processAndDeductChamberBatch() {
     localStorage.setItem('dg_pending_cost_v17', pendingChamberCost);
     localStorage.setItem('dg_pending_weight_v17', pendingChamberWeight);
 
-    // СОХРАНЕНИЕ В ИСТОРИЮ КОПЧЕНИЯ КАМЕРЫ
     chamberHistoryLogs.push({
         id: Date.now(),
         date: nowIso,
@@ -1457,7 +1602,7 @@ function renderAnalytics() {
         totProfit += item.profit || 0;
         totWeight += item.finishedWeightKg || 0;
 
-        const isPurchase = item.type === 'purchase' || item.title.startsWith('Закупка сырья');
+        const isPurchase = item.type === 'purchase' || item.title.startsWith('Закупка сырья') || item.title.startsWith('Накладная закупки');
 
         const div = document.createElement('div');
         div.className = 'history-item';
