@@ -316,6 +316,17 @@
 
     <!-- 0. ВКЛАДКА: СКЛАД СЫРЬЯ -->
     <div id="section_stock">
+        <!-- БЛОК РЕЗЕРВНОГО КОПИРОВАНИЯ -->
+        <div class="card" style="border-left: 4px solid var(--accent-blue);">
+            <h3 style="color: var(--accent-blue); font-size: 15px; margin-bottom: 8px;">💾 Резервная копия данных</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Сохраните файл с данными перед обновлением программы или загрузите ранее сохраненный бэкап.</p>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-sec" style="font-size: 12px; border-color: var(--accent-blue); color: #60a5fa;" onclick="exportAppData()">💾 Экспорт базы</button>
+                <button class="btn-sec" style="font-size: 12px;" onclick="document.getElementById('importFileField').click()">📂 Импорт базы</button>
+                <input type="file" id="importFileField" style="display: none;" accept=".json" onchange="importAppData(event)">
+            </div>
+        </div>
+
         <div class="card">
             <h3 style="color: var(--accent-gold); font-size: 16px; margin-bottom: 12px;">📥 Оформление накладной закупки сырья</h3>
             
@@ -606,7 +617,6 @@ let defaultRecipes = {
     }
 };
 
-// Склад по умолчанию теперь пустой (веса = 0)
 let defaultStock = {
     "Свинина нежирная (лопатка / окорок)": { weightKg: 0, pricePerKg: 180, lastUpdated: new Date().toISOString() },
     "Грудинка свиная": { weightKg: 0, pricePerKg: 160, lastUpdated: new Date().toISOString() },
@@ -617,34 +627,96 @@ let defaultStock = {
     "Ребра свиные": { weightKg: 0, pricePerKg: 170, lastUpdated: new Date().toISOString() }
 };
 
-let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v21')) || defaultRecipes;
-for (let key in defaultRecipes) {
-    if (!recipes[key]) {
-        recipes[key] = defaultRecipes[key];
-    }
-}
-localStorage.setItem('dg_cost_recipes_v21', JSON.stringify(recipes));
+// Единый постоянный ключ для хранения данных в localStorage
+const STORAGE_PREFIX = 'dg_gurman_data_v1_';
 
-let activeRecipeState = JSON.parse(localStorage.getItem('dg_active_state_v21')) || {};
-let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v21')) || [];
-let chamberHistoryLogs = JSON.parse(localStorage.getItem('dg_chamber_history_v21')) || [];
-let purchaseHistoryLogs = JSON.parse(localStorage.getItem('dg_purchase_history_v21')) || [];
-let salesHistory = JSON.parse(localStorage.getItem('dg_sales_history_v21')) || [];
+let recipes = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'recipes')) || defaultRecipes;
+let activeRecipeState = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'active_state')) || {};
+let chamberBatchList = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'chamber_batch')) || [];
+let chamberHistoryLogs = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'chamber_history')) || [];
+let purchaseHistoryLogs = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'purchase_history')) || [];
+let salesHistory = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'sales_history')) || [];
+let meatStock = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'meat_stock')) || defaultStock;
 
-let meatStock = JSON.parse(localStorage.getItem('dg_meat_stock_v21')) || defaultStock;
-for (let key in defaultStock) {
-    if (!meatStock[key]) {
-        meatStock[key] = defaultStock[key];
-    }
-}
-localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
-
-let initialCash = parseFloat(localStorage.getItem('dg_initial_cash_v21')) || 0;
-let manualCashAdjustment = parseFloat(localStorage.getItem('dg_manual_cash_v21')) || 0;
-let pendingChamberSales = parseFloat(localStorage.getItem('dg_pending_sales_v21')) || 0; 
-let pendingChamberCost = parseFloat(localStorage.getItem('dg_pending_cost_v21')) || 0; 
-let pendingChamberWeight = parseFloat(localStorage.getItem('dg_pending_weight_v21')) || 0; 
+let initialCash = parseFloat(localStorage.getItem(STORAGE_PREFIX + 'initial_cash')) || 0;
+let manualCashAdjustment = parseFloat(localStorage.getItem(STORAGE_PREFIX + 'manual_cash')) || 0;
+let pendingChamberSales = parseFloat(localStorage.getItem(STORAGE_PREFIX + 'pending_sales')) || 0; 
+let pendingChamberCost = parseFloat(localStorage.getItem(STORAGE_PREFIX + 'pending_cost')) || 0; 
+let pendingChamberWeight = parseFloat(localStorage.getItem(STORAGE_PREFIX + 'pending_weight')) || 0; 
 let selectedPeriod = 'week';
+
+function saveData() {
+    localStorage.setItem(STORAGE_PREFIX + 'recipes', JSON.stringify(recipes));
+    localStorage.setItem(STORAGE_PREFIX + 'active_state', JSON.stringify(activeRecipeState));
+    localStorage.setItem(STORAGE_PREFIX + 'chamber_batch', JSON.stringify(chamberBatchList));
+    localStorage.setItem(STORAGE_PREFIX + 'chamber_history', JSON.stringify(chamberHistoryLogs));
+    localStorage.setItem(STORAGE_PREFIX + 'purchase_history', JSON.stringify(purchaseHistoryLogs));
+    localStorage.setItem(STORAGE_PREFIX + 'sales_history', JSON.stringify(salesHistory));
+    localStorage.setItem(STORAGE_PREFIX + 'meat_stock', JSON.stringify(meatStock));
+    localStorage.setItem(STORAGE_PREFIX + 'initial_cash', initialCash);
+    localStorage.setItem(STORAGE_PREFIX + 'manual_cash', manualCashAdjustment);
+    localStorage.setItem(STORAGE_PREFIX + 'pending_sales', pendingChamberSales);
+    localStorage.setItem(STORAGE_PREFIX + 'pending_cost', pendingChamberCost);
+    localStorage.setItem(STORAGE_PREFIX + 'pending_weight', pendingChamberWeight);
+}
+
+// ФУНКЦИИ ЭКСПОРТА И ИМПОРТА БАЗЫ ДАННЫХ
+function exportAppData() {
+    const dataObj = {
+        recipes,
+        activeRecipeState,
+        chamberBatchList,
+        chamberHistoryLogs,
+        purchaseHistoryLogs,
+        salesHistory,
+        meatStock,
+        initialCash,
+        manualCashAdjustment,
+        pendingChamberSales,
+        pendingChamberCost,
+        pendingChamberWeight,
+        exportDate: new Date().toISOString()
+    };
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataObj, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "dymny_gurman_backup_" + new Date().toISOString().slice(0,10) + ".json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
+
+function importAppData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const imported = JSON.parse(e.target.result);
+            if (imported.recipes) recipes = imported.recipes;
+            if (imported.meatStock) meatStock = imported.meatStock;
+            if (imported.salesHistory) salesHistory = imported.salesHistory;
+            if (imported.purchaseHistoryLogs) purchaseHistoryLogs = imported.purchaseHistoryLogs;
+            if (imported.chamberHistoryLogs) chamberHistoryLogs = imported.chamberHistoryLogs;
+            if (imported.chamberBatchList) chamberBatchList = imported.chamberBatchList;
+            if (imported.initialCash !== undefined) initialCash = imported.initialCash;
+            if (imported.manualCashAdjustment !== undefined) manualCashAdjustment = imported.manualCashAdjustment;
+            if (imported.pendingChamberSales !== undefined) pendingChamberSales = imported.pendingChamberSales;
+            if (imported.pendingChamberCost !== undefined) pendingChamberCost = imported.pendingChamberCost;
+            if (imported.pendingChamberWeight !== undefined) pendingChamberWeight = imported.pendingChamberWeight;
+
+            saveData();
+            init();
+            alert("Резервная копия успешно загружена! Все данные восстановлены.");
+        } catch (err) {
+            alert("Ошибка при чтении файла бэкапа: убедитесь, что выбран корректный .json файл.");
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
 
 function formatDate(isoString) {
     if (!isoString) return '—';
@@ -687,13 +759,13 @@ function switchTab(tab) {
 
 function updateInitialCash(val) {
     initialCash = parseFloat(val) || 0;
-    localStorage.setItem('dg_initial_cash_v21', initialCash);
+    saveData();
     renderAnalytics();
 }
 
 function updatePendingSalesManual(val) {
     pendingChamberSales = parseFloat(val) || 0;
-    localStorage.setItem('dg_pending_sales_v21', pendingChamberSales);
+    saveData();
     renderAnalytics();
 }
 
@@ -703,7 +775,6 @@ function adjustCashManual(type) {
 
     if (type === 'sub') amount = -amount;
     manualCashAdjustment += amount;
-    localStorage.setItem('dg_manual_cash_v21', manualCashAdjustment);
 
     salesHistory.push({
         id: Date.now(),
@@ -715,8 +786,7 @@ function adjustCashManual(type) {
         revenue: type === 'add' ? amount : 0,
         profit: 0
     });
-    localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
-
+    saveData();
     renderAnalytics();
 }
 
@@ -747,10 +817,6 @@ function registerSaleFromCamera() {
         if (pendingChamberWeight < 0) pendingChamberWeight = 0;
     }
 
-    localStorage.setItem('dg_pending_sales_v21', pendingChamberSales);
-    localStorage.setItem('dg_pending_cost_v21', pendingChamberCost);
-    localStorage.setItem('dg_pending_weight_v21', pendingChamberWeight);
-
     salesHistory.push({
         id: Date.now(),
         date: new Date().toISOString(),
@@ -762,9 +828,8 @@ function registerSaleFromCamera() {
         profit: saleAmount - calculatedCost
     });
 
-    localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
+    saveData();
     document.getElementById('saleInputAmount').value = '';
-
     renderAnalytics();
     alert(`Продажа на ${saleAmount.toFixed(2)} грн записана!\nДоп. себестоимость: ${calculatedCost.toFixed(2)} грн. Прибыль: ${(saleAmount - calculatedCost).toFixed(2)} грн.`);
 }
@@ -786,7 +851,7 @@ function editSaleRecord(id) {
     record.revenue = newRevenue;
     record.profit = newRevenue - record.cost;
 
-    localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
+    saveData();
     renderAnalytics();
 }
 
@@ -801,14 +866,12 @@ function deleteHistoryRecord(id) {
             return;
         } else if (record.type === 'cash_in') {
             manualCashAdjustment -= record.revenue;
-            localStorage.setItem('dg_manual_cash_v21', manualCashAdjustment);
         } else if (record.type === 'cash_out') {
             manualCashAdjustment += record.cost;
-            localStorage.setItem('dg_manual_cash_v21', manualCashAdjustment);
         }
 
         salesHistory.splice(index, 1);
-        localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
+        saveData();
         renderAnalytics();
     }
 }
@@ -906,7 +969,7 @@ function submitGroupPurchase() {
     });
 
     if (items.length === 0) {
-        alert("Заполните корректно хотя бы одну позицию закупки (выберите сырье и укажите вес)!");
+        alert("Заполните корректно хотя бы одну позицию закупки!");
         return;
     }
 
@@ -922,8 +985,6 @@ function submitGroupPurchase() {
         }
     });
 
-    localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
-
     let purchaseRecord = {
         id: Date.now(),
         date: nowIso,
@@ -931,12 +992,9 @@ function submitGroupPurchase() {
         totalCost: totalBatchCost
     };
     purchaseHistoryLogs.push(purchaseRecord);
-    localStorage.setItem('dg_purchase_history_v21', JSON.stringify(purchaseHistoryLogs));
 
     if (totalBatchCost > 0) {
         manualCashAdjustment -= totalBatchCost;
-        localStorage.setItem('dg_manual_cash_v21', manualCashAdjustment);
-
         let itemTitles = items.map(x => `${x.name} (${x.weight}кг)`).join(', ');
 
         salesHistory.push({
@@ -949,15 +1007,15 @@ function submitGroupPurchase() {
             revenue: 0,
             profit: -totalBatchCost
         });
-        localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
     }
 
+    saveData();
     initPurchaseForm();
     renderStockBalance();
     renderPurchaseHistoryLogs();
     renderAnalytics();
 
-    alert(`Накладная закупки на сумму ${totalBatchCost.toFixed(2)} грн успешно сохранена!\nСумма списана из Кассы.`);
+    alert(`Накладная закупки на сумму ${totalBatchCost.toFixed(2)} грн успешно сохранена!`);
 }
 
 function renderStockBalance() {
@@ -997,7 +1055,7 @@ function renderStockBalance() {
 function clearAllStock() {
     if (confirm("Вы действительно хотите полностью очистить и обнулить все остатки на складе?")) {
         meatStock = {};
-        localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
+        saveData();
         renderStockBalance();
         alert("Склад полностью обнулен!");
     }
@@ -1059,9 +1117,7 @@ function editPurchaseItemPrice(purchaseId, itemIdx) {
     let newWeight = parseFloat(prompt(`Изменение веса для "${item.name}" (сейчас: ${item.weight} кг):`, item.weight));
     if (isNaN(newWeight) || newWeight <= 0) return;
 
-    let oldItemCost = item.itemCost;
     let oldWeight = item.weight;
-
     item.price = newPrice;
     item.weight = newWeight;
     item.itemCost = newWeight * newPrice;
@@ -1078,7 +1134,6 @@ function editPurchaseItemPrice(purchaseId, itemIdx) {
     let costDiff = p.totalCost - oldTotalCost;
 
     manualCashAdjustment -= costDiff;
-    localStorage.setItem('dg_manual_cash_v21', manualCashAdjustment);
 
     let salesRec = salesHistory.find(x => x.id === purchaseId);
     if (salesRec) {
@@ -1088,10 +1143,7 @@ function editPurchaseItemPrice(purchaseId, itemIdx) {
         salesRec.title = `Накладная закупки: ${itemTitles}`;
     }
 
-    localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
-    localStorage.setItem('dg_purchase_history_v21', JSON.stringify(purchaseHistoryLogs));
-    localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
-
+    saveData();
     renderStockBalance();
     renderPurchaseHistoryLogs();
     renderAnalytics();
@@ -1102,27 +1154,18 @@ function deletePurchaseRecord(id) {
     if (idx === -1) return;
 
     let p = purchaseHistoryLogs[idx];
-    let summaryList = p.items.map(i => `${i.name}: ${i.weight} кг`).join('\n');
-
-    if (confirm(`Удалить эту накладную закупки?\n\nСпишется только вес из этой накладной:\n${summaryList}\n\nСумма ${p.totalCost.toFixed(2)} грн ВЕРНЕТСЯ в Кассу, а запись исчезнет из Финансов.`)) {
-
+    if (confirm(`Удалить эту накладную закупки? Сумма ${p.totalCost.toFixed(2)} грн вернется в кассу.`)) {
         p.items.forEach(it => {
             if (meatStock[it.name]) {
                 meatStock[it.name].weightKg -= it.weight;
                 if (meatStock[it.name].weightKg < 0) meatStock[it.name].weightKg = 0;
             }
         });
-        localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
-
         manualCashAdjustment += p.totalCost;
-        localStorage.setItem('dg_manual_cash_v21', manualCashAdjustment);
-
         salesHistory = salesHistory.filter(x => x.id !== id);
-        localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
-
         purchaseHistoryLogs.splice(idx, 1);
-        localStorage.setItem('dg_purchase_history_v21', JSON.stringify(purchaseHistoryLogs));
 
+        saveData();
         renderStockBalance();
         renderPurchaseHistoryLogs();
         renderAnalytics();
@@ -1130,10 +1173,8 @@ function deletePurchaseRecord(id) {
 }
 
 function clearPurchaseHistoryLogs() {
-    if (confirm("Вы действительно хотите очистить ВСЮ историю закупок сырья и связанные с ними записи в Финансах?")) {
-        let purchaseIds = new Set(purchaseHistoryLogs.map(p => p.id));
+    if (confirm("Вы действительно хотите очистить ВСЮ историю закупок?")) {
         let totalRefundCost = purchaseHistoryLogs.reduce((sum, p) => sum + p.totalCost, 0);
-
         purchaseHistoryLogs.forEach(p => {
             p.items.forEach(it => {
                 if (meatStock[it.name]) {
@@ -1142,17 +1183,12 @@ function clearPurchaseHistoryLogs() {
                 }
             });
         });
-        localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
-
         manualCashAdjustment += totalRefundCost;
-        localStorage.setItem('dg_manual_cash_v21', manualCashAdjustment);
-
+        let purchaseIds = new Set(purchaseHistoryLogs.map(p => p.id));
         salesHistory = salesHistory.filter(x => !purchaseIds.has(x.id));
-        localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
-
         purchaseHistoryLogs = [];
-        localStorage.setItem('dg_purchase_history_v21', JSON.stringify(purchaseHistoryLogs));
 
+        saveData();
         renderStockBalance();
         renderPurchaseHistoryLogs();
         renderAnalytics();
@@ -1162,7 +1198,7 @@ function clearPurchaseHistoryLogs() {
 function deleteStockItem(name) {
     if (confirm(`Удалить позицию "${name}" со склада?`)) {
         delete meatStock[name];
-        localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
+        saveData();
         renderStockBalance();
     }
 }
@@ -1257,6 +1293,7 @@ function updateSingleMeat(idx, field, val) {
     if (!data) return;
 
     data.meats[idx][field] = parseFloat(val) || 0;
+    saveData();
     
     const costSpan = document.getElementById(`meat_cost_${idx}`);
     if (costSpan) {
@@ -1283,6 +1320,8 @@ function updateSingleAdditivePrice(idx, newPrice) {
     if (!data) return;
 
     data.additives[idx].pricePerKg = parseFloat(newPrice) || 0;
+    saveData();
+
     let totalMeatKg = data.meats.reduce((sum, m) => sum + (parseFloat(m.weightKg) || 0), 0);
     let totalGrams = (data.additives[idx].gramsPerKg || 0) * totalMeatKg;
     let totalCost = (totalGrams / 1000) * data.additives[idx].pricePerKg;
@@ -1386,18 +1425,13 @@ function processAndDeductSingleBatch() {
         }
     });
 
-    localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
-
     if (res.revenue > 0) {
         pendingChamberSales += res.revenue;
         pendingChamberCost += res.totalAdditivesCost;
         pendingChamberWeight += res.finishedWeight;
-
-        localStorage.setItem('dg_pending_sales_v21', pendingChamberSales);
-        localStorage.setItem('dg_pending_cost_v21', pendingChamberCost);
-        localStorage.setItem('dg_pending_weight_v21', pendingChamberWeight);
     }
 
+    saveData();
     alert(`Партия "${res.recipeName}" проведена!\nМясо успешно списано со склада, а товар на сумму ${res.revenue.toFixed(2)} грн добавлен в раздел продажи.`);
     renderStockBalance();
 }
@@ -1466,23 +1500,23 @@ function addRecipeToChamberBatch() {
         addedDate: new Date().toISOString()
     });
 
-    localStorage.setItem('dg_chamber_batch_v21', JSON.stringify(chamberBatchList));
+    saveData();
     renderChamberItemsList();
 }
 
 function updateChamberItemMeat(itemIdx, meatIdx, val) {
     chamberBatchList[itemIdx].meats[meatIdx].weightKg = parseFloat(val) || 0;
-    localStorage.setItem('dg_chamber_batch_v21', JSON.stringify(chamberBatchList));
+    saveData();
 }
 
 function updateChamberItemField(itemIdx, field, val) {
     chamberBatchList[itemIdx][field] = parseFloat(val) || 0;
-    localStorage.setItem('dg_chamber_batch_v21', JSON.stringify(chamberBatchList));
+    saveData();
 }
 
 function removeChamberItem(index) {
     chamberBatchList.splice(index, 1);
-    localStorage.setItem('dg_chamber_batch_v21', JSON.stringify(chamberBatchList));
+    saveData();
     renderChamberItemsList();
 }
 
@@ -1590,7 +1624,7 @@ function calculateMultiBatch() {
     const totalFullCost = totalMeatCost + totalAdditivesCost;
     const avgCostPerKgFinished = totalFinishedWeight > 0 ? (totalFullCost / totalFinishedWeight).toFixed(2) : 0;
 
-    let html = `<div class="section-title">Сводный расход мяса (уже оплачено при закупке):</div>`;
+    let html = `<div class="section-title">Сводный расход мяса:</div>`;
     for (let mName in consolidatedMeats) {
         let m = consolidatedMeats[mName];
         html += `<div class="row"><span class="row-name">${mName}</span><span style="font-size:13px; font-weight:700; color:var(--text-main); width:72px; text-align:center;">${m.weight.toFixed(2)} кг</span><span class="row-cost">${m.cost.toFixed(2)} грн</span></div>`;
@@ -1664,15 +1698,9 @@ function processAndDeductChamberBatch() {
         }
     }
 
-    localStorage.setItem('dg_meat_stock_v21', JSON.stringify(meatStock));
-
     pendingChamberSales += totalRevenue;
     pendingChamberCost += totalAdditivesCost;
     pendingChamberWeight += totalFinishedWeight;
-
-    localStorage.setItem('dg_pending_sales_v21', pendingChamberSales);
-    localStorage.setItem('dg_pending_cost_v21', pendingChamberCost);
-    localStorage.setItem('dg_pending_weight_v21', pendingChamberWeight);
 
     chamberHistoryLogs.push({
         id: Date.now(),
@@ -1683,13 +1711,12 @@ function processAndDeductChamberBatch() {
         fullMeatCost: totalMeatCost,
         projectedRevenue: totalRevenue
     });
-    localStorage.setItem('dg_chamber_history_v21', JSON.stringify(chamberHistoryLogs));
 
-    alert(`Камера успешно проведена!\nМясо списано со склада. В Кассу добавлено +${totalRevenue.toFixed(2)} грн товара на продажу (с учетом затрат только на ингредиенты: ${totalAdditivesCost.toFixed(2)} грн).`);
-    
     chamberBatchList = [];
-    localStorage.setItem('dg_chamber_batch_v21', JSON.stringify(chamberBatchList));
+    saveData();
 
+    alert(`Камера успешно проведена!\nМясо списано со склада. В Кассу добавлено +${totalRevenue.toFixed(2)} грн товара на продажу.`);
+    
     renderChamberItemsList();
     renderChamberHistoryLogs();
     renderStockBalance();
@@ -1737,7 +1764,7 @@ function deleteChamberHistoryRecord(id) {
 
     if (confirm(`Удалить эту запись из истории копчения?`)) {
         chamberHistoryLogs.splice(index, 1);
-        localStorage.setItem('dg_chamber_history_v21', JSON.stringify(chamberHistoryLogs));
+        saveData();
         renderChamberHistoryLogs();
     }
 }
@@ -1745,7 +1772,7 @@ function deleteChamberHistoryRecord(id) {
 function clearChamberHistoryLogs() {
     if (confirm("Вы действительно хотите очистить ВСЮ историю копчения в камере?")) {
         chamberHistoryLogs = [];
-        localStorage.setItem('dg_chamber_history_v21', JSON.stringify(chamberHistoryLogs));
+        saveData();
         renderChamberHistoryLogs();
     }
 }
@@ -1836,13 +1863,7 @@ function clearHistoryLogs() {
         pendingChamberCost = 0;
         pendingChamberWeight = 0;
         manualCashAdjustment = 0;
-
-        localStorage.setItem('dg_sales_history_v21', JSON.stringify(salesHistory));
-        localStorage.setItem('dg_pending_sales_v21', 0);
-        localStorage.setItem('dg_pending_cost_v21', 0);
-        localStorage.setItem('dg_pending_weight_v21', 0);
-        localStorage.setItem('dg_manual_cash_v21', 0);
-
+        saveData();
         renderAnalytics();
     }
 }
@@ -1940,23 +1961,19 @@ function saveRecipe() {
     if (meats.length === 0) { alert("Добавьте хотя бы один вид мяса"); return; }
 
     recipes[name] = { meats: meats, additives: additives };
-    localStorage.setItem('dg_cost_recipes_v21', JSON.stringify(recipes));
-    
     if (activeRecipeState[name]) delete activeRecipeState[name];
-    localStorage.setItem('dg_active_state_v21', JSON.stringify(activeRecipeState));
-
+    
+    saveData();
     cancelNewRecipe();
     init();
 }
 
 function cancelNewRecipe() { document.getElementById('newRecipeBlock').style.display = 'none'; }
 
-defaultRecipes = null; // Clean reference
-
 function deleteRecipe(name) {
     if (confirm(`Удалить рецепт "${name}"?`)) {
         delete recipes[name];
-        localStorage.setItem('dg_cost_recipes_v21', JSON.stringify(recipes));
+        saveData();
         init();
     }
 }
