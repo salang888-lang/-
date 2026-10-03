@@ -279,6 +279,16 @@
         .stat-card-value { font-size: 18px; font-weight: 800; }
 
         .ing-edit-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
+
+        /* Выравнивание и убираем стрелочки инпута */
+        #pendingChamberSalesInput::-webkit-outer-spin-button,
+        #pendingChamberSalesInput::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        #pendingChamberSalesInput[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
 </head>
 <body>
@@ -416,15 +426,15 @@
                 </div>
             </div>
 
-            <!-- РЕДАКТИРУЕМЫЙ БЛОК КОНТРОЛЯ ТОВАРА НА ПРОДАЖУ (ИЗ КАМЕРЫ) -->
-            <div style="background: rgba(15, 23, 42, 0.8); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 14px;">
-                <div class="fin-row" style="padding: 4px 0; align-items: center;">
-                    <span>Товара на продажу (из камеры):</span>
-                    <div style="display: flex; align-items: center; gap: 4px;">
+            <!-- БЛОК КОНТРОЛЯ ТОВАРА НА ПРОДАЖУ (ИЗ КАМЕРЫ) -->
+            <div style="background: rgba(15, 23, 42, 0.8); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; min-height: 40px;">
+                    <span style="font-size: 14px; color: var(--text-muted); font-weight: 500;">Товара на продажу (из камеры):</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
                         <input type="number" id="pendingChamberSalesInput" step="10" 
-                               style="width: 120px; height: 36px; text-align: center; font-weight: 800; font-size: 16px; color: var(--accent-gold); margin-bottom: 0;" 
+                               style="width: 110px; height: 38px; padding: 0 8px; text-align: center; font-weight: 800; font-size: 16px; color: var(--accent-gold); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0;" 
                                onchange="updatePendingSalesManual(this.value)">
-                        <span style="color: var(--accent-gold); font-weight: 800;">грн</span>
+                        <span style="color: var(--accent-gold); font-weight: 800; font-size: 15px;">грн</span>
                     </div>
                 </div>
             </div>
@@ -1317,7 +1327,7 @@ function renderAnalytics() {
     document.getElementById('statProfit').innerText = totProfit.toFixed(2) + ' грн';
     document.getElementById('statWeight').innerText = totWeight.toFixed(2) + ' кг';
 
-    // РАСЧЕТ И ОТОБРАЖЕНИЕ КАССЫ И ОСТАТКА ПРОДАЖ (ОБНОВЛЯЕМ ЗНАЧЕНИЕ В ИНПУТЕ)
+    // РАСЧЕТ И ОТОБРАЖЕНИЕ КАССЫ И ОСТАТКА ПРОДАЖ
     const pendingInput = document.getElementById('pendingChamberSalesInput');
     if (pendingInput && document.activeElement !== pendingInput) {
         pendingInput.value = pendingChamberSales.toFixed(2);
