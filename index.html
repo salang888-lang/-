@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Дымный Гурман — Премиум Учёт, Калькулятор, Склад и Касса</title>
+    <title>Дымный Гурман — Премиум Учёт, Калькулятор, Склад, Камера и Касса</title>
     <style>
         :root {
             --bg-primary: #0f172a;
@@ -376,7 +376,7 @@
         </div>
     </div>
 
-    <!-- 2. ВКЛАДКА: ЗАГРУЗКА КАМЕРЫ -->
+    <!-- 2. ВКЛАДКА: ЗАГРУЗКА КАМЕРЫ И ИСТОРИЯ КОПЧЕНИЯ -->
     <div id="section_multi" style="display: none;">
         <div class="card">
             <h3 style="color: var(--text-main); font-size: 16px; margin-bottom: 12px;">💨 Добавить изделие в камеру</h3>
@@ -395,7 +395,7 @@
         </div>
 
         <div class="card">
-            <h3 style="color: var(--text-main); font-size: 16px; margin-bottom: 12px;">📋 Загрузка коптильной камеры</h3>
+            <h3 style="color: var(--text-main); font-size: 16px; margin-bottom: 12px;">📋 Текущая загрузка коптильной камеры</h3>
             <div id="chamberItemsList"></div>
 
             <button class="btn-main" style="margin-top: 14px;" onclick="calculateMultiBatch()">🔥 Рассчитать всю камеру</button>
@@ -403,6 +403,13 @@
             <div id="multiResultsBlock" style="margin-top: 16px;"></div>
             
             <button class="btn-main" id="btnSaveChamberHistory" style="margin-top: 14px; display: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="processAndDeductChamberBatch()">✅ Проведено: Списать мясо и передать в Кассу на продажу</button>
+        </div>
+
+        <!-- ИСТОРИЯ КОПЧЕНИЯ В КАМЕРЕ -->
+        <div class="card">
+            <div class="section-title" style="margin-top:0;">📜 История копчения и прогнозируемой прибыли:</div>
+            <div id="chamberHistoryLogsList"></div>
+            <button class="btn-sec" style="margin-top: 10px; width: 100%; color: var(--danger); border-color: var(--danger);" onclick="clearChamberHistoryLogs()">🗑 Очистить историю копчения</button>
         </div>
     </div>
 
@@ -559,6 +566,7 @@ let defaultStock = {
 let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v17')) || defaultRecipes;
 let activeRecipeState = JSON.parse(localStorage.getItem('dg_active_state_v17')) || {};
 let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v17')) || [];
+let chamberHistoryLogs = JSON.parse(localStorage.getItem('dg_chamber_history_v17')) || [];
 let salesHistory = JSON.parse(localStorage.getItem('dg_sales_history_v17')) || [];
 let meatStock = JSON.parse(localStorage.getItem('dg_meat_stock_v17')) || defaultStock;
 
@@ -579,6 +587,7 @@ function init() {
     updateRecipeSelects();
     onRecipeSelectChange();
     renderChamberItemsList();
+    renderChamberHistoryLogs();
     renderRecipeManagerList();
     renderAnalytics();
     renderStockBalance();
@@ -600,7 +609,7 @@ function switchTab(tab) {
 
     if (tab === 'stock') renderStockBalance();
     if (tab === 'single') onRecipeSelectChange();
-    if (tab === 'multi') { updateChamberDefaultMeats(); renderChamberItemsList(); }
+    if (tab === 'multi') { updateChamberDefaultMeats(); renderChamberItemsList(); renderChamberHistoryLogs(); }
     if (tab === 'analytics') renderAnalytics();
     if (tab === 'recipes') renderRecipeManagerList();
 }
@@ -1188,7 +1197,7 @@ function renderChamberItemsList() {
                 </div>
             </div>
             <div style="font-size:11px; color:var(--text-muted); margin-top:8px; text-align:right;">
-                🕒 Загружено: ${formatDate(item.addedDate)}
+                🕒 Добавлено: ${formatDate(item.addedDate)}
             </div>
         `;
         container.appendChild(div);
@@ -1249,6 +1258,7 @@ function calculateMultiBatch() {
     const shrinkagePct = totalRawKg > 0 ? ((weightLossKg / totalRawKg) * 100).toFixed(1) : 0;
     const yieldPct = totalRawKg > 0 ? ((totalFinishedWeight / totalRawKg) * 100).toFixed(1) : 0;
     const avgCostPerKgFinished = totalFinishedWeight > 0 ? (totalCost / totalFinishedWeight).toFixed(2) : 0;
+    const projectedProfit = totalRevenue - totalCost;
 
     let html = `<div class="section-title">Сводная закупка сырья:</div>`;
     for (let mName in consolidatedMeats) {
@@ -1268,10 +1278,11 @@ function calculateMultiBatch() {
         <div class="fin-row"><span>Общий вес ПОСЛЕ:</span> <span style="color:var(--success);"><strong>${totalFinishedWeight.toFixed(3)} кг</strong></span></div>
         <div class="fin-row"><span>Потеря веса (усушка):</span> <span style="color:var(--danger);">${weightLossKg} кг (${shrinkagePct}%)</span></div>
         <div class="fin-row"><span>Выход продукции:</span> <span style="color:var(--success); font-weight:700;">${yieldPct}%</span></div>
-        <div class="fin-row"><span>Общие затраты:</span> <span><strong>${totalCost.toFixed(2)} грн</strong></span></div>
+        <div class="fin-row"><span>Общие затраты (себестоимость):</span> <span style="color:var(--danger);"><strong>${totalCost.toFixed(2)} грн</strong></span></div>
         <div class="fin-row" style="font-size:15px;"><span>СРЕДНЯЯ СЕБЕСТОИМОСТЬ 1 КГ:</span> <span style="color:var(--accent-gold); font-weight:800; font-size: 17px;">${avgCostPerKgFinished} грн/кг</span></div>
         ${totalRevenue > 0 ? `
-            <div class="fin-row" style="border-bottom: none; font-size: 16px;"><span>ОЖИДАЕМАЯ СУММА ПРОДАЖИ:</span> <span style="color:var(--success); font-weight:800; font-size: 18px;">${totalRevenue.toFixed(2)} грн</span></div>
+            <div class="fin-row" style="font-size: 15px;"><span>ОЖИДАЕМАЯ ВЫРУЧКА:</span> <span style="color:var(--text-main); font-weight:800;">${totalRevenue.toFixed(2)} грн</span></div>
+            <div class="fin-row" style="border-bottom: none; font-size: 16px; padding-top:10px;"><span>💡 ПРОГНОЗИРУЕМАЯ ПРИБЫЛЬ:</span> <span style="color:var(--success); font-weight:800; font-size: 18px;">+${projectedProfit.toFixed(2)} грн</span></div>
         ` : ''}
     `;
 
@@ -1287,11 +1298,13 @@ function processAndDeductChamberBatch() {
     let totalCost = 0;
     let totalFinishedWeight = 0;
     const nowIso = new Date().toISOString();
+    let batchSummaryTitles = [];
 
     chamberBatchList.forEach(item => {
         const rec = recipes[item.recipeName];
         if (!rec) return;
 
+        batchSummaryTitles.push(item.recipeName);
         totalFinishedWeight += item.finishedWeightKg;
         totalRevenue += (item.finishedWeightKg * item.retailPrice);
 
@@ -1331,8 +1344,83 @@ function processAndDeductChamberBatch() {
     localStorage.setItem('dg_pending_cost_v17', pendingChamberCost);
     localStorage.setItem('dg_pending_weight_v17', pendingChamberWeight);
 
-    alert(`Камера успешно проведена!\nМясо списано со склада. В Кассу добавлено +${totalRevenue.toFixed(2)} грн товара на продажу.`);
+    // СОХРАНЕНИЕ В ИСТОРИЮ КОПЧЕНИЯ КАМЕРЫ
+    let projectedProfit = totalRevenue - totalCost;
+    chamberHistoryLogs.push({
+        id: Date.now(),
+        date: nowIso,
+        title: "Партия: " + batchSummaryTitles.join(", "),
+        finishedWeightKg: totalFinishedWeight,
+        cost: totalCost,
+        projectedRevenue: totalRevenue,
+        projectedProfit: projectedProfit
+    });
+    localStorage.setItem('dg_chamber_history_v17', JSON.stringify(chamberHistoryLogs));
+
+    alert(`Камера успешно проведена!\nМясо списано со склада. В Кассу добавлено +${totalRevenue.toFixed(2)} грн товара на продажу.\nЗапись добавлена в Историю копчения.`);
+    
+    chamberBatchList = [];
+    localStorage.setItem('dg_chamber_batch_v17', JSON.stringify(chamberBatchList));
+
+    renderChamberItemsList();
+    renderChamberHistoryLogs();
     renderStockBalance();
+    document.getElementById('multiResultsBlock').innerHTML = '';
+}
+
+function renderChamberHistoryLogs() {
+    const container = document.getElementById('chamberHistoryLogsList');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (chamberHistoryLogs.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">История копчения пуста.</div>';
+        return;
+    }
+
+    chamberHistoryLogs.slice().sort((a,b) => b.id - a.id).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.style.borderLeftColor = 'var(--accent-gold)';
+
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <strong style="color:var(--text-main); font-size:14px;">${item.title}</strong>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:11px; color:var(--text-muted);">📅 ${formatDate(item.date)}</span>
+                    <button onclick="deleteChamberHistoryRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; font-size:11px; cursor:pointer;" title="Удалить запись">✕</button>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:12px; margin-top:6px; color:var(--text-muted);">
+                <span>Выход: <strong style="color:var(--accent-gold);">${item.finishedWeightKg.toFixed(2)} кг</strong></span>
+                <span>Затраты: <strong style="color:var(--danger);">${item.cost.toFixed(2)} грн</strong></span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:4px;">
+                <span>Ожидаемая выручка: <strong style="color:var(--text-main);">${item.projectedRevenue.toFixed(2)} грн</strong></span>
+                <span>Прогноз прибыли: <strong style="color:var(--success);">+${item.projectedProfit.toFixed(2)} грн</strong></span>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function deleteChamberHistoryRecord(id) {
+    const index = chamberHistoryLogs.findIndex(item => item.id === id);
+    if (index === -1) return;
+
+    if (confirm(`Удалить эту запись из истории копчения?`)) {
+        chamberHistoryLogs.splice(index, 1);
+        localStorage.setItem('dg_chamber_history_v17', JSON.stringify(chamberHistoryLogs));
+        renderChamberHistoryLogs();
+    }
+}
+
+function clearChamberHistoryLogs() {
+    if (confirm("Вы действительно хотите очистить ВСЮ историю копчения в камере?")) {
+        chamberHistoryLogs = [];
+        localStorage.setItem('dg_chamber_history_v17', JSON.stringify(chamberHistoryLogs));
+        renderChamberHistoryLogs();
+    }
 }
 
 /* --- ФИНАНСОВАЯ АНАЛИТИКА И РАСЧЕТ КАССЫ --- */
