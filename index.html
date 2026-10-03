@@ -416,11 +416,16 @@
                 </div>
             </div>
 
-            <!-- БЛОК КОНТРОЛЯ ТОВАРА НА ПРОДАЖУ (ИЗ КАМЕРЫ) -->
+            <!-- РЕДАКТИРУЕМЫЙ БЛОК КОНТРОЛЯ ТОВАРА НА ПРОДАЖУ (ИЗ КАМЕРЫ) -->
             <div style="background: rgba(15, 23, 42, 0.8); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 14px;">
-                <div class="fin-row" style="padding: 4px 0;">
+                <div class="fin-row" style="padding: 4px 0; align-items: center;">
                     <span>Товара на продажу (из камеры):</span>
-                    <span style="color: var(--accent-gold); font-weight: 800; font-size: 16px;" id="pendingChamberSalesDisplay">0.00 грн</span>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <input type="number" id="pendingChamberSalesInput" step="10" 
+                               style="width: 120px; height: 36px; text-align: center; font-weight: 800; font-size: 16px; color: var(--accent-gold); margin-bottom: 0;" 
+                               onchange="updatePendingSalesManual(this.value)">
+                        <span style="color: var(--accent-gold); font-weight: 800;">грн</span>
+                    </div>
                 </div>
             </div>
 
@@ -589,6 +594,12 @@ function switchTab(tab) {
 function updateInitialCash(val) {
     initialCash = parseFloat(val) || 0;
     localStorage.setItem('dg_initial_cash_v17', initialCash);
+    renderAnalytics();
+}
+
+function updatePendingSalesManual(val) {
+    pendingChamberSales = parseFloat(val) || 0;
+    localStorage.setItem('dg_pending_sales_v17', pendingChamberSales);
     renderAnalytics();
 }
 
@@ -1306,8 +1317,12 @@ function renderAnalytics() {
     document.getElementById('statProfit').innerText = totProfit.toFixed(2) + ' грн';
     document.getElementById('statWeight').innerText = totWeight.toFixed(2) + ' кг';
 
-    // РАСЧЕТ И ОТОБРАЖЕНИЕ КАССЫ И ОСТАТКА ПРОДАЖ
-    document.getElementById('pendingChamberSalesDisplay').innerText = pendingChamberSales.toFixed(2) + ' грн';
+    // РАСЧЕТ И ОТОБРАЖЕНИЕ КАССЫ И ОСТАТКА ПРОДАЖ (ОБНОВЛЯЕМ ЗНАЧЕНИЕ В ИНПУТЕ)
+    const pendingInput = document.getElementById('pendingChamberSalesInput');
+    if (pendingInput && document.activeElement !== pendingInput) {
+        pendingInput.value = pendingChamberSales.toFixed(2);
+    }
+
     let currentCash = initialCash + totalAllTimeRevenue + manualCashAdjustment;
     document.getElementById('currentCashDisplay').innerText = currentCash.toFixed(2) + ' грн';
 
