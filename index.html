@@ -3,351 +3,626 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Дымный Гурман — Калькулятор, Касса и Склад</title>
+    <title>Дымный Гурман — Учет и Калькулятор</title>
     <style>
         :root {
-            --bg-dark: #121214;
-            --card-bg: #1e1e24;
-            --accent-gold: #f59e0b;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --success: #10b981;
-            --danger: #ef4444;
-            --border: #374151;
+            --bg-color: #121212;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-gold: #ffca28;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --accent-red: #f44336;
+            --text-main: #e0e0e0;
+            --text-muted: #aaa;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-dark); color: var(--text-main); padding: 12px; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-        .header { text-align: center; margin-bottom: 15px; }
-        .header h1 { font-size: 20px; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 1px; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-        .tabs { display: flex; gap: 6px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 4px; }
-        .tab-btn { flex: 1; min-width: 80px; padding: 10px 6px; background: #27272a; border: 1px solid var(--border); border-radius: 8px; color: var(--text-muted); font-size: 12px; font-weight: 600; text-align: center; cursor: pointer; white-space: nowrap; }
-        .tab-btn.active { background: var(--accent-gold); color: #000; border-color: var(--accent-gold); }
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
 
-        .card { background: var(--card-bg); border-radius: 12px; padding: 14px; margin-bottom: 14px; border: 1px solid var(--border); }
-        .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .input-col { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-        label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
-        input, select { background: #111113; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 8px; font-size: 14px; width: 100%; outline: none; }
-        input:focus, select:focus { border-color: var(--accent-gold); }
+        header h1 {
+            color: var(--accent-gold);
+            font-size: 2em;
+            letter-spacing: 1px;
+        }
 
-        .btn-main { width: 100%; padding: 12px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; border-radius: 8px; color: #000; font-weight: 700; font-size: 14px; cursor: pointer; }
-        .btn-main:active { opacity: 0.8; }
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
 
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .stat-card { background: #111113; padding: 10px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
-        .stat-card .val { font-size: 16px; font-weight: 800; margin-top: 2px; }
+        .tab-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
 
-        .history-item { background: #111113; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
-        .period-selector { display: flex; gap: 4px; margin-bottom: 12px; }
-        .period-btn { flex: 1; padding: 6px; background: #27272a; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-size: 11px; text-align: center; cursor: pointer; }
-        .period-btn.active { background: var(--text-main); color: #000; font-weight: 700; }
+        .tab-btn.active, .tab-btn:hover {
+            background: var(--accent-gold);
+            color: #000;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+        }
+
+        .card span {
+            color: var(--text-muted);
+            font-size: 0.85em;
+        }
+
+        .card h3 {
+            margin-top: 5px;
+            font-size: 1.4em;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85em;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            background: #1e1e1e;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.95em;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+
+        .btn {
+            background: var(--accent-gold);
+            color: #000;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-danger {
+            background: var(--accent-red);
+            color: #fff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9em;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--accent-gold);
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .flex-row {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>🔥 Дымный Гурман</h1>
+    <header>
+        <h1>🥩 ДЫМНЫЙ ГУРМАН</h1>
+        <p style="color: var(--text-muted); font-size: 0.9em; margin-top: 5px;">Система учёта производства и калькуляция</p>
+    </header>
+
+    <!-- Навигация -->
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('finance')">💰 Финансы</button>
+        <button class="tab-btn" onclick="switchTab('warehouse')">📦 Склад сырья</button>
+        <button class="tab-btn" onclick="switchTab('chamber')">🔥 Коптильная камера</button>
+        <button class="tab-btn" onclick="switchTab('recipes')">📖 Рецепты</button>
     </div>
 
-    <div class="tabs">
-        <div class="tab-btn active" id="tab_stock" onclick="switchTab('stock')">📦 Склад</div>
-        <div class="tab-btn" id="tab_single" onclick="switchTab('single')">1 Рецепт</div>
-        <div class="tab-btn" id="tab_multi" onclick="switchTab('multi')">💨 Камера</div>
-        <div class="tab-btn" id="tab_analytics" onclick="switchTab('analytics')">📈 Финансы</div>
-    </div>
-
-    <!-- СКЛАД -->
-    <div id="section_stock">
-        <div class="card">
-            <h3 style="color: var(--accent-gold); font-size: 15px; margin-bottom: 10px;">➕ Приход мясного сырья</h3>
-            <div class="input-col" style="margin-bottom: 10px;">
-                <label>Наименование сырья:</label>
-                <input type="text" id="stockName" placeholder="например: Свиная лопатка, Крылья">
+    <!-- Вкладка 1: ФИНАНСЫ -->
+    <div id="finance" class="tab-content active">
+        <div class="grid-cards">
+            <div class="card">
+                <span>Сырьё на складе</span>
+                <h3 id="fin-raw-cost" style="color: var(--accent-gold);">0.00 грн</h3>
             </div>
-            <div class="input-row">
-                <div class="input-col">
-                    <label>Вес (кг):</label>
-                    <input type="number" id="stockWeight" step="0.1" placeholder="10.0">
-                </div>
-                <div class="input-col">
-                    <label>Цена за кг (грн):</label>
-                    <input type="number" id="stockPrice" step="1" placeholder="180">
-                </div>
+            <div class="card">
+                <span>Готовая продукция (Себестоимость)</span>
+                <h3 id="fin-finished-cost" style="color: var(--accent-green);">0.00 грн</h3>
             </div>
-            <button class="btn-main" onclick="addStockItem()">Добавить на склад</button>
-        </div>
-        <div class="card">
-            <h3 style="font-size: 15px; margin-bottom: 10px;">📦 Остатки сырья</h3>
-            <div id="stockList"></div>
-        </div>
-    </div>
-
-    <!-- 1 РЕЦЕПТ -->
-    <div id="section_single" style="display: none;">
-        <div class="card">
-            <h3 style="font-size: 15px; margin-bottom: 10px;">🧪 Расчёт одной партии</h3>
-            <div class="input-col" style="margin-bottom: 10px;">
-                <label>Наименование партии:</label>
-                <input type="text" id="singleTitle" placeholder="Краковская колбаса (партия 1)">
+            <div class="card">
+                <span>Ожидаемая выручка</span>
+                <h3 id="fin-revenue" style="color: var(--accent-blue);">0.00 грн</h3>
             </div>
-            <div class="input-row">
-                <div class="input-col">
-                    <label>Входное мясо (кг):</label>
-                    <input type="number" id="singleRawWeight" step="0.1" value="10.0" oninput="calcSingle()">
-                </div>
-                <div class="input-col">
-                    <label>Цена мяса грн/кг:</label>
-                    <input type="number" id="singleRawCostPerKg" step="1" value="180" oninput="calcSingle()">
-                </div>
-            </div>
-            <div class="input-row">
-                <div class="input-col">
-                    <label>Готовый вес (кг):</label>
-                    <input type="number" id="singleFinishedWeight" step="0.1" value="7.5" oninput="calcSingle()">
-                </div>
-                <div class="input-col">
-                    <label>Розничная цена грн/кг:</label>
-                    <input type="number" id="singleSellPrice" step="1" value="380" oninput="calcSingle()">
-                </div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div style="font-size: 10px; color: var(--text-muted);">Затраты (Себестоимость)</div>
-                    <div class="val" id="singleCostVal" style="color: var(--danger);">0 грн</div>
-                </div>
-                <div class="stat-card">
-                    <div style="font-size: 10px; color: var(--text-muted);">Ожидаемая выручка</div>
-                    <div class="val" id="singleRevenueVal" style="color: var(--text-main);">0 грн</div>
-                </div>
-            </div>
-
-            <button class="btn-main" style="margin-top: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="submitSingleBatch()">✅ Провести партию в Финансы</button>
-        </div>
-    </div>
-
-    <!-- КАМЕРА -->
-    <div id="section_multi" style="display: none;">
-        <div class="card">
-            <h3 style="font-size: 15px; margin-bottom: 10px;">💨 Загрузка коптильной камеры</h3>
-            <p style="font-size: 12px; color: var(--text-muted);">Параметры сводной загрузки камеры рассчитываются аналогично расчёту партий.</p>
-        </div>
-    </div>
-
-    <!-- ФИНАНСЫ -->
-    <div id="section_analytics" style="display: none;">
-        <div class="card">
-            <h3 style="font-size: 15px; margin-bottom: 10px; color: var(--accent-gold);">📊 Финансовый Отчёт</h3>
-            
-            <div class="period-selector">
-                <div class="period-btn active" id="p_week" onclick="setPeriod('week')">Неделя</div>
-                <div class="period-btn" id="p_month" onclick="setPeriod('month')">Месяц</div>
-                <div class="period-btn" id="p_year" onclick="setPeriod('year')">Год</div>
-                <div class="period-btn" id="p_all" onclick="setPeriod('all')">Всё время</div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div style="font-size: 10px; color: var(--text-muted);">Выручка</div>
-                    <div class="val" id="statRevenue" style="color: var(--text-main);">0.00 грн</div>
-                </div>
-                <div class="stat-card">
-                    <div style="font-size: 10px; color: var(--text-muted);">Затраты (Себестоимость)</div>
-                    <div class="val" id="statCost" style="color: var(--danger);">0.00 грн</div>
-                </div>
-                <div class="stat-card">
-                    <div style="font-size: 10px; color: var(--text-muted);">Чистая Прибыль</div>
-                    <div class="val" id="statProfit" style="color: var(--success);">0.00 грн</div>
-                </div>
-                <div class="stat-card">
-                    <div style="font-size: 10px; color: var(--text-muted);">Готовая продукция</div>
-                    <div class="val" id="statWeight" style="color: var(--accent-gold);">0.00 кг</div>
-                </div>
+            <div class="card">
+                <span>Ожидаемая чистая прибыль</span>
+                <h3 id="fin-profit" style="color: #00e676;">0.00 грн</h3>
             </div>
         </div>
 
+        <div class="flex-row">
+            <div class="card" style="flex: 1;">
+                <h3>Управление кассой</h3>
+                <br>
+                <div class="form-group">
+                    <label>Наличные в кассе (грн)</label>
+                    <input type="number" id="cash-in-hand" value="0" onchange="saveCash()">
+                </div>
+                <div class="form-group">
+                    <label>Дополнительные расходы (щепа, электричество, упаковка)</label>
+                    <input type="number" id="additional-expenses" value="0" onchange="updateFinanceBlock()">
+                </div>
+            </div>
+
+            <div class="card" style="flex: 1;">
+                <h3>Итоговые активы</h3>
+                <br>
+                <span>Всего средств в обороте (Товар + Сырьё + Касса):</span>
+                <h2 id="fin-total-assets" style="color: var(--accent-gold); margin-top: 10px;">0.00 грн</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Вкладка 2: СКЛАД СЫРЬЯ -->
+    <div id="warehouse" class="tab-content">
         <div class="card">
-            <h3 style="font-size: 14px; margin-bottom: 10px;">📋 История проведённых партий</h3>
-            <div id="historyLogsList"></div>
-            <button onclick="clearHistory()" style="background: transparent; border: none; color: var(--danger); font-size: 11px; margin-top: 8px; cursor: pointer;">Очистить историю</button>
+            <h3>Приход сырья на склад</h3>
+            <br>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                <div class="form-group">
+                    <label>Наименование (например: Свиная окрок)</label>
+                    <input type="text" id="wh-name">
+                </div>
+                <div class="form-group">
+                    <label>Вес (кг)</label>
+                    <input type="number" step="0.001" id="wh-weight">
+                </div>
+                <div class="form-group">
+                    <label>Цена за 1 кг (грн)</label>
+                    <input type="number" step="0.01" id="wh-price">
+                </div>
+            </div>
+            <button class="btn" onclick="addWarehouseItem()">Добавить на склад</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Наименование</th>
+                    <th>Остаток (кг)</th>
+                    <th>Цена/кг (грн)</th>
+                    <th>Сумма (грн)</th>
+                    <th>Действие</th>
+                </tr>
+            </thead>
+            <tbody id="warehouse-table-body">
+                <!-- Заполняется JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Вкладка 3: КОПТИЛЬНАЯ КАМЕРА -->
+    <div id="chamber" class="tab-content">
+        <div class="card">
+            <h3>Загрузка партии в камеру</h3>
+            <br>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                <div class="form-group">
+                    <label>Продукт</label>
+                    <input type="text" id="ch-name" placeholder="Краковская, Балык и т.д.">
+                </div>
+                <div class="form-group">
+                    <label>Вес закладки (сырой) кг</label>
+                    <input type="number" step="0.001" id="ch-input-weight">
+                </div>
+                <div class="form-group">
+                    <label>Готовый вес (после коптильни) кг</label>
+                    <input type="number" step="0.001" id="ch-output-weight">
+                </div>
+                <div class="form-group">
+                    <label>Себестоимость сырья+специй / кг грн</label>
+                    <input type="number" step="0.01" id="ch-cost-per-kg">
+                </div>
+                <div class="form-group">
+                    <label>Цена продажи / кг грн</label>
+                    <input type="number" step="0.01" id="ch-sell-price">
+                </div>
+            </div>
+            <button class="btn" onclick="addChamberItem()">Загрузить в камеру</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Продукт</th>
+                    <th>Сырой вес (кг)</th>
+                    <th>Готовый вес (кг)</th>
+                    <th>Потеря (Усушка)</th>
+                    <th>Себест. 1кг готового</th>
+                    <th>Цена продажи/кг</th>
+                    <th>Выручка (грн)</th>
+                    <th>Действие</th>
+                </tr>
+            </thead>
+            <tbody id="chamber-table-body">
+                <!-- Заполняется JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Вкладка 4: РЕЦЕПТЫ -->
+    <div id="recipes" class="tab-content">
+        <div class="card">
+            <h3>Калькулятор специй на 1 кг мясного сырья</h3>
+            <br>
+            <div class="form-group">
+                <label>Выберите рецептуру / Продукт</label>
+                <select id="recipe-select" onchange="calculateRecipe()">
+                    <option value="krakow">Колбаса Краковская</option>
+                    <option value="servelat">Сервелат</option>
+                    <option value="balyk">Балык сырокопченый</option>
+                    <option value="kabanosy">Кабаноси</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Масса мяса (кг)</label>
+                <input type="number" id="recipe-meat-weight" value="1" step="0.1" oninput="calculateRecipe()">
+            </div>
+
+            <h4>Норма закладки специй и ингредиентов:</h4>
+            <br>
+            <ul id="recipe-ingredients-list" style="list-style: none; line-height: 1.8; color: var(--text-main);">
+                <!-- Заполняется JS -->
+            </ul>
         </div>
     </div>
 
     <script>
-        let stock = JSON.parse(localStorage.getItem('dg_stock_v1') || '[]');
-        let salesHistory = JSON.parse(localStorage.getItem('dg_sales_history_v1') || '[]');
-        let selectedPeriod = 'week';
+        // GLOBAL APP STATE
+        let appState = {
+            warehouse: JSON.parse(localStorage.getItem('dg_warehouse')) || [],
+            chamberBatch: JSON.parse(localStorage.getItem('dg_chamber')) || [],
+            cash: parseFloat(localStorage.getItem('dg_cash')) || 0,
+            expenses: 0
+        };
 
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab_' + tab).classList.add('active');
+        // НАВИГАЦИЯ
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
 
-            document.getElementById('section_stock').style.display = tab === 'stock' ? 'block' : 'none';
-            document.getElementById('section_single').style.display = tab === 'single' ? 'block' : 'none';
-            document.getElementById('section_multi').style.display = tab === 'multi' ? 'block' : 'none';
-            document.getElementById('section_analytics').style.display = tab === 'analytics' ? 'block' : 'none';
-
-            if (tab === 'analytics') renderAnalytics();
-            if (tab === 'stock') renderStock();
+            if (tabId === 'finance') updateFinanceBlock();
         }
 
-        /* --- СКЛАД --- */
-        function addStockItem() {
-            const name = document.getElementById('stockName').value.trim();
-            const weight = parseFloat(document.getElementById('stockWeight').value) || 0;
-            const price = parseFloat(document.getElementById('stockPrice').value) || 0;
+        // ==========================================
+        // 1. ФИНАНСЫ
+        // ==========================================
+        function updateFinanceBlock() {
+            // Сырьё на складе
+            const rawMaterialsCost = appState.warehouse.reduce((sum, item) => sum + (item.weight * item.price), 0);
 
-            if (!name || weight <= 0) return alert('Введите корректное название и вес');
+            // Готовая продукция в камере
+            let finishedGoodsCost = 0;
+            let potentialRevenue = 0;
 
-            stock.push({ id: Date.now(), name, weight, price });
-            localStorage.setItem('dg_stock_v1', JSON.stringify(stock));
-            document.getElementById('stockName').value = '';
-            document.getElementById('stockWeight').value = '';
-            renderStock();
-        }
+            appState.chamberBatch.forEach(item => {
+                const outW = item.outputWeight > 0 ? item.outputWeight : item.inputWeight;
+                // Учитываем потерю веса в себестоимости готового килограмма
+                const shrinkageRatio = item.outputWeight > 0 ? (item.inputWeight / item.outputWeight) : 1;
+                const actualCostPerKg = item.costPerKg * shrinkageRatio;
 
-        function renderStock() {
-            const list = document.getElementById('stockList');
-            if (stock.length === 0) {
-                list.innerHTML = '<div style="color:var(--text-muted); font-size:12px;">Склад пуст</div>';
-                return;
-            }
-            list.innerHTML = stock.map(s => `
-                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px;">
-                    <span><strong>${s.name}</strong> (${s.weight.toFixed(2)} кг)</span>
-                    <span style="color:var(--accent-gold);">${s.price} грн/кг</span>
-                </div>
-            `).join('');
-        }
-
-        /* --- 1 РЕЦЕПТ --- */
-        function calcSingle() {
-            const rawW = parseFloat(document.getElementById('singleRawWeight').value) || 0;
-            const rawCost = parseFloat(document.getElementById('singleRawCostPerKg').value) || 0;
-            const finW = parseFloat(document.getElementById('singleFinishedWeight').value) || 0;
-            const sellP = parseFloat(document.getElementById('singleSellPrice').value) || 0;
-
-            const totalCost = rawW * rawCost;
-            const totalRevenue = finW * sellP;
-
-            document.getElementById('singleCostVal').innerText = totalCost.toFixed(2) + ' грн';
-            document.getElementById('singleRevenueVal').innerText = totalRevenue.toFixed(2) + ' грн';
-        }
-
-        function submitSingleBatch() {
-            const title = document.getElementById('singleTitle').value.trim() || 'Копчёная партия';
-            const rawW = parseFloat(document.getElementById('singleRawWeight').value) || 0;
-            const rawCost = parseFloat(document.getElementById('singleRawCostPerKg').value) || 0;
-            const finW = parseFloat(document.getElementById('singleFinishedWeight').value) || 0;
-            const sellP = parseFloat(document.getElementById('singleSellPrice').value) || 0;
-
-            const cost = rawW * rawCost;
-            const revenue = finW * sellP;
-            const profit = revenue - cost;
-
-            const batchRecord = {
-                id: Date.now(),
-                title: title,
-                date: new Date().toISOString(),
-                rawWeightKg: rawW,
-                finishedWeightKg: finW,
-                cost: cost,
-                revenue: revenue,
-                profit: profit
-            };
-
-            salesHistory.push(batchRecord);
-            localStorage.setItem('dg_sales_history_v1', JSON.stringify(salesHistory));
-            alert('Партия успешно записана в финансовый отчёт!');
-            switchTab('analytics');
-        }
-
-        /* --- ФИНАНСОВЫЙ ОТЧЁТ --- */
-        function setPeriod(p) {
-            selectedPeriod = p;
-            document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('p_' + p).classList.add('active');
-            renderAnalytics();
-        }
-
-        function renderAnalytics() {
-            const container = document.getElementById('historyLogsList');
-            container.innerHTML = '';
-
-            const now = new Date();
-            let filteredLogs = salesHistory.filter(item => {
-                const itemDate = new Date(item.date);
-                const diffDays = (now - itemDate) / (1000 * 60 * 60 * 24);
-
-                if (selectedPeriod === 'week') return diffDays <= 7;
-                if (selectedPeriod === 'month') return diffDays <= 30;
-                if (selectedPeriod === 'year') return diffDays <= 365;
-                return true;
+                finishedGoodsCost += outW * actualCostPerKg;
+                potentialRevenue += outW * item.sellPrice;
             });
 
-            let totRevenue = 0; 
-            let totCost = 0; 
-            let totProfit = 0; 
-            let totWeight = 0;
+            const cashInHand = parseFloat(document.getElementById('cash-in-hand').value) || 0;
+            const expenses = parseFloat(document.getElementById('additional-expenses').value) || 0;
 
-            filteredLogs.sort((a, b) => b.id - a.id).forEach(item => {
-                const cost = Number(item.cost) || 0;
-                const revenue = Number(item.revenue) || 0;
-                const profit = Number(item.profit) || 0;
-                const weight = Number(item.finishedWeightKg) || 0;
+            const expectedProfit = potentialRevenue - finishedGoodsCost - expenses;
+            const totalAssets = rawMaterialsCost + finishedGoodsCost + cashInHand;
 
-                totRevenue += revenue;
-                totCost += cost;
-                totProfit += profit;
-                totWeight += weight;
+            // Вывод
+            document.getElementById('fin-raw-cost').innerText = rawMaterialsCost.toFixed(2) + ' грн';
+            document.getElementById('fin-finished-cost').innerText = finishedGoodsCost.toFixed(2) + ' грн';
+            document.getElementById('fin-revenue').innerText = potentialRevenue.toFixed(2) + ' грн';
+            document.getElementById('fin-profit').innerText = expectedProfit.toFixed(2) + ' грн';
+            document.getElementById('fin-total-assets').innerText = totalAssets.toFixed(2) + ' грн';
+        }
 
-                const dateStr = new Date(item.date).toLocaleDateString('ru-RU', { 
-                    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' 
-                });
+        function saveCash() {
+            appState.cash = parseFloat(document.getElementById('cash-in-hand').value) || 0;
+            localStorage.setItem('dg_cash', appState.cash);
+            updateFinanceBlock();
+        }
 
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                        <strong style="color:var(--text-main); font-size:13px;">${item.title}</strong>
-                        <span style="font-size:10px; color:var(--text-muted);">${dateStr}</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted);">
-                        <span>Готовая продукция: <strong style="color:var(--accent-gold);">${weight.toFixed(2)} кг</strong></span>
-                        <span>Затраты: <strong style="color:var(--danger);">${cost.toFixed(2)} грн</strong></span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; font-size:12px; margin-top:4px;">
-                        <span>Выручка: <strong>${revenue.toFixed(2)} грн</strong></span>
-                        <span style="color:var(--success); font-weight:700;">Прибыль: +${profit.toFixed(2)} грн</span>
-                    </div>
+        // ==========================================
+        // 2. СКЛАД СЫРЬЯ
+        // ==========================================
+        function addWarehouseItem() {
+            const name = document.getElementById('wh-name').value.trim();
+            const weight = parseFloat(document.getElementById('wh-weight').value) || 0;
+            const price = parseFloat(document.getElementById('wh-price').value) || 0;
+
+            if (!name || weight <= 0) return alert('Введите корректное имя и вес!');
+
+            // Проверка на средневзвешенную цену при добавлении дубликата
+            const existing = appState.warehouse.find(i => i.name.toLowerCase() === name.toLowerCase());
+            if (existing) {
+                const totalCost = (existing.weight * existing.price) + (weight * price);
+                existing.weight += weight;
+                existing.price = totalCost / existing.weight;
+            } else {
+                appState.warehouse.push({ id: Date.now(), name, weight, price });
+            }
+
+            saveWarehouse();
+            renderWarehouse();
+            // Очистка
+            document.getElementById('wh-name').value = '';
+            document.getElementById('wh-weight').value = '';
+            document.getElementById('wh-price').value = '';
+        }
+
+        function removeWarehouseItem(id) {
+            appState.warehouse = appState.warehouse.filter(i => i.id !== id);
+            saveWarehouse();
+            renderWarehouse();
+        }
+
+        function saveWarehouse() {
+            localStorage.setItem('dg_warehouse', JSON.stringify(appState.warehouse));
+            updateFinanceBlock();
+        }
+
+        function renderWarehouse() {
+            const tbody = document.getElementById('warehouse-table-body');
+            tbody.innerHTML = '';
+
+            appState.warehouse.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><b>${item.name}</b></td>
+                    <td>${item.weight.toFixed(3)} кг</td>
+                    <td>${item.price.toFixed(2)} грн</td>
+                    <td>${(item.weight * item.price).toFixed(2)} грн</td>
+                    <td><button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.8em;" onclick="removeWarehouseItem(${item.id})">Удалить</button></td>
                 `;
-                container.appendChild(div);
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // 3. КОПТИЛЬНАЯ КАМЕРА
+        // ==========================================
+        function addChamberItem() {
+            const name = document.getElementById('ch-name').value.trim();
+            const inputWeight = parseFloat(document.getElementById('ch-input-weight').value) || 0;
+            const outputWeight = parseFloat(document.getElementById('ch-output-weight').value) || 0;
+            const costPerKg = parseFloat(document.getElementById('ch-cost-per-kg').value) || 0;
+            const sellPrice = parseFloat(document.getElementById('ch-sell-price').value) || 0;
+
+            if (!name || inputWeight <= 0) return alert('Заполните название и исходный вес!');
+
+            appState.chamberBatch.push({
+                id: Date.now(),
+                name,
+                inputWeight,
+                outputWeight,
+                costPerKg,
+                sellPrice
             });
 
-            document.getElementById('statRevenue').innerText = totRevenue.toFixed(2) + ' грн';
-            document.getElementById('statCost').innerText = totCost.toFixed(2) + ' грн';
-            document.getElementById('statProfit').innerText = totProfit.toFixed(2) + ' грн';
-            document.getElementById('statWeight').innerText = totWeight.toFixed(2) + ' кг';
+            saveChamber();
+            renderChamber();
 
-            if (filteredLogs.length === 0) {
-                container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:12px;">За выбранный период нет проведённых партий.</div>';
+            // Очистка
+            document.getElementById('ch-name').value = '';
+            document.getElementById('ch-input-weight').value = '';
+            document.getElementById('ch-output-weight').value = '';
+            document.getElementById('ch-cost-per-kg').value = '';
+            document.getElementById('ch-sell-price').value = '';
+        }
+
+        function removeChamberItem(id) {
+            appState.chamberBatch = appState.chamberBatch.filter(i => i.id !== id);
+            saveChamber();
+            renderChamber();
+        }
+
+        function saveChamber() {
+            localStorage.setItem('dg_chamber', JSON.stringify(appState.chamberBatch));
+            updateFinanceBlock();
+        }
+
+        function renderChamber() {
+            const tbody = document.getElementById('chamber-table-body');
+            tbody.innerHTML = '';
+
+            appState.chamberBatch.forEach(item => {
+                const lossPct = item.outputWeight > 0 
+                    ? (((item.inputWeight - item.outputWeight) / item.inputWeight) * 100).toFixed(1) + '%' 
+                    : 'В процессе';
+
+                const actualWeight = item.outputWeight > 0 ? item.outputWeight : item.inputWeight;
+                const shrinkageRatio = item.outputWeight > 0 ? (item.inputWeight / item.outputWeight) : 1;
+                const finishedCostPerKg = item.costPerKg * shrinkageRatio;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><b>${item.name}</b></td>
+                    <td>${item.inputWeight.toFixed(3)} кг</td>
+                    <td>${item.outputWeight > 0 ? item.outputWeight.toFixed(3) + ' кг' : '-'}</td>
+                    <td style="color: var(--accent-gold);">${lossPct}</td>
+                    <td>${finishedCostPerKg.toFixed(2)} грн</td>
+                    <td>${item.sellPrice.toFixed(2)} грн</td>
+                    <td style="color: var(--accent-green);">${(actualWeight * item.sellPrice).toFixed(2)} грн</td>
+                    <td><button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.8em;" onclick="removeChamberItem(${item.id})">Удалить</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // 4. РЕЦЕПТЫ
+        // ==========================================
+        const recipeDb = {
+            krakow: {
+                salt: 20, // г/кг
+                nitriteSalt: 10,
+                blackPepper: 2,
+                allspice: 1,
+                garlic: 2,
+                phosphate: 3
+            },
+            servelat: {
+                salt: 18,
+                nitriteSalt: 9,
+                blackPepper: 1.5,
+                cardamom: 0.5,
+                sugar: 2,
+                phosphate: 3
+            },
+            balyk: {
+                salt: 25,
+                coriander: 3,
+                juniper: 2,
+                garlic: 3,
+                paprika: 4
+            },
+            kabanosy: {
+                salt: 18,
+                chili: 1.5,
+                caraway: 1,
+                garlic: 2.5,
+                blackPepper: 2
+            }
+        };
+
+        function calculateRecipe() {
+            const key = document.getElementById('recipe-select').value;
+            const weight = parseFloat(document.getElementById('recipe-meat-weight').value) || 0;
+            const list = document.getElementById('recipe-ingredients-list');
+
+            list.innerHTML = '';
+            const rec = recipeDb[key];
+
+            if (!rec) return;
+
+            for (let [ing, valPerKg] of Object.entries(rec)) {
+                const totalGrams = (valPerKg * weight).toFixed(1);
+                const li = document.createElement('li');
+                li.innerHTML = `• <b>${formatIngName(ing)}</b>: <span style="color: var(--accent-gold);">${totalGrams} г</span> (${valPerKg} г/кг)`;
+                list.appendChild(li);
             }
         }
 
-        function clearHistory() {
-            if (confirm("Очистить всю историю проведённых партий?")) {
-                salesHistory = [];
-                localStorage.setItem('dg_sales_history_v1', JSON.stringify(salesHistory));
-                renderAnalytics();
-            }
+        function formatIngName(key) {
+            const names = {
+                salt: 'Соль поваренная',
+                nitriteSalt: 'Соль нитритная (0.6%)',
+                blackPepper: 'Перец чёрный молотый',
+                allspice: 'Перец душистый',
+                garlic: 'Чеснок сушеный',
+                phosphate: 'Пищевой фосфат',
+                cardamom: 'Мускатный орех / Кардамон',
+                sugar: 'Сахар / Декстроза',
+                coriander: 'Кориандр',
+                juniper: 'Можжевельник',
+                paprika: 'Паприка копчёная',
+                chili: 'Перец кайенский / Чили',
+                caraway: 'Тмин'
+            };
+            return names[key] || key;
         }
 
-        // Инициализация при запуске
-        calcSingle();
-        renderStock();
+        // ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('cash-in-hand').value = appState.cash;
+            renderWarehouse();
+            renderChamber();
+            calculateRecipe();
+            updateFinanceBlock();
+        });
     </script>
 </body>
 </html>
