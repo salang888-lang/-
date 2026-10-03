@@ -735,9 +735,9 @@ function deleteHistoryRecord(id) {
 
     const record = salesHistory[index];
     if (confirm(`Удалить запись "${record.title}" от ${formatDate(record.date)}?`)) {
-        if (record.type === 'purchase' || record.title.startsWith('Закупка сырья')) {
-            manualCashAdjustment += record.cost;
-            localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
+        if (record.type === 'purchase' || record.title.startsWith('Закупка сырья') || record.title.startsWith('Накладная закупки')) {
+            deletePurchaseRecord(id);
+            return;
         } else if (record.type === 'cash_in') {
             manualCashAdjustment -= record.revenue;
             localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
@@ -917,11 +917,14 @@ function renderPurchaseHistoryLogs() {
 
     purchaseHistoryLogs.slice().sort((a,b) => b.id - a.id).forEach(p => {
         let itemsHtml = '';
-        p.items.forEach(it => {
+        p.items.forEach((it, itemIdx) => {
             itemsHtml += `
-                <div style="display:flex; justify-content:space-between; font-size:12px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding:3px 0; color:var(--text-muted);">
-                    <span>• ${it.name}: <strong>${it.weight.toFixed(2)} кг</strong> x ${it.price.toFixed(2)} грн</span>
-                    <span style="color:var(--text-main); font-weight:600;">${it.itemCost.toFixed(2)} грн</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding:4px 0; color:var(--text-muted);">
+                    <span>• <strong>${it.name}</strong>: ${it.weight.toFixed(2)} кг x ${it.price.toFixed(2)} грн</span>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="color:var(--text-main); font-weight:600;">${it.itemCost.toFixed(2)} грн</span>
+                        <button onclick="editPurchaseItemPrice(${p.id}, ${itemIdx})" style="width:auto; margin-bottom:0; padding:1px 5px; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-main); border-radius:4px; font-size:10px; cursor:pointer;" title="Изменить цену или вес">✏️</button>
+                    </div>
                 </div>
             `;
         });
@@ -947,22 +950,89 @@ function renderPurchaseHistoryLogs() {
     });
 }
 
+/* РЕДАКТИРОВАНИЕ ЦЕНЫ В ИСТОРИИ ЗАКУПОК */
+function editPurchaseItemPrice(purchaseId, itemIdx) {
+    const p = purchaseHistoryLogs.find(x => x.id === purchaseId);
+    if (!p || !p.items[itemIdx]) return;
+
+    let item = p.items[itemIdx];
+    let newPrice = parseFloat(prompt(`Изменение цены для "${item.name}" (сейчас: ${item.price} грн/кг):`, item.price));
+    if (isNaN(newPrice) || newPrice < 0) return;
+
+    let newWeight = parseFloat(prompt(`Изменение веса для "${item.name}" (сейчас: ${item.weight} кг):`, item.weight));
+    if (isNaN(newWeight) || newWeight <= 0) return;
+
+    let oldItemCost = item.itemCost;
+    let oldWeight = item.weight;
+
+    item.price = newPrice;
+    item.weight = newWeight;
+    item.itemCost = newWeight * newPrice;
+
+    // Корректировка склада
+    if (meatStock[item.name]) {
+        meatStock[item.name].weightKg = meatStock[item.name].weightKg - oldWeight + newWeight;
+        if (meatStock[item.name].weightKg < 0) meatStock[item.name].weightKg = 0;
+        meatStock[item.name].pricePerKg = newPrice; // обновляем на свежую цену
+    }
+
+    // Пересчет суммы накладной
+    let oldTotalCost = p.totalCost;
+    p.totalCost = p.items.reduce((sum, x) => sum + x.itemCost, 0);
+    let costDiff = p.totalCost - oldTotalCost;
+
+    // Корректировка Кассы
+    manualCashAdjustment -= costDiff;
+    localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
+
+    // Корректировка Финансовой истории
+    let salesRec = salesHistory.find(x => x.id === purchaseId);
+    if (salesRec) {
+        salesRec.cost = p.totalCost;
+        salesRec.profit = -p.totalCost;
+        let itemTitles = p.items.map(x => `${x.name} (${x.weight}кг)`).join(', ');
+        salesRec.title = `Накладная закупки: ${itemTitles}`;
+    }
+
+    localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
+    localStorage.setItem('dg_purchase_history_v17', JSON.stringify(purchaseHistoryLogs));
+    localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
+
+    renderStockBalance();
+    renderPurchaseHistoryLogs();
+    renderAnalytics();
+}
+
+/* ПОЛНОЕ УДАЛЕНИЕ ИЗ ЗАКУПОК + СКЛАДА + ФИНАНСОВ */
 function deletePurchaseRecord(id) {
     const idx = purchaseHistoryLogs.findIndex(x => x.id === id);
     if (idx === -1) return;
 
-    if (confirm("Удалить эту накладную из истории закупки? (Остатки на складе и финансовый отчёт будут скорректированы)")) {
+    if (confirm("Удалить эту накладную закупки?\n\n- Товар спишется со склада;\n- Потраченная сумма ВЕРНЕТСЯ в Кассу;\n- Запись удалится из финансов.")) {
         let p = purchaseHistoryLogs[idx];
 
+        // 1. Списываем вес со склада
+        p.items.forEach(it => {
+            if (meatStock[it.name]) {
+                meatStock[it.name].weightKg -= it.weight;
+                if (meatStock[it.name].weightKg < 0) meatStock[it.name].weightKg = 0;
+            }
+        });
+        localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
+
+        // 2. Возвращаем деньги в Кассу
         manualCashAdjustment += p.totalCost;
         localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
 
+        // 3. Удаляем из финансовой истории
         salesHistory = salesHistory.filter(x => x.id !== id);
         localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
 
+        // 4. Удаляем из истории закупок
         purchaseHistoryLogs.splice(idx, 1);
         localStorage.setItem('dg_purchase_history_v17', JSON.stringify(purchaseHistoryLogs));
 
+        renderStockBalance();
         renderPurchaseHistoryLogs();
         renderAnalytics();
     }
