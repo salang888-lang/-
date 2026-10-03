@@ -770,7 +770,7 @@ function deleteHistoryRecord(id) {
     }
 }
 
-/* --- СКЛАД СЫРЬЯ И ИСТОРИЯ ЗАКУПОК ПО ДАТАМ (С ВЫПАДАЮЩИМ СПИСКОМ) --- */
+/* --- СКЛАД СЫРЬЯ И ИСТОРИЯ ЗАКУПОК ПО ДАТАМ --- */
 function getAvailableStockNames() {
     let namesSet = new Set(Object.keys(meatStock));
     for (let rName in recipes) {
@@ -1053,7 +1053,7 @@ function deletePurchaseRecord(id) {
     let p = purchaseHistoryLogs[idx];
     let summaryList = p.items.map(i => `${i.name}: ${i.weight} кг`).join('\n');
 
-    if (confirm(`Удалить эту накладную закупки?\n\nСпишется только вес из этой накладной:\n${summaryList}\n\nСумма ${p.totalCost.toFixed(2)} грн ВЕРНЕТСЯ в Кассу.`)) {
+    if (confirm(`Удалить эту накладную закупки?\n\nСпишется только вес из этой накладной:\n${summaryList}\n\nСумма ${p.totalCost.toFixed(2)} грн ВЕРНЕТСЯ в Кассу, а запись исчезнет из Финансов.`)) {
 
         p.items.forEach(it => {
             if (meatStock[it.name]) {
@@ -1079,10 +1079,32 @@ function deletePurchaseRecord(id) {
 }
 
 function clearPurchaseHistoryLogs() {
-    if (confirm("Вы действительно хотите очистить ВСЮ историю закупок сырья?")) {
+    if (confirm("Вы действительно хотите очистить ВСЮ историю закупок сырья и связанные с ними записи в Финансах?")) {
+        let purchaseIds = new Set(purchaseHistoryLogs.map(p => p.id));
+        let totalRefundCost = purchaseHistoryLogs.reduce((sum, p) => sum + p.totalCost, 0);
+
+        purchaseHistoryLogs.forEach(p => {
+            p.items.forEach(it => {
+                if (meatStock[it.name]) {
+                    meatStock[it.name].weightKg -= it.weight;
+                    if (meatStock[it.name].weightKg < 0) meatStock[it.name].weightKg = 0;
+                }
+            });
+        });
+        localStorage.setItem('dg_meat_stock_v18', JSON.stringify(meatStock));
+
+        manualCashAdjustment += totalRefundCost;
+        localStorage.setItem('dg_manual_cash_v18', manualCashAdjustment);
+
+        salesHistory = salesHistory.filter(x => !purchaseIds.has(x.id));
+        localStorage.setItem('dg_sales_history_v18', JSON.stringify(salesHistory));
+
         purchaseHistoryLogs = [];
         localStorage.setItem('dg_purchase_history_v18', JSON.stringify(purchaseHistoryLogs));
+
+        renderStockBalance();
         renderPurchaseHistoryLogs();
+        renderAnalytics();
     }
 }
 
