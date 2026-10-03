@@ -684,7 +684,6 @@ let defaultState = {
 
 let appState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultState;
 
-// Если в localStorage были старые данные без нашего исправления Балыка, гарантируем точное состояние:
 if (!appState.meatStock["Балык"] || appState.meatStock["Балык"].weightKg === 0) {
     appState = defaultState;
     saveAppData();
@@ -1869,12 +1868,17 @@ function cancelNewRecipe() { document.getElementById('newRecipeBlock').style.dis
 function deleteRecipe(name) {
     if (confirm(`Удалить рецепт "${name}"?`)) {
         delete appState.recipes[name];
+        if (appState.activeRecipeState[name]) delete appState.activeRecipeState[name];
         saveAppData();
         init();
     }
 }
 
-init();
+// Запуск инициализации при загрузке страницы
+window.onload = function() {
+    init();
+};
 </script>
+
 </body>
 </html>
