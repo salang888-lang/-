@@ -308,7 +308,7 @@
     <!-- ВКЛАДКИ НАВИГАЦИИ -->
     <div class="tabs">
         <div class="tab-btn active" id="tab_stock" onclick="switchTab('stock')">📦 Склад</div>
-        <div class="tab-btn" id="tab_single" onclick="switchTab('single')">1 Рецепт</div>
+        <div class="tab-btn" id="tab_calc" onclick="switchTab('calc')">⚖️ Расчёт / Партия</div>
         <div class="tab-btn" id="tab_multi" onclick="switchTab('multi')">💨 Камера</div>
         <div class="tab-btn" id="tab_analytics" onclick="switchTab('analytics')">📈 Финансы</div>
         <div class="tab-btn" id="tab_recipes" onclick="switchTab('recipes')">📖 Рецепты</div>
@@ -351,13 +351,13 @@
         </div>
     </div>
 
-    <!-- 1. ВКЛАДКА: ОДИН РЕЦЕПТ -->
-    <div id="section_single" style="display: none;">
+    <!-- 1. ВКЛАДКА: УНИВЕРСАЛЬНЫЙ РАСЧЁТ И ПАРТИЯ -->
+    <div id="section_calc" style="display: none;">
         <div class="card">
             <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600; text-transform: uppercase;">Выберите рецепт:</label>
             <select id="recipeSelect" onchange="onRecipeSelectChange()"></select>
             
-            <div class="section-title">🥩 Мясное сырье (расчет цены из остатков склада):</div>
+            <div class="section-title">🥩 Мясное сырье (авторасчет под ваш вес):</div>
             <div style="display: flex; gap: 4px; font-size: 10px; color: var(--text-muted); margin-bottom: 6px; padding: 0 4px; text-transform: uppercase; font-weight: 700;">
                 <span style="flex:1.6;">Вид сырья</span>
                 <span style="width:72px; text-align:center;">Вес (кг)</span>
@@ -366,7 +366,7 @@
             </div>
             <div id="singleMeatList"></div>
 
-            <div class="section-title">🧂 Специи и добавки (на 1 кг / авторасчет):</div>
+            <div class="section-title">🧂 Специи и добавки (авторасчет под вес мяса):</div>
             <div style="display: flex; gap: 4px; font-size: 10px; color: var(--text-muted); margin-bottom: 6px; padding: 0 4px; text-transform: uppercase; font-weight: 700;">
                 <span style="flex:1.6;">Компонент</span>
                 <span style="width:72px; text-align:center;">Грамм</span>
@@ -377,40 +377,24 @@
 
             <div class="input-row" style="margin-top: 16px;">
                 <div class="input-col">
-                    <label>Вес ГОТОВОГО изделия (кг):</label>
+                    <label>Ожидаемый вес ГОТОВОГО (кг):</label>
                     <input type="number" id="finishedWeightInput" class="green-input" placeholder="2.400" step="0.01" oninput="calculateSingle()">
                 </div>
                 <div class="input-col">
-                    <label>Цена продажи (грн/кг):</label>
-                    <input type="number" id="sellPrice" placeholder="0" oninput="calculateSingle()">
+                    <label>Розничная цена (грн/кг):</label>
+                    <input type="number" id="sellPrice" placeholder="250" step="10" value="250" oninput="calculateSingle()">
                 </div>
             </div>
 
             <div class="section-title" style="margin-top: 20px;">📊 Финансовый итог партии:</div>
             <div id="financialBlock"></div>
 
-            <button class="btn-main" style="margin-top: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="processAndDeductSingleBatch()">✅ Готово: Списать мясо и передать товар на продажу</button>
+            <button class="btn-main" style="margin-top: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="addRecipeToChamberBatch()">➕ Добавить партию в камеру / на продажу</button>
         </div>
     </div>
 
-    <!-- 2. ВКЛАДКА: ЗАГРУЗКА КАМЕРЫ И ИСТОРИЯ КОПЧЕНИЯ -->
+    <!-- 2. ВКЛАДКА: КАМЕРА -->
     <div id="section_multi" style="display: none;">
-        <div class="card">
-            <h3 style="color: var(--text-main); font-size: 16px; margin-bottom: 12px;">💨 Добавить изделие в камеру</h3>
-            
-            <label style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Выберите рецепт:</label>
-            <select id="chamberRecipeAddSelect" onchange="updateChamberDefaultMeats()"></select>
-
-            <div id="chamberMeatInputsContainer" style="margin-top: 10px;"></div>
-
-            <div class="input-col" style="margin-top: 10px;">
-                <label>Розничная цена (грн/кг):</label>
-                <input type="number" id="chamberRetailPriceInput" placeholder="250" step="10" value="250" style="height: 42px; text-align: center;">
-            </div>
-
-            <button class="btn-main" style="margin-top: 12px;" onclick="addRecipeToChamberBatch()">➕ Добавить в камеру</button>
-        </div>
-
         <div class="card">
             <h3 style="color: var(--text-main); font-size: 16px; margin-bottom: 12px;">📋 Текущая загрузка коптильной камеры</h3>
             <div id="chamberItemsList"></div>
@@ -702,20 +686,20 @@ function init() {
 
 function switchTab(tab) {
     document.getElementById('section_stock').style.display = tab === 'stock' ? 'block' : 'none';
-    document.getElementById('section_single').style.display = tab === 'single' ? 'block' : 'none';
+    document.getElementById('section_calc').style.display = tab === 'calc' ? 'block' : 'none';
     document.getElementById('section_multi').style.display = tab === 'multi' ? 'block' : 'none';
     document.getElementById('section_analytics').style.display = tab === 'analytics' ? 'block' : 'none';
     document.getElementById('section_recipes').style.display = tab === 'recipes' ? 'block' : 'none';
 
     document.getElementById('tab_stock').classList.toggle('active', tab === 'stock');
-    document.getElementById('tab_single').classList.toggle('active', tab === 'single');
+    document.getElementById('tab_calc').classList.toggle('active', tab === 'calc');
     document.getElementById('tab_multi').classList.toggle('active', tab === 'multi');
     document.getElementById('tab_analytics').classList.toggle('active', tab === 'analytics');
     document.getElementById('tab_recipes').classList.toggle('active', tab === 'recipes');
 
     if (tab === 'stock') { renderStockBalance(); renderPurchaseHistoryLogs(); }
-    if (tab === 'single') onRecipeSelectChange();
-    if (tab === 'multi') { updateChamberDefaultMeats(); renderChamberItemsList(); renderChamberHistoryLogs(); }
+    if (tab === 'calc') onRecipeSelectChange();
+    if (tab === 'multi') { renderChamberItemsList(); renderChamberHistoryLogs(); }
     if (tab === 'analytics') renderAnalytics();
     if (tab === 'recipes') renderRecipeManagerList();
 }
@@ -1130,20 +1114,15 @@ function deleteStockItem(name) {
 
 function updateRecipeSelects() {
     const s1 = document.getElementById('recipeSelect');
-    const s2 = document.getElementById('chamberRecipeAddSelect');
     const currentVal1 = s1.value;
-    const currentVal2 = s2.value;
 
     s1.innerHTML = '';
-    s2.innerHTML = '';
 
     for (let name in appState.recipes) {
         let opt1 = document.createElement('option'); opt1.value = name; opt1.innerText = name; s1.appendChild(opt1);
-        let opt2 = document.createElement('option'); opt2.value = name; opt2.innerText = name; s2.appendChild(opt2);
     }
 
     if (currentVal1 && appState.recipes[currentVal1]) s1.value = currentVal1;
-    if (currentVal2 && appState.recipes[currentVal2]) s2.value = currentVal2;
 }
 
 function getActiveRecipeData(recipeName) {
@@ -1165,11 +1144,11 @@ function onRecipeSelectChange() {
         }
     });
 
-    renderSingleInputs(recipeName);
+    renderCalcInputs(recipeName);
     calculateSingle();
 }
 
-function renderSingleInputs(recipeName) {
+function renderCalcInputs(recipeName) {
     const data = getActiveRecipeData(recipeName);
     const meatContainer = document.getElementById('singleMeatList');
     const addContainer = document.getElementById('singleAdditivesList');
@@ -1187,9 +1166,9 @@ function renderSingleInputs(recipeName) {
         row.className = 'row';
         row.innerHTML = `
             <span class="row-name">${m.name} <br><small style="font-size:10px; color:${isEnough ? 'var(--text-muted)' : 'var(--danger)'};">Склад: ${stockBal.toFixed(2)} кг</small></span>
-            <input type="number" step="0.05" class="row-input-small" value="${m.weightKg}" oninput="updateSingleMeat(${idx}, 'weightKg', this.value)">
-            <input type="number" step="1" class="row-input-small" value="${m.pricePerKg}" oninput="updateSingleMeat(${idx}, 'pricePerKg', this.value)">
-            <span class="row-cost" id="meat_cost_${idx}">${(m.weightKg * m.pricePerKg).toFixed(2)} грн</span>
+            <input type="number" step="0.05" class="row-input-small" value="${m.weightKg}" oninput="updateCalcMeat(${idx}, 'weightKg', this.value)">
+            <input type="number" step="1" class="row-input-small" value="${m.pricePerKg}" oninput="updateCalcMeat(${idx}, 'pricePerKg', this.value)">
+            <span class="row-cost" id="calc_meat_cost_${idx}">${(m.weightKg * m.pricePerKg).toFixed(2)} грн</span>
         `;
         meatContainer.appendChild(row);
     });
@@ -1204,15 +1183,15 @@ function renderSingleInputs(recipeName) {
         row.className = 'row';
         row.innerHTML = `
             <span class="row-name">${a.name} <span style="font-size:10px; color:var(--text-muted);">(${a.gramsPerKg}г/кг)</span></span>
-            <span class="row-val-text" id="add_grams_${idx}">${totalGrams < 1000 ? totalGrams.toFixed(1) + ' г' : (totalGrams/1000).toFixed(3) + ' кг'}</span>
-            <input type="number" step="1" class="row-input-small" value="${a.pricePerKg}" oninput="updateSingleAdditivePrice(${idx}, this.value)">
-            <span class="row-cost" id="add_cost_${idx}">${totalCost.toFixed(2)} грн</span>
+            <span class="row-val-text" id="calc_add_grams_${idx}">${totalGrams < 1000 ? totalGrams.toFixed(1) + ' г' : (totalGrams/1000).toFixed(3) + ' кг'}</span>
+            <input type="number" step="1" class="row-input-small" value="${a.pricePerKg}" oninput="updateCalcAdditivePrice(${idx}, this.value)">
+            <span class="row-cost" id="calc_add_cost_${idx}">${totalCost.toFixed(2)} грн</span>
         `;
         addContainer.appendChild(row);
     });
 }
 
-function updateSingleMeat(idx, field, val) {
+function updateCalcMeat(idx, field, val) {
     const recipeName = document.getElementById('recipeSelect').value;
     const data = getActiveRecipeData(recipeName);
     if (!data) return;
@@ -1220,7 +1199,7 @@ function updateSingleMeat(idx, field, val) {
     data.meats[idx][field] = parseFloat(val) || 0;
     saveAppData();
     
-    const costSpan = document.getElementById(`meat_cost_${idx}`);
+    const costSpan = document.getElementById(`calc_meat_cost_${idx}`);
     if (costSpan) {
         costSpan.innerText = (data.meats[idx].weightKg * data.meats[idx].pricePerKg).toFixed(2) + ' грн';
     }
@@ -1230,8 +1209,8 @@ function updateSingleMeat(idx, field, val) {
         let totalGrams = (a.gramsPerKg || 0) * totalMeatKg;
         let totalCost = (totalGrams / 1000) * (a.pricePerKg || 0);
 
-        let gElem = document.getElementById(`add_grams_${aIdx}`);
-        let cElem = document.getElementById(`add_cost_${aIdx}`);
+        let gElem = document.getElementById(`calc_add_grams_${aIdx}`);
+        let cElem = document.getElementById(`calc_add_cost_${aIdx}`);
         if (gElem) gElem.innerText = totalGrams < 1000 ? totalGrams.toFixed(1) + ' г' : (totalGrams/1000).toFixed(3) + ' кг';
         if (cElem) cElem.innerText = totalCost.toFixed(2) + ' грн';
     });
@@ -1239,7 +1218,7 @@ function updateSingleMeat(idx, field, val) {
     calculateSingle();
 }
 
-function updateSingleAdditivePrice(idx, newPrice) {
+function updateCalcAdditivePrice(idx, newPrice) {
     const recipeName = document.getElementById('recipeSelect').value;
     const data = getActiveRecipeData(recipeName);
     if (!data) return;
@@ -1251,7 +1230,7 @@ function updateSingleAdditivePrice(idx, newPrice) {
     let totalGrams = (data.additives[idx].gramsPerKg || 0) * totalMeatKg;
     let totalCost = (totalGrams / 1000) * data.additives[idx].pricePerKg;
 
-    const costElem = document.getElementById(`add_cost_${idx}`);
+    const costElem = document.getElementById(`calc_add_cost_${idx}`);
     if (costElem) costElem.innerText = totalCost.toFixed(2) + ' грн';
 
     calculateSingle();
@@ -1287,7 +1266,7 @@ function getSingleCalculatedData() {
     let revenue = finishedWeight * sellPrice;
     let profit = revenue - totalBatchCost;
 
-    return { recipeName, meats: data.meats, totalRawKg, finishedWeight, totalBatchCost, totalAdditivesCost, revenue, profit };
+    return { recipeName, meats: data.meats, additives: data.additives, totalRawKg, finishedWeight, totalBatchCost, totalAdditivesCost, revenue, profit, sellPrice };
 }
 
 function calculateSingle() {
@@ -1308,9 +1287,7 @@ function calculateSingle() {
             <div class="fin-row"><span>Потеря веса (усушка):</span> <span style="color:var(--danger);">${weightLossKg} кг (${shrinkagePct}%)</span></div>
             <div class="fin-row"><span>Фактический выход:</span> <span style="color:var(--success); font-weight:700;">${yieldPct}% (${res.finishedWeight} кг)</span></div>
             <div class="fin-row" style="font-size:15px; border-bottom: none; padding-top: 12px;"><span>СЕБЕСТОИМОСТЬ 1 КГ:</span> <span style="color:var(--accent-gold); font-weight:800; font-size: 17px;">${costPerKgFinished} грн/кг</span></div>
-            ${res.revenue > 0 ? `
-                <div class="fin-row"><span>Ожидаемая сумма продажи:</span> <span>${res.revenue.toFixed(2)} грн</span></div>
-            ` : ''}
+            <div class="fin-row"><span>Ожидаемая сумма продажи:</span> <span style="color:var(--success); font-weight:700;">${res.revenue.toFixed(2)} грн</span></div>
         `;
     } else {
         financialBlock.innerHTML = `
@@ -1320,10 +1297,10 @@ function calculateSingle() {
     }
 }
 
-function processAndDeductSingleBatch() {
+function addRecipeToChamberBatch() {
     const res = getSingleCalculatedData();
     if (!res || res.finishedWeight <= 0) {
-        alert("Укажите вес готового изделия перед проведением партии!");
+        alert("Укажите вес готового изделия перед добавлением в камеру!");
         return;
     }
 
@@ -1336,7 +1313,7 @@ function processAndDeductSingleBatch() {
     });
 
     if (errorMsgs.length > 0) {
-        if (!confirm(errorMsgs.join("\n") + "\n\nВсё равно списать остаток в минус и провести партию?")) {
+        if (!confirm(errorMsgs.join("\n") + "\n\nВсё равно списать остаток в минус и добавить в камеру?")) {
             return;
         }
     }
@@ -1350,83 +1327,19 @@ function processAndDeductSingleBatch() {
         }
     });
 
-    if (res.revenue > 0) {
-        appState.pendingChamberSales += res.revenue;
-        appState.pendingChamberCost += res.totalAdditivesCost;
-        appState.pendingChamberWeight += res.finishedWeight;
-    }
-
-    saveAppData();
-    alert(`Партия "${res.recipeName}" проведена!\nМясо успешно списано со склада.`);
-    renderStockBalance();
-}
-
-function updateChamberDefaultMeats() {
-    const name = document.getElementById('chamberRecipeAddSelect').value;
-    const container = document.getElementById('chamberMeatInputsContainer');
-    container.innerHTML = '';
-
-    const rec = appState.recipes[name];
-    if (!rec) return;
-
-    let title = document.createElement('div');
-    title.style.cssText = "font-size:11px; color:var(--text-muted); margin-bottom:4px; font-weight:600; text-transform:uppercase;";
-    title.innerText = "Вес каждого вида мяса для закладки (кг):";
-    container.appendChild(title);
-
-    rec.meats.forEach((m, idx) => {
-        let stockBal = appState.meatStock[m.name] ? appState.meatStock[m.name].weightKg : 0;
-        let div = document.createElement('div');
-        div.style.cssText = "display:flex; gap:6px; margin-bottom:6px; align-items:center;";
-        div.innerHTML = `
-            <span style="font-size:13px; flex:2; color:var(--text-main);">${m.name} <small style="color:var(--text-muted);">(Склад: ${stockBal.toFixed(2)}кг)</small>:</span>
-            <input type="number" step="0.1" value="${m.weightKg}" class="chamber_meat_input_${idx}" data-meat-idx="${idx}" style="height:36px; font-size:14px; text-align:center; width:90px;">
-        `;
-        container.appendChild(div);
-    });
-}
-
-function addRecipeToChamberBatch() {
-    const name = document.getElementById('chamberRecipeAddSelect').value;
-    const retailPrice = parseFloat(document.getElementById('chamberRetailPriceInput').value) || 0;
-    const rec = appState.recipes[name];
-    if (!rec) return;
-
-    let meatsCopy = JSON.parse(JSON.stringify(rec.meats));
-    let totalMeatKg = 0;
-    meatsCopy.forEach((m, idx) => {
-        let inputElem = document.querySelector(`.chamber_meat_input_${idx}`);
-        if (inputElem) {
-            m.weightKg = parseFloat(inputElem.value) || 0;
-            if (appState.meatStock[m.name] && appState.meatStock[m.name].pricePerKg > 0) {
-                m.pricePerKg = appState.meatStock[m.name].pricePerKg;
-            }
-        }
-        totalMeatKg += m.weightKg;
-    });
-
-    if (totalMeatKg <= 0) { alert("Укажите вес мяса"); return; }
-
-    let additivesCopy = JSON.parse(JSON.stringify(rec.additives));
-    let totalAdditivesGrams = 0;
-    additivesCopy.forEach(a => {
-        let grams = (a.gramsPerKg || 0) * totalMeatKg;
-        totalAdditivesGrams += grams;
-    });
-
-    let totalRawKg = totalMeatKg + (totalAdditivesGrams / 1000);
-
     appState.chamberBatchList.push({
-        recipeName: name,
-        meats: meatsCopy,
-        additives: additivesCopy,
-        finishedWeightKg: Number((totalRawKg * 0.8).toFixed(2)),
-        retailPrice: retailPrice,
-        addedDate: new Date().toISOString()
+        recipeName: res.recipeName,
+        meats: JSON.parse(JSON.stringify(res.meats)),
+        additives: JSON.parse(JSON.stringify(res.additives)),
+        finishedWeightKg: res.finishedWeight,
+        retailPrice: res.sellPrice,
+        addedDate: nowIso
     });
 
     saveAppData();
-    renderChamberItemsList();
+    renderStockBalance();
+    alert(`Партия "${res.recipeName}" успешно добавлена в камеру!\nМясо списано со склада.`);
+    switchTab('multi');
 }
 
 function updateChamberItemMeat(itemIdx, meatIdx, val) {
@@ -1450,7 +1363,7 @@ function renderChamberItemsList() {
     container.innerHTML = '';
 
     if (appState.chamberBatchList.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">Камера пуста. Добавьте изделие выше.</div>';
+        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">Камера пуста. Добавьте изделие на вкладке «Расчёт / Партия».</div>';
         document.getElementById('btnSaveChamberHistory').style.display = 'none';
         return;
     }
@@ -1495,7 +1408,7 @@ function renderChamberItemsList() {
 function calculateMultiBatch() {
     const resultsBlock = document.getElementById('multiResultsBlock');
     if (appState.chamberBatchList.length === 0) {
-        resultsBlock.innerHTML = '<div style="color:var(--danger); text-align:center;">Добавьте изделия в камеру!</div>';
+        resultsBlock.innerHTML = '<div style="color:var(--danger); text-align:center;">Камера пуста!</div>';
         document.getElementById('btnSaveChamberHistory').style.display = 'none';
         return;
     }
@@ -1529,7 +1442,7 @@ function calculateMultiBatch() {
 
         totalRawGrams += totalMeatKg * 1000;
 
-        rec.additives.forEach(a => {
+        item.additives.forEach(a => {
             let ingGrams = (a.gramsPerKg || 0) * totalMeatKg;
             let ingCost = (ingGrams / 1000) * (a.pricePerKg || 0);
 
@@ -1562,12 +1475,12 @@ function calculateMultiBatch() {
     }
 
     html += `
-        <div class="section-title" style="margin-top: 16px;">Расчет списания и выгода партии:</div>
+        <div class="section-title" style="margin-top: 16px;">Расчет партии:</div>
         <div class="fin-row"><span>Общая закладка ДО:</span> <span><strong>${totalRawKg} кг</strong></span></div>
         <div class="fin-row"><span>Общий вес ПОСЛЕ:</span> <span style="color:var(--success);"><strong>${totalFinishedWeight.toFixed(3)} кг</strong></span></div>
         <div class="fin-row"><span>Потеря веса (усушка):</span> <span style="color:var(--danger);">${weightLossKg} кг (${shrinkagePct}%)</span></div>
         <div class="fin-row"><span>Выход продукции:</span> <span style="color:var(--success); font-weight:700;">${yieldPct}%</span></div>
-        <div class="fin-row"><span>Затраты на СПЕЦИИ И ИНГРЕДИЕНТЫ:</span> <span style="color:var(--accent-gold);"><strong>${totalAdditivesCost.toFixed(2)} грн</strong></span></div>
+        <div class="fin-row"><span>Затраты на специи:</span> <span style="color:var(--accent-gold);"><strong>${totalAdditivesCost.toFixed(2)} грн</strong></span></div>
         <div class="fin-row" style="font-size:15px;"><span>ПОЛНАЯ СЕБЕСТОИМОСТЬ 1 КГ:</span> <span style="color:var(--accent-gold); font-weight:800; font-size: 17px;">${avgCostPerKgFinished} грн/кг</span></div>
         ${totalRevenue > 0 ? `
             <div class="fin-row" style="font-size: 15px; border-bottom:none; padding-top:10px;"><span>ОЖИДАЕМАЯ СУММА ПРОДАЖИ:</span> <span style="color:var(--success); font-weight:800; font-size: 18px;">${totalRevenue.toFixed(2)} грн</span></div>
@@ -1581,7 +1494,6 @@ function calculateMultiBatch() {
 function processAndDeductChamberBatch() {
     if (appState.chamberBatchList.length === 0) return;
 
-    let requiredMeat = {};
     let totalRevenue = 0;
     let totalMeatCost = 0;
     let totalAdditivesCost = 0;
@@ -1600,28 +1512,16 @@ function processAndDeductChamberBatch() {
         let totalMeatKg = 0;
         item.meats.forEach(m => {
             let w = parseFloat(m.weightKg) || 0;
-            let p = parseFloat(m.pricePerKg !== undefined ? m.pricePerKg : (rec.meats.find(x=>x.name===m.name)?.pricePerKg || 0));
+            let p = parseFloat(m.pricePerKg !== undefined ? m.pricePerKg : 0);
             totalMeatKg += w;
             totalMeatCost += w * p;
-
-            if (!requiredMeat[m.name]) requiredMeat[m.name] = 0;
-            requiredMeat[m.name] += w;
         });
 
-        rec.additives.forEach(a => {
+        item.additives.forEach(a => {
             let ingGrams = (a.gramsPerKg || 0) * totalMeatKg;
             totalAdditivesCost += (ingGrams / 1000) * (a.pricePerKg || 0);
         });
     });
-
-    for (let mName in requiredMeat) {
-        let reqKg = requiredMeat[mName];
-        if (appState.meatStock[mName]) {
-            appState.meatStock[mName].weightKg -= reqKg;
-            if (appState.meatStock[mName].weightKg < 0) appState.meatStock[mName].weightKg = 0;
-            appState.meatStock[mName].lastUpdated = nowIso;
-        }
-    }
 
     appState.pendingChamberSales += totalRevenue;
     appState.pendingChamberCost += totalAdditivesCost;
@@ -1640,11 +1540,11 @@ function processAndDeductChamberBatch() {
     appState.chamberBatchList = [];
     saveAppData();
 
-    alert(`Камера успешно проведена!\nМясо списано со склада. В Кассу добавлено +${totalRevenue.toFixed(2)} грн товара на продажу.`);
+    alert(`Партия проведена!\nВ Кассу добавлено +${totalRevenue.toFixed(2)} грн товара на продажу.`);
     
     renderChamberItemsList();
     renderChamberHistoryLogs();
-    renderStockBalance();
+    renderAnalytics();
     document.getElementById('multiResultsBlock').innerHTML = '';
 }
 
@@ -1695,7 +1595,7 @@ function deleteChamberHistoryRecord(id) {
 }
 
 function clearChamberHistoryLogs() {
-    if (confirm("Вы действительно хотите очистить ВСЮ историю копчения в камере?")) {
+    if (confirm("Вы действительно хотите очистить ВСЮ историю копчения?")) {
         appState.chamberHistoryLogs = [];
         saveAppData();
         renderChamberHistoryLogs();
@@ -1746,7 +1646,7 @@ function renderAnalytics() {
                 <strong style="color:var(--text-main); font-size:14px;">${item.title}</strong>
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:11px; color:var(--text-muted);">📅 ${formatDate(item.date)}</span>
-                    ${!isPurchase && item.type === 'sale' ? `<button onclick="editSaleRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-main); border-radius:6px; font-size:11px; cursor:pointer;" title="Редактировать">✏️️</button>` : ''}
+                    ${!isPurchase && item.type === 'sale' ? `<button onclick="editSaleRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-main); border-radius:6px; font-size:11px; cursor:pointer;" title="Редактировать">✏</button>` : ''}
                     <button onclick="deleteHistoryRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; font-size:11px; cursor:pointer;">✕</button>
                 </div>
             </div>
