@@ -3,626 +3,1348 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Дымный Гурман — Учет и Калькулятор</title>
+    <title>Дымный Гурман — Премиум Учёт, Калькулятор, Склад и Касса</title>
     <style>
         :root {
-            --bg-color: #121212;
-            --card-bg: rgba(255, 255, 255, 0.05);
-            --border-color: rgba(255, 255, 255, 0.1);
-            --accent-gold: #ffca28;
-            --accent-green: #4caf50;
-            --accent-blue: #2196f3;
-            --accent-red: #f44336;
-            --text-main: #e0e0e0;
-            --text-muted: #aaa;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(51, 65, 85, 0.8);
+            --accent-gold: #f59e0b;
+            --accent-gold-glow: rgba(245, 158, 11, 0.2);
+            --accent-blue: #3b82f6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
+        * { box-sizing: border-box; }
         body {
-            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            background-color: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
             color: var(--text-main);
-            padding: 20px;
-            max-width: 1200px;
+            margin: 0;
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 680px;
             margin: 0 auto;
         }
 
-        header {
+        .brand-header {
             text-align: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
+            margin-bottom: 20px;
+            padding: 10px 0;
             border-bottom: 1px solid var(--border-color);
         }
-
-        header h1 {
-            color: var(--accent-gold);
-            font-size: 2em;
+        .brand-header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
             letter-spacing: 1px;
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+        .brand-header p {
+            margin: 4px 0 0;
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
-        .nav-tabs {
+        /* ВКЛАДКИ НАВИГАЦИИ */
+        .tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
         }
-
         .tab-btn {
-            background: var(--card-bg);
+            flex: 1;
+            padding: 12px 2px;
+            background: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 10px 20px;
-            border-radius: 8px;
+            color: var(--text-muted);
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
             cursor: pointer;
-            transition: 0.3s;
+            text-align: center;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-
-        .tab-btn.active, .tab-btn:hover {
-            background: var(--accent-gold);
-            color: #000;
-            font-weight: bold;
+        .tab-btn:hover {
+            border-color: var(--accent-gold);
+            color: var(--text-main);
         }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .grid-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+        .tab-btn.active {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            color: white;
+            border-color: #f59e0b;
+            box-shadow: 0 4px 15px var(--accent-gold-glow);
         }
 
         .card {
-            background: var(--card-bg);
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 16px;
             border: 1px solid var(--border-color);
-            padding: 15px;
-            border-radius: 10px;
-            backdrop-filter: blur(5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
-        .card span {
-            color: var(--text-muted);
-            font-size: 0.85em;
-        }
-
-        .card h3 {
-            margin-top: 5px;
-            font-size: 1.4em;
-        }
-
-        .form-group {
-            margin-bottom: 12px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.85em;
-            color: var(--text-muted);
-            margin-bottom: 5px;
-        }
-
-        input, select {
+        select, input, button {
             width: 100%;
-            padding: 10px;
-            background: #1e1e1e;
+            padding: 12px;
+            border-radius: 10px;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: #fff;
-            font-size: 0.95em;
+            background: var(--bg-secondary);
+            color: var(--text-main);
+            font-size: 15px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
         }
-
-        input:focus, select:focus {
+        select:focus, input:focus {
             outline: none;
             border-color: var(--accent-gold);
+            box-shadow: 0 0 0 3px var(--accent-gold-glow);
         }
 
-        .btn {
-            background: var(--accent-gold);
-            color: #000;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-        }
-
-        .btn:hover {
-            opacity: 0.9;
-        }
-
-        .btn-danger {
-            background: var(--accent-red);
-            color: #fff;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            background: var(--card-bg);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.9em;
-        }
-
-        th {
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--accent-gold);
-        }
-
-        .flex-row {
+        .input-row {
             display: flex;
-            gap: 15px;
+            gap: 10px;
+            margin-top: 8px;
+            align-items: flex-end;
+        }
+        .input-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .input-col label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .input-col input {
+            height: 46px;
+            margin-bottom: 0;
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
         }
 
-        @media (max-width: 768px) {
-            .flex-row {
-                flex-direction: column;
-            }
+        .green-input { 
+            background: rgba(16, 185, 129, 0.1) !important; 
+            border: 2px solid var(--success) !important; 
+            color: #34d399 !important; 
         }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            gap: 8px;
+        }
+        .row-name { font-size: 13px; flex: 1.8; color: var(--text-main); font-weight: 500; }
+        .row-input-small { width: 72px !important; height: 36px !important; margin-bottom: 0 !important; text-align: center; font-size: 13px !important; padding: 2px !important; background: var(--bg-secondary) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; font-weight: 700; }
+        .row-val-text { font-size: 13px; width: 72px; text-align: center; color: var(--accent-gold); font-weight: 700; }
+        .row-cost { font-size: 13px; color: var(--text-muted); width: 75px; text-align: right; font-weight: 600; }
+
+        .section-title {
+            font-size: 14px;
+            color: var(--accent-gold);
+            font-weight: 700;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stock-item, .history-item, .chamber-item {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-gold);
+        }
+        .chamber-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-main);
+            margin-bottom: 10px;
+        }
+
+        .fin-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        .fin-row strong { color: var(--text-main); }
+
+        .btn-main { 
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%); 
+            color: white; 
+            font-weight: 700; 
+            border: none; 
+            cursor: pointer; 
+            padding: 14px; 
+            font-size: 15px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 15px var(--accent-gold-glow); 
+            transition: all 0.3s; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-main:hover { 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+        }
+        .btn-sec { 
+            background: var(--bg-secondary); 
+            color: var(--text-main); 
+            border: 1px solid var(--border-color); 
+            cursor: pointer; 
+            border-radius: 10px; 
+            font-weight: 600; 
+            padding: 10px;
+            transition: all 0.2s;
+        }
+        .btn-sec:hover { background: rgba(51, 65, 85, 0.8); }
+
+        .period-selector { display: flex; gap: 6px; margin-bottom: 14px; }
+        .period-btn {
+            flex: 1; padding: 8px 2px; background: var(--bg-secondary); border: 1px solid var(--border-color);
+            color: var(--text-muted); border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; text-align: center;
+        }
+        .period-btn.active { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
+
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+        .stat-card {
+            background: rgba(15, 23, 42, 0.8); border-radius: 12px; padding: 12px; border: 1px solid var(--border-color); text-align: center;
+        }
+        .stat-card-title { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .stat-card-value { font-size: 18px; font-weight: 800; }
+
+        .ing-edit-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>🥩 ДЫМНЫЙ ГУРМАН</h1>
-        <p style="color: var(--text-muted); font-size: 0.9em; margin-top: 5px;">Система учёта производства и калькуляция</p>
-    </header>
-
-    <!-- Навигация -->
-    <div class="nav-tabs">
-        <button class="tab-btn active" onclick="switchTab('finance')">💰 Финансы</button>
-        <button class="tab-btn" onclick="switchTab('warehouse')">📦 Склад сырья</button>
-        <button class="tab-btn" onclick="switchTab('chamber')">🔥 Коптильная камера</button>
-        <button class="tab-btn" onclick="switchTab('recipes')">📖 Рецепты</button>
+<div class="container">
+    <div class="brand-header">
+        <h1>Дымный Гурман</h1>
+        <p>Craft Meat & Smoke Production • Warehouse & Cash Control</p>
     </div>
 
-    <!-- Вкладка 1: ФИНАНСЫ -->
-    <div id="finance" class="tab-content active">
-        <div class="grid-cards">
-            <div class="card">
-                <span>Сырьё на складе</span>
-                <h3 id="fin-raw-cost" style="color: var(--accent-gold);">0.00 грн</h3>
-            </div>
-            <div class="card">
-                <span>Готовая продукция (Себестоимость)</span>
-                <h3 id="fin-finished-cost" style="color: var(--accent-green);">0.00 грн</h3>
-            </div>
-            <div class="card">
-                <span>Ожидаемая выручка</span>
-                <h3 id="fin-revenue" style="color: var(--accent-blue);">0.00 грн</h3>
-            </div>
-            <div class="card">
-                <span>Ожидаемая чистая прибыль</span>
-                <h3 id="fin-profit" style="color: #00e676;">0.00 грн</h3>
-            </div>
-        </div>
-
-        <div class="flex-row">
-            <div class="card" style="flex: 1;">
-                <h3>Управление кассой</h3>
-                <br>
-                <div class="form-group">
-                    <label>Наличные в кассе (грн)</label>
-                    <input type="number" id="cash-in-hand" value="0" onchange="saveCash()">
-                </div>
-                <div class="form-group">
-                    <label>Дополнительные расходы (щепа, электричество, упаковка)</label>
-                    <input type="number" id="additional-expenses" value="0" onchange="updateFinanceBlock()">
-                </div>
-            </div>
-
-            <div class="card" style="flex: 1;">
-                <h3>Итоговые активы</h3>
-                <br>
-                <span>Всего средств в обороте (Товар + Сырьё + Касса):</span>
-                <h2 id="fin-total-assets" style="color: var(--accent-gold); margin-top: 10px;">0.00 грн</h2>
-            </div>
-        </div>
+    <!-- ВКЛАДКИ НАВИГАЦИИ -->
+    <div class="tabs">
+        <div class="tab-btn active" id="tab_stock" onclick="switchTab('stock')">📦 Склад</div>
+        <div class="tab-btn" id="tab_single" onclick="switchTab('single')">1 Рецепт</div>
+        <div class="tab-btn" id="tab_multi" onclick="switchTab('multi')">💨 Камера</div>
+        <div class="tab-btn" id="tab_analytics" onclick="switchTab('analytics')">📈 Финансы</div>
+        <div class="tab-btn" id="tab_recipes" onclick="switchTab('recipes')">📖 Рецепты</div>
     </div>
 
-    <!-- Вкладка 2: СКЛАД СЫРЬЯ -->
-    <div id="warehouse" class="tab-content">
+    <!-- 0. ВКЛАДКА: СКЛАД СЫРЬЯ -->
+    <div id="section_stock">
         <div class="card">
-            <h3>Приход сырья на склад</h3>
-            <br>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
-                <div class="form-group">
-                    <label>Наименование (например: Свиная окрок)</label>
-                    <input type="text" id="wh-name">
+            <h3 style="color: var(--accent-gold); font-size: 16px; margin-bottom: 12px;">➕ Приход сырья (Закупка)</h3>
+            <div class="input-col" style="margin-bottom: 10px;">
+                <label>Вид / Наименование сырья:</label>
+                <input type="text" id="stockMeatName" placeholder="например: Балык, Свиная лопатка, Крылья">
+            </div>
+            <div class="input-row">
+                <div class="input-col">
+                    <label>Закупленный вес (кг):</label>
+                    <input type="number" id="stockMeatWeight" placeholder="10.0" step="0.05">
                 </div>
-                <div class="form-group">
-                    <label>Вес (кг)</label>
-                    <input type="number" step="0.001" id="wh-weight">
-                </div>
-                <div class="form-group">
-                    <label>Цена за 1 кг (грн)</label>
-                    <input type="number" step="0.01" id="wh-price">
+                <div class="input-col">
+                    <label>Цена закупки (грн/кг):</label>
+                    <input type="number" id="stockMeatPrice" placeholder="190" step="1">
                 </div>
             </div>
-            <button class="btn" onclick="addWarehouseItem()">Добавить на склад</button>
+            <button class="btn-main" style="margin-top: 12px;" onclick="addMeatStock()">📥 Записать приход на склад</button>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Наименование</th>
-                    <th>Остаток (кг)</th>
-                    <th>Цена/кг (грн)</th>
-                    <th>Сумма (грн)</th>
-                    <th>Действие</th>
-                </tr>
-            </thead>
-            <tbody id="warehouse-table-body">
-                <!-- Заполняется JS -->
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Вкладка 3: КОПТИЛЬНАЯ КАМЕРА -->
-    <div id="chamber" class="tab-content">
         <div class="card">
-            <h3>Загрузка партии в камеру</h3>
-            <br>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
-                <div class="form-group">
-                    <label>Продукт</label>
-                    <input type="text" id="ch-name" placeholder="Краковская, Балык и т.д.">
-                </div>
-                <div class="form-group">
-                    <label>Вес закладки (сырой) кг</label>
-                    <input type="number" step="0.001" id="ch-input-weight">
-                </div>
-                <div class="form-group">
-                    <label>Готовый вес (после коптильни) кг</label>
-                    <input type="number" step="0.001" id="ch-output-weight">
-                </div>
-                <div class="form-group">
-                    <label>Себестоимость сырья+специй / кг грн</label>
-                    <input type="number" step="0.01" id="ch-cost-per-kg">
-                </div>
-                <div class="form-group">
-                    <label>Цена продажи / кг грн</label>
-                    <input type="number" step="0.01" id="ch-sell-price">
-                </div>
-            </div>
-            <button class="btn" onclick="addChamberItem()">Загрузить в камеру</button>
+            <div class="section-title" style="margin-top:0;">📊 Текущие остатки сырья на складе:</div>
+            <div id="stockBalanceList"></div>
         </div>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Продукт</th>
-                    <th>Сырой вес (кг)</th>
-                    <th>Готовый вес (кг)</th>
-                    <th>Потеря (Усушка)</th>
-                    <th>Себест. 1кг готового</th>
-                    <th>Цена продажи/кг</th>
-                    <th>Выручка (грн)</th>
-                    <th>Действие</th>
-                </tr>
-            </thead>
-            <tbody id="chamber-table-body">
-                <!-- Заполняется JS -->
-            </tbody>
-        </table>
     </div>
 
-    <!-- Вкладка 4: РЕЦЕПТЫ -->
-    <div id="recipes" class="tab-content">
+    <!-- 1. ВКЛАДКА: ОДИН РЕЦЕПТ -->
+    <div id="section_single" style="display: none;">
         <div class="card">
-            <h3>Калькулятор специй на 1 кг мясного сырья</h3>
-            <br>
-            <div class="form-group">
-                <label>Выберите рецептуру / Продукт</label>
-                <select id="recipe-select" onchange="calculateRecipe()">
-                    <option value="krakow">Колбаса Краковская</option>
-                    <option value="servelat">Сервелат</option>
-                    <option value="balyk">Балык сырокопченый</option>
-                    <option value="kabanosy">Кабаноси</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Масса мяса (кг)</label>
-                <input type="number" id="recipe-meat-weight" value="1" step="0.1" oninput="calculateRecipe()">
-            </div>
-
-            <h4>Норма закладки специй и ингредиентов:</h4>
-            <br>
-            <ul id="recipe-ingredients-list" style="list-style: none; line-height: 1.8; color: var(--text-main);">
-                <!-- Заполняется JS -->
-            </ul>
-        </div>
-    </div>
-
-    <script>
-        // GLOBAL APP STATE
-        let appState = {
-            warehouse: JSON.parse(localStorage.getItem('dg_warehouse')) || [],
-            chamberBatch: JSON.parse(localStorage.getItem('dg_chamber')) || [],
-            cash: parseFloat(localStorage.getItem('dg_cash')) || 0,
-            expenses: 0
-        };
-
-        // НАВИГАЦИЯ
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600; text-transform: uppercase;">Выберите рецепт:</label>
+            <select id="recipeSelect" onchange="onRecipeSelectChange()"></select>
             
-            document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
+            <div class="section-title">🥩 Мясное сырье (расчет цены из остатков склада):</div>
+            <div style="display: flex; gap: 4px; font-size: 10px; color: var(--text-muted); margin-bottom: 6px; padding: 0 4px; text-transform: uppercase; font-weight: 700;">
+                <span style="flex:1.6;">Вид сырья</span>
+                <span style="width:72px; text-align:center;">Вес (кг)</span>
+                <span style="width:72px; text-align:center;">Цена/кг</span>
+                <span style="width:75px; text-align:right;">Итог</span>
+            </div>
+            <div id="singleMeatList"></div>
 
-            if (tabId === 'finance') updateFinanceBlock();
+            <div class="section-title">🧂 Специи и добавки (на 1 кг / авторасчет):</div>
+            <div style="display: flex; gap: 4px; font-size: 10px; color: var(--text-muted); margin-bottom: 6px; padding: 0 4px; text-transform: uppercase; font-weight: 700;">
+                <span style="flex:1.6;">Компонент</span>
+                <span style="width:72px; text-align:center;">Грамм</span>
+                <span style="width:72px; text-align:center;">Цена/кг</span>
+                <span style="width:75px; text-align:right;">Итог</span>
+            </div>
+            <div id="singleAdditivesList"></div>
+
+            <div class="input-row" style="margin-top: 16px;">
+                <div class="input-col">
+                    <label>Вес ГОТОВОГО изделия (кг):</label>
+                    <input type="number" id="finishedWeightInput" class="green-input" placeholder="2.400" step="0.01" oninput="calculateSingle()">
+                </div>
+                <div class="input-col">
+                    <label>Цена продажи (грн/кг):</label>
+                    <input type="number" id="sellPrice" placeholder="0" oninput="calculateSingle()">
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top: 20px;">📊 Финансовый итог партии:</div>
+            <div id="financialBlock"></div>
+
+            <button class="btn-main" style="margin-top: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="processAndDeductSingleBatch()">✅ Готово: Списать мясо и передать товар на продажу</button>
+        </div>
+    </div>
+
+    <!-- 2. ВКЛАДКА: ЗАГРУЗКА КАМЕРЫ -->
+    <div id="section_multi" style="display: none;">
+        <div class="card">
+            <h3 style="color: var(--text-main); font-size: 16px; margin-bottom: 12px;">💨 Добавить изделие в камеру</h3>
+            
+            <label style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Выберите рецепт:</label>
+            <select id="chamberRecipeAddSelect" onchange="updateChamberDefaultMeats()"></select>
+
+            <div id="chamberMeatInputsContainer" style="margin-top: 10px;"></div>
+
+            <div class="input-col" style="margin-top: 10px;">
+                <label>Розничная цена (грн/кг):</label>
+                <input type="number" id="chamberRetailPriceInput" placeholder="250" step="10" value="250" style="height: 42px; text-align: center;">
+            </div>
+
+            <button class="btn-main" style="margin-top: 12px;" onclick="addRecipeToChamberBatch()">➕ Добавить в камеру</button>
+        </div>
+
+        <div class="card">
+            <h3 style="color: var(--text-main); font-size: 16px; margin-bottom: 12px;">📋 Загрузка коптильной камеры</h3>
+            <div id="chamberItemsList"></div>
+
+            <button class="btn-main" style="margin-top: 14px;" onclick="calculateMultiBatch()">🔥 Рассчитать всю камеру</button>
+
+            <div id="multiResultsBlock" style="margin-top: 16px;"></div>
+            
+            <button class="btn-main" id="btnSaveChamberHistory" style="margin-top: 14px; display: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="processAndDeductChamberBatch()">✅ Проведено: Списать мясо и передать в Кассу на продажу</button>
+        </div>
+    </div>
+
+    <!-- 3. ВКЛАДКА: ФИНАНСЫ И КАССА -->
+    <div id="section_analytics" style="display: none;">
+        <!-- БЛОК КАССЫ И ПРОДАЖ -->
+        <div class="card" style="border-left: 4px solid var(--success);">
+            <h3 style="font-size: 16px; margin-bottom: 12px; color: #34d399;">💵 Касса и Продажи</h3>
+            
+            <div class="input-row" style="margin-bottom: 12px;">
+                <div class="input-col">
+                    <label>Начальный остаток кассы (грн):</label>
+                    <input type="number" id="initialCashInput" placeholder="0" step="50" onchange="updateInitialCash(this.value)">
+                </div>
+                <div class="input-col">
+                    <label>НАЛИЧНЫЕ В КАССЕ:</label>
+                    <div id="currentCashDisplay" style="height: 46px; display: flex; align-items: center; justify-content: center; background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); border-radius: 10px; color: #34d399; font-weight: 800; font-size: 18px;">
+                        0.00 грн
+                    </div>
+                </div>
+            </div>
+
+            <!-- БЛОК КОНТРОЛЯ ТОВАРА НА ПРОДАЖУ (ИЗ КАМЕРЫ) -->
+            <div style="background: rgba(15, 23, 42, 0.8); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 14px;">
+                <div class="fin-row" style="padding: 4px 0;">
+                    <span>Товара на продажу (из камеры):</span>
+                    <span style="color: var(--accent-gold); font-weight: 800; font-size: 16px;" id="pendingChamberSalesDisplay">0.00 грн</span>
+                </div>
+            </div>
+
+            <!-- ВВОД ФАКТИЧЕСКОЙ ПРОДАЖИ -->
+            <div class="input-col" style="margin-bottom: 10px;">
+                <label style="color: var(--accent-gold);">Продажа (сумма фактически проданного товара):</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="number" id="saleInputAmount" placeholder="Введите сумму продажи" step="10" style="height: 46px; font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 0;">
+                    <button class="btn-main" style="width: 140px; margin-bottom: 0; padding: 0; height: 46px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="registerSaleFromCamera()">💰 Продать</button>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 14px;">
+                <button class="btn-sec" style="font-size: 12px; padding: 8px;" onclick="adjustCashManual('add')">➕ Ручной внос</button>
+                <button class="btn-sec" style="font-size: 12px; padding: 8px; border-color: var(--danger); color: var(--danger);" onclick="adjustCashManual('sub')">➖ Инкассация / Изъятие</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="font-size: 16px; margin-bottom: 12px;">📈 Финансовый отчёт коптильни</h3>
+            
+            <div class="period-selector">
+                <div class="period-btn active" id="p_week" onclick="setPeriod('week')">За неделю</div>
+                <div class="period-btn" id="p_month" onclick="setPeriod('month')">За месяц</div>
+                <div class="period-btn" id="p_year" onclick="setPeriod('year')">За год</div>
+                <div class="period-btn" id="p_all" onclick="setPeriod('all')">Всё время</div>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-card-title">Фактическая выручка</div>
+                    <div class="stat-card-value" id="statRevenue" style="color: var(--text-main);">0 грн</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-title">Затраты (Себестоимость)</div>
+                    <div class="stat-card-value" id="statCost" style="color: var(--danger);">0 грн</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-title">Фактическая прибыль</div>
+                    <div class="stat-card-value" id="statProfit" style="color: var(--success);">0 грн</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-title">Готовая продукция</div>
+                    <div class="stat-card-value" id="statWeight" style="color: var(--accent-gold);">0 кг</div>
+                </div>
+            </div>
+
+            <div class="section-title">📋 История операций и продаж:</div>
+            <div id="historyLogsList"></div>
+            
+            <button class="btn-sec" style="margin-top: 10px; width: 100%; color: var(--danger); border-color: var(--danger);" onclick="clearHistoryLogs()">🗑 Очистить историю продаж</button>
+        </div>
+    </div>
+
+    <!-- 4. ВКЛАДКА: МОИ РЕЦЕПТЫ -->
+    <div id="section_recipes" style="display: none;">
+        <div class="card">
+            <h3 style="font-size: 16px; margin-bottom: 12px;">📖 База рецептур</h3>
+            <button class="btn-main" onclick="showNewRecipeForm()">➕ Создать новый рецепт</button>
+            
+            <div class="section-title" style="margin-top: 16px;">Сохранённые рецепты:</div>
+            <div id="recipeManagerList"></div>
+        </div>
+
+        <div class="card" id="newRecipeBlock" style="display: none;">
+            <h3 id="formTitle" style="font-size: 16px; margin-bottom: 12px; color: var(--accent-gold);">Новый рецепт</h3>
+            <input type="text" id="newRecipeName" placeholder="Название (например: Сервелат)">
+
+            <div class="section-title">🥩 Мясная база (базовый вес и цена):</div>
+            <div id="editMeatInputs"></div>
+            <button class="btn-sec" style="margin-bottom: 14px; font-size:13px;" onclick="addEditMeatInput()">+ Добавить вид мяса</button>
+
+            <div class="section-title">🧂 Специи и добавки (грамм на 1 кг мяса):</div>
+            <div id="editAdditiveInputs"></div>
+            <button class="btn-sec" style="margin-bottom: 14px; font-size:13px;" onclick="addEditAdditiveInput()">+ Добавить компонент</button>
+            
+            <button class="btn-main" style="margin-top: 8px;" onclick="saveRecipe()">💾 Сохранить рецепт</button>
+            <button class="btn-sec" style="margin-top: 8px; background: transparent;" onclick="cancelNewRecipe()">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let defaultRecipes = {
+    "Балык": {
+        meats: [
+            { name: "Балык", weightKg: 1.0, pricePerKg: 190 }
+        ],
+        additives: [
+            { name: "Вода", gramsPerKg: 100, pricePerKg: 0 },
+            { name: "Соль нитритная", gramsPerKg: 18, pricePerKg: 50 },
+            { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 300 },
+            { name: "Экстракт черного перца", gramsPerKg: 1.5, pricePerKg: 400 },
+            { name: "Экстракт чеснока", gramsPerKg: 1, pricePerKg: 350 },
+            { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
+            { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 300 }
+        ]
+    },
+    "Куриные части": {
+        meats: [
+            { name: "Крылья", weightKg: 1.0, pricePerKg: 120 },
+            { name: "Голени", weightKg: 1.0, pricePerKg: 100 },
+            { name: "Окорочка", weightKg: 1.0, pricePerKg: 110 }
+        ],
+        additives: [
+            { name: "Вода", gramsPerKg: 220, pricePerKg: 0 },
+            { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
+            { name: "Чили перец", gramsPerKg: 0.5, pricePerKg: 350 },
+            { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
+            { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 300 }
+        ]
+    }
+};
+
+let defaultStock = {
+    "Балык": { weightKg: 10.0, pricePerKg: 190 },
+    "Крылья": { weightKg: 5.0, pricePerKg: 120 },
+    "Голени": { weightKg: 5.0, pricePerKg: 100 },
+    "Окорочка": { weightKg: 5.0, pricePerKg: 110 }
+};
+
+let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v17')) || defaultRecipes;
+let activeRecipeState = JSON.parse(localStorage.getItem('dg_active_state_v17')) || {};
+let chamberBatchList = JSON.parse(localStorage.getItem('dg_chamber_batch_v17')) || [];
+let salesHistory = JSON.parse(localStorage.getItem('dg_sales_history_v17')) || [];
+let meatStock = JSON.parse(localStorage.getItem('dg_meat_stock_v17')) || defaultStock;
+
+let initialCash = parseFloat(localStorage.getItem('dg_initial_cash_v17')) || 0;
+let manualCashAdjustment = parseFloat(localStorage.getItem('dg_manual_cash_v17')) || 0;
+let pendingChamberSales = parseFloat(localStorage.getItem('dg_pending_sales_v17')) || 0; // На сколько надо еще продать товара из камеры
+let selectedPeriod = 'week';
+
+function init() {
+    updateRecipeSelects();
+    onRecipeSelectChange();
+    renderChamberItemsList();
+    renderRecipeManagerList();
+    renderAnalytics();
+    renderStockBalance();
+    document.getElementById('initialCashInput').value = initialCash;
+}
+
+function switchTab(tab) {
+    document.getElementById('section_stock').style.display = tab === 'stock' ? 'block' : 'none';
+    document.getElementById('section_single').style.display = tab === 'single' ? 'block' : 'none';
+    document.getElementById('section_multi').style.display = tab === 'multi' ? 'block' : 'none';
+    document.getElementById('section_analytics').style.display = tab === 'analytics' ? 'block' : 'none';
+    document.getElementById('section_recipes').style.display = tab === 'recipes' ? 'block' : 'none';
+
+    document.getElementById('tab_stock').classList.toggle('active', tab === 'stock');
+    document.getElementById('tab_single').classList.toggle('active', tab === 'single');
+    document.getElementById('tab_multi').classList.toggle('active', tab === 'multi');
+    document.getElementById('tab_analytics').classList.toggle('active', tab === 'analytics');
+    document.getElementById('tab_recipes').classList.toggle('active', tab === 'recipes');
+
+    if (tab === 'stock') renderStockBalance();
+    if (tab === 'single') onRecipeSelectChange();
+    if (tab === 'multi') { updateChamberDefaultMeats(); renderChamberItemsList(); }
+    if (tab === 'analytics') renderAnalytics();
+    if (tab === 'recipes') renderRecipeManagerList();
+}
+
+/* --- КАССА И ВНОС ПРОДАЖ --- */
+function updateInitialCash(val) {
+    initialCash = parseFloat(val) || 0;
+    localStorage.setItem('dg_initial_cash_v17', initialCash);
+    renderAnalytics();
+}
+
+function adjustCashManual(type) {
+    let amount = parseFloat(prompt(type === 'add' ? "Введите сумму ВНОСА в кассу (грн):" : "Введите сумму ИЗЪЯТИЯ из кассы (грн):"));
+    if (!amount || amount <= 0) return;
+
+    if (type === 'sub') amount = -amount;
+    manualCashAdjustment += amount;
+    localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
+    renderAnalytics();
+}
+
+/* ФУНКЦИЯ ПРОДАЖИ (СПИСАНИЕ ИЗ ОЖИДАЕМОЙ ПРОДАЖИ КАМЕРЫ В ПОЛУЧЕННЫЕ НАЛИЧНЫЕ) */
+function registerSaleFromCamera() {
+    const saleAmount = parseFloat(document.getElementById('saleInputAmount').value) || 0;
+    if (saleAmount <= 0) {
+        alert("Введите сумму продажи!");
+        return;
+    }
+
+    pendingChamberSales -= saleAmount;
+    if (pendingChamberSales < 0) pendingChamberSales = 0;
+    localStorage.setItem('dg_pending_sales_v17', pendingChamberSales);
+
+    salesHistory.push({
+        id: Date.now(),
+        date: new Date().toISOString(),
+        title: "Продажа готовой продукции",
+        finishedWeightKg: 0,
+        cost: 0,
+        revenue: saleAmount,
+        profit: saleAmount
+    });
+
+    localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
+    document.getElementById('saleInputAmount').value = '';
+
+    renderAnalytics();
+    alert(`Продажа на ${saleAmount.toFixed(2)} грн записана!\nДеньги поступили в кассу, а сумма к продаже из камеры уменьшена.`);
+}
+
+/* --- СКЛАД СЫРЬЯ --- */
+function addMeatStock() {
+    const name = document.getElementById('stockMeatName').value.trim();
+    const weight = parseFloat(document.getElementById('stockMeatWeight').value) || 0;
+    const price = parseFloat(document.getElementById('stockMeatPrice').value) || 0;
+
+    if (!name || weight <= 0) {
+        alert("Укажите правильное наименование и закупленный вес!");
+        return;
+    }
+
+    if (!meatStock[name]) {
+        meatStock[name] = { weightKg: weight, pricePerKg: price };
+    } else {
+        let currentTotalCost = (meatStock[name].weightKg * meatStock[name].pricePerKg) + (weight * price);
+        let newTotalWeight = meatStock[name].weightKg + weight;
+        meatStock[name].weightKg = newTotalWeight;
+        meatStock[name].pricePerKg = newTotalWeight > 0 ? (currentTotalCost / newTotalWeight) : price;
+    }
+
+    localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
+    document.getElementById('stockMeatName').value = '';
+    document.getElementById('stockMeatWeight').value = '';
+    document.getElementById('stockMeatPrice').value = '';
+
+    renderStockBalance();
+    alert(`Приход сырья "${name}" (${weight} кг) успешно записан на склад!`);
+}
+
+function renderStockBalance() {
+    const container = document.getElementById('stockBalanceList');
+    container.innerHTML = '';
+
+    let keys = Object.keys(meatStock);
+    if (keys.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">Склад пуст. Добавьте приход сырья выше.</div>';
+        return;
+    }
+
+    keys.forEach(name => {
+        let item = meatStock[name];
+        let isLow = item.weightKg <= 2.0;
+
+        const div = document.createElement('div');
+        div.className = 'stock-item';
+        div.style.borderLeftColor = isLow ? 'var(--danger)' : 'var(--success)';
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <strong style="font-size:15px; color:var(--text-main);">${name}</strong>
+                <button onclick="deleteStockItem('${name}')" style="width:auto; margin-bottom:0; padding:2px 8px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px;">✕</button>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--text-muted);">
+                <span>Остаток: <strong style="color:${isLow ? 'var(--danger)' : 'var(--success)'}; font-size:15px;">${item.weightKg.toFixed(2)} кг</strong></span>
+                <span>Средняя цена закупки: <strong style="color:var(--accent-gold);">${item.pricePerKg.toFixed(2)} грн/кг</strong></span>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function deleteStockItem(name) {
+    if (confirm(`Удалить позицию "${name}" со склада?`)) {
+        delete meatStock[name];
+        localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
+        renderStockBalance();
+    }
+}
+
+/* --- РЕЦЕПТЫ И КАЛЬКУЛЯТОР --- */
+function updateRecipeSelects() {
+    const s1 = document.getElementById('recipeSelect');
+    const s2 = document.getElementById('chamberRecipeAddSelect');
+    const currentVal1 = s1.value;
+    const currentVal2 = s2.value;
+
+    s1.innerHTML = '';
+    s2.innerHTML = '';
+
+    for (let name in recipes) {
+        let opt1 = document.createElement('option'); opt1.value = name; opt1.innerText = name; s1.appendChild(opt1);
+        let opt2 = document.createElement('option'); opt2.value = name; opt2.innerText = name; s2.appendChild(opt2);
+    }
+
+    if (currentVal1 && recipes[currentVal1]) s1.value = currentVal1;
+    if (currentVal2 && recipes[currentVal2]) s2.value = currentVal2;
+}
+
+function getActiveRecipeData(recipeName) {
+    if (!recipes[recipeName]) return null;
+    if (!activeRecipeState[recipeName]) {
+        activeRecipeState[recipeName] = JSON.parse(JSON.stringify(recipes[recipeName]));
+    }
+    return activeRecipeState[recipeName];
+}
+
+function onRecipeSelectChange() {
+    const recipeName = document.getElementById('recipeSelect').value;
+    const data = getActiveRecipeData(recipeName);
+    if (!data) return;
+
+    data.meats.forEach(m => {
+        if (meatStock[m.name] && meatStock[m.name].pricePerKg > 0) {
+            m.pricePerKg = meatStock[m.name].pricePerKg;
         }
+    });
 
-        // ==========================================
-        // 1. ФИНАНСЫ
-        // ==========================================
-        function updateFinanceBlock() {
-            // Сырьё на складе
-            const rawMaterialsCost = appState.warehouse.reduce((sum, item) => sum + (item.weight * item.price), 0);
+    renderSingleInputs(recipeName);
+    calculateSingle();
+}
 
-            // Готовая продукция в камере
-            let finishedGoodsCost = 0;
-            let potentialRevenue = 0;
+function renderSingleInputs(recipeName) {
+    const data = getActiveRecipeData(recipeName);
+    const meatContainer = document.getElementById('singleMeatList');
+    const addContainer = document.getElementById('singleAdditivesList');
+    
+    meatContainer.innerHTML = '';
+    addContainer.innerHTML = '';
 
-            appState.chamberBatch.forEach(item => {
-                const outW = item.outputWeight > 0 ? item.outputWeight : item.inputWeight;
-                // Учитываем потерю веса в себестоимости готового килограмма
-                const shrinkageRatio = item.outputWeight > 0 ? (item.inputWeight / item.outputWeight) : 1;
-                const actualCostPerKg = item.costPerKg * shrinkageRatio;
+    if (!data) return;
 
-                finishedGoodsCost += outW * actualCostPerKg;
-                potentialRevenue += outW * item.sellPrice;
-            });
+    data.meats.forEach((m, idx) => {
+        let stockBal = meatStock[m.name] ? meatStock[m.name].weightKg : 0;
+        let isEnough = stockBal >= m.weightKg;
 
-            const cashInHand = parseFloat(document.getElementById('cash-in-hand').value) || 0;
-            const expenses = parseFloat(document.getElementById('additional-expenses').value) || 0;
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+            <span class="row-name">${m.name} <br><small style="font-size:10px; color:${isEnough ? 'var(--text-muted)' : 'var(--danger)'};">Склад: ${stockBal.toFixed(2)} кг</small></span>
+            <input type="number" step="0.05" class="row-input-small" value="${m.weightKg}" oninput="updateSingleMeat(${idx}, 'weightKg', this.value)">
+            <input type="number" step="1" class="row-input-small" value="${m.pricePerKg}" oninput="updateSingleMeat(${idx}, 'pricePerKg', this.value)">
+            <span class="row-cost" id="meat_cost_${idx}">${(m.weightKg * m.pricePerKg).toFixed(2)} грн</span>
+        `;
+        meatContainer.appendChild(row);
+    });
 
-            const expectedProfit = potentialRevenue - finishedGoodsCost - expenses;
-            const totalAssets = rawMaterialsCost + finishedGoodsCost + cashInHand;
+    let totalMeatKg = data.meats.reduce((sum, m) => sum + (parseFloat(m.weightKg) || 0), 0);
 
-            // Вывод
-            document.getElementById('fin-raw-cost').innerText = rawMaterialsCost.toFixed(2) + ' грн';
-            document.getElementById('fin-finished-cost').innerText = finishedGoodsCost.toFixed(2) + ' грн';
-            document.getElementById('fin-revenue').innerText = potentialRevenue.toFixed(2) + ' грн';
-            document.getElementById('fin-profit').innerText = expectedProfit.toFixed(2) + ' грн';
-            document.getElementById('fin-total-assets').innerText = totalAssets.toFixed(2) + ' грн';
+    data.additives.forEach((a, idx) => {
+        let totalGrams = (a.gramsPerKg || 0) * totalMeatKg;
+        let totalCost = (totalGrams / 1000) * (a.pricePerKg || 0);
+
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+            <span class="row-name">${a.name} <span style="font-size:10px; color:var(--text-muted);">(${a.gramsPerKg}г/кг)</span></span>
+            <span class="row-val-text" id="add_grams_${idx}">${totalGrams < 1000 ? totalGrams.toFixed(1) + ' г' : (totalGrams/1000).toFixed(3) + ' кг'}</span>
+            <input type="number" step="1" class="row-input-small" value="${a.pricePerKg}" oninput="updateSingleAdditivePrice(${idx}, this.value)">
+            <span class="row-cost" id="add_cost_${idx}">${totalCost.toFixed(2)} грн</span>
+        `;
+        addContainer.appendChild(row);
+    });
+}
+
+function updateSingleMeat(idx, field, val) {
+    const recipeName = document.getElementById('recipeSelect').value;
+    const data = getActiveRecipeData(recipeName);
+    if (!data) return;
+
+    data.meats[idx][field] = parseFloat(val) || 0;
+    
+    const costSpan = document.getElementById(`meat_cost_${idx}`);
+    if (costSpan) {
+        costSpan.innerText = (data.meats[idx].weightKg * data.meats[idx].pricePerKg).toFixed(2) + ' грн';
+    }
+
+    let totalMeatKg = data.meats.reduce((sum, m) => sum + (parseFloat(m.weightKg) || 0), 0);
+    data.additives.forEach((a, aIdx) => {
+        let totalGrams = (a.gramsPerKg || 0) * totalMeatKg;
+        let totalCost = (totalGrams / 1000) * (a.pricePerKg || 0);
+
+        let gElem = document.getElementById(`add_grams_${aIdx}`);
+        let cElem = document.getElementById(`add_cost_${aIdx}`);
+        if (gElem) gElem.innerText = totalGrams < 1000 ? totalGrams.toFixed(1) + ' г' : (totalGrams/1000).toFixed(3) + ' кг';
+        if (cElem) cElem.innerText = totalCost.toFixed(2) + ' грн';
+    });
+
+    calculateSingle();
+}
+
+function updateSingleAdditivePrice(idx, newPrice) {
+    const recipeName = document.getElementById('recipeSelect').value;
+    const data = getActiveRecipeData(recipeName);
+    if (!data) return;
+
+    data.additives[idx].pricePerKg = parseFloat(newPrice) || 0;
+    let totalMeatKg = data.meats.reduce((sum, m) => sum + (parseFloat(m.weightKg) || 0), 0);
+    let totalGrams = (data.additives[idx].gramsPerKg || 0) * totalMeatKg;
+    let totalCost = (totalGrams / 1000) * data.additives[idx].pricePerKg;
+
+    const costElem = document.getElementById(`add_cost_${idx}`);
+    if (costElem) costElem.innerText = totalCost.toFixed(2) + ' грн';
+
+    calculateSingle();
+}
+
+function getSingleCalculatedData() {
+    const recipeName = document.getElementById('recipeSelect').value;
+    const data = getActiveRecipeData(recipeName);
+    const finishedWeight = parseFloat(document.getElementById('finishedWeightInput').value) || 0;
+    const sellPrice = parseFloat(document.getElementById('sellPrice').value) || 0;
+
+    if (!data) return null;
+
+    let totalMeatKg = 0;
+    let totalMeatCost = 0;
+    data.meats.forEach(m => {
+        let w = parseFloat(m.weightKg) || 0;
+        let p = parseFloat(m.pricePerKg) || 0;
+        totalMeatKg += w;
+        totalMeatCost += w * p;
+    });
+
+    let totalAdditivesCost = 0;
+    let totalAdditivesWeightGrams = 0;
+    data.additives.forEach(a => {
+        let grams = (a.gramsPerKg || 0) * totalMeatKg;
+        totalAdditivesWeightGrams += grams;
+        totalAdditivesCost += (grams / 1000) * (a.pricePerKg || 0);
+    });
+
+    let totalRawKg = totalMeatKg + (totalAdditivesWeightGrams / 1000);
+    let totalBatchCost = totalMeatCost + totalAdditivesCost;
+    let revenue = finishedWeight * sellPrice;
+    let profit = revenue - totalBatchCost;
+
+    return { recipeName, meats: data.meats, totalRawKg, finishedWeight, totalBatchCost, revenue, profit };
+}
+
+function calculateSingle() {
+    const res = getSingleCalculatedData();
+    const financialBlock = document.getElementById('financialBlock');
+    if (!res) return;
+
+    if (res.finishedWeight > 0) {
+        const weightLossKg = (res.totalRawKg - res.finishedWeight).toFixed(3);
+        const shrinkagePct = ((weightLossKg / res.totalRawKg) * 100).toFixed(1);
+        const yieldPct = ((res.finishedWeight / res.totalRawKg) * 100).toFixed(1);
+        const costPerKgFinished = (res.totalBatchCost / res.finishedWeight).toFixed(2);
+
+        financialBlock.innerHTML = `
+            <div class="fin-row"><span>Общий вес сырья ДО:</span> <span><strong>${res.totalRawKg.toFixed(3)} кг</strong></span></div>
+            <div class="fin-row"><span>Затраты на всю партию:</span> <span><strong>${res.totalBatchCost.toFixed(2)} грн</strong></span></div>
+            <div class="fin-row"><span>Потеря веса (усушка):</span> <span style="color:var(--danger);">${weightLossKg} кг (${shrinkagePct}%)</span></div>
+            <div class="fin-row"><span>Фактический выход:</span> <span style="color:var(--success); font-weight:700;">${yieldPct}% (${res.finishedWeight} кг)</span></div>
+            <div class="fin-row" style="font-size:15px; border-bottom: none; padding-top: 12px;"><span>СЕБЕСТОИМОСТЬ 1 КГ:</span> <span style="color:var(--accent-gold); font-weight:800; font-size: 17px;">${costPerKgFinished} грн/кг</span></div>
+            ${res.revenue > 0 ? `
+                <div class="fin-row"><span>Ожидаемая сумма продажи:</span> <span>${res.revenue.toFixed(2)} грн</span></div>
+            ` : ''}
+        `;
+    } else {
+        financialBlock.innerHTML = `
+            <div class="fin-row"><span>Общий вес сырья ДО:</span> <span><strong>${res.totalRawKg.toFixed(3)} кг</strong></span></div>
+            <div class="fin-row" style="border-bottom: none;"><span>Затраты на всю партию:</span> <span><strong>${res.totalBatchCost.toFixed(2)} грн</strong></span></div>
+        `;
+    }
+}
+
+function processAndDeductSingleBatch() {
+    const res = getSingleCalculatedData();
+    if (!res || res.finishedWeight <= 0) {
+        alert("Укажите вес готового изделия перед проведением партии!");
+        return;
+    }
+
+    let errorMsgs = [];
+    res.meats.forEach(m => {
+        let stockBal = meatStock[m.name] ? meatStock[m.name].weightKg : 0;
+        if (stockBal < m.weightKg) {
+            errorMsgs.push(`Недостаточно "${m.name}" на складе (нужно ${m.weightKg} кг, в наличии ${stockBal.toFixed(2)} кг)`);
         }
+    });
 
-        function saveCash() {
-            appState.cash = parseFloat(document.getElementById('cash-in-hand').value) || 0;
-            localStorage.setItem('dg_cash', appState.cash);
-            updateFinanceBlock();
+    if (errorMsgs.length > 0) {
+        if (!confirm(errorMsgs.join("\n") + "\n\nВсё равно списать остаток в минус и провести партию?")) {
+            return;
         }
+    }
 
-        // ==========================================
-        // 2. СКЛАД СЫРЬЯ
-        // ==========================================
-        function addWarehouseItem() {
-            const name = document.getElementById('wh-name').value.trim();
-            const weight = parseFloat(document.getElementById('wh-weight').value) || 0;
-            const price = parseFloat(document.getElementById('wh-price').value) || 0;
+    res.meats.forEach(m => {
+        if (meatStock[m.name]) {
+            meatStock[m.name].weightKg -= m.weightKg;
+            if (meatStock[m.name].weightKg < 0) meatStock[m.name].weightKg = 0;
+        }
+    });
 
-            if (!name || weight <= 0) return alert('Введите корректное имя и вес!');
+    localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
 
-            // Проверка на средневзвешенную цену при добавлении дубликата
-            const existing = appState.warehouse.find(i => i.name.toLowerCase() === name.toLowerCase());
-            if (existing) {
-                const totalCost = (existing.weight * existing.price) + (weight * price);
-                existing.weight += weight;
-                existing.price = totalCost / existing.weight;
-            } else {
-                appState.warehouse.push({ id: Date.now(), name, weight, price });
+    // Начисление в сумму "Товара на продажу"
+    if (res.revenue > 0) {
+        pendingChamberSales += res.revenue;
+        localStorage.setItem('dg_pending_sales_v17', pendingChamberSales);
+    }
+
+    alert(`Партия "${res.recipeName}" проведена!\nМясо успешно списано со склада, а товар на сумму ${res.revenue.toFixed(2)} грн добавлен в раздел продажи.`);
+    renderStockBalance();
+}
+
+/* --- КАМЕРА --- */
+function updateChamberDefaultMeats() {
+    const name = document.getElementById('chamberRecipeAddSelect').value;
+    const container = document.getElementById('chamberMeatInputsContainer');
+    container.innerHTML = '';
+
+    const rec = recipes[name];
+    if (!rec) return;
+
+    let title = document.createElement('div');
+    title.style.cssText = "font-size:11px; color:var(--text-muted); margin-bottom:4px; font-weight:600; text-transform:uppercase;";
+    title.innerText = "Вес каждого вида мяса для закладки (кг):";
+    container.appendChild(title);
+
+    rec.meats.forEach((m, idx) => {
+        let stockBal = meatStock[m.name] ? meatStock[m.name].weightKg : 0;
+        let div = document.createElement('div');
+        div.style.cssText = "display:flex; gap:6px; margin-bottom:6px; align-items:center;";
+        div.innerHTML = `
+            <span style="font-size:13px; flex:2; color:var(--text-main);">${m.name} <small style="color:var(--text-muted);">(Склад: ${stockBal.toFixed(2)}кг)</small>:</span>
+            <input type="number" step="0.1" value="${m.weightKg}" class="chamber_meat_input_${idx}" data-meat-idx="${idx}" style="height:36px; font-size:14px; text-align:center; width:90px;">
+        `;
+        container.appendChild(div);
+    });
+}
+
+function addRecipeToChamberBatch() {
+    const name = document.getElementById('chamberRecipeAddSelect').value;
+    const retailPrice = parseFloat(document.getElementById('chamberRetailPriceInput').value) || 0;
+    const rec = recipes[name];
+    if (!rec) return;
+
+    let meatsCopy = JSON.parse(JSON.stringify(rec.meats));
+    let totalMeatKg = 0;
+    meatsCopy.forEach((m, idx) => {
+        let inputElem = document.querySelector(`.chamber_meat_input_${idx}`);
+        if (inputElem) {
+            m.weightKg = parseFloat(inputElem.value) || 0;
+            if (meatStock[m.name] && meatStock[m.name].pricePerKg > 0) {
+                m.pricePerKg = meatStock[m.name].pricePerKg;
             }
-
-            saveWarehouse();
-            renderWarehouse();
-            // Очистка
-            document.getElementById('wh-name').value = '';
-            document.getElementById('wh-weight').value = '';
-            document.getElementById('wh-price').value = '';
         }
+        totalMeatKg += m.weightKg;
+    });
 
-        function removeWarehouseItem(id) {
-            appState.warehouse = appState.warehouse.filter(i => i.id !== id);
-            saveWarehouse();
-            renderWarehouse();
-        }
+    if (totalMeatKg <= 0) { alert("Укажите вес мяса"); return; }
 
-        function saveWarehouse() {
-            localStorage.setItem('dg_warehouse', JSON.stringify(appState.warehouse));
-            updateFinanceBlock();
-        }
+    let additivesCopy = JSON.parse(JSON.stringify(rec.additives));
+    let totalAdditivesGrams = 0;
+    additivesCopy.forEach(a => {
+        let grams = (a.gramsPerKg || 0) * totalMeatKg;
+        totalAdditivesGrams += grams;
+    });
 
-        function renderWarehouse() {
-            const tbody = document.getElementById('warehouse-table-body');
-            tbody.innerHTML = '';
+    let totalRawKg = totalMeatKg + (totalAdditivesGrams / 1000);
 
-            appState.warehouse.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><b>${item.name}</b></td>
-                    <td>${item.weight.toFixed(3)} кг</td>
-                    <td>${item.price.toFixed(2)} грн</td>
-                    <td>${(item.weight * item.price).toFixed(2)} грн</td>
-                    <td><button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.8em;" onclick="removeWarehouseItem(${item.id})">Удалить</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+    chamberBatchList.push({
+        recipeName: name,
+        meats: meatsCopy,
+        additives: additivesCopy,
+        finishedWeightKg: Number((totalRawKg * 0.8).toFixed(2)),
+        retailPrice: retailPrice
+    });
 
-        // ==========================================
-        // 3. КОПТИЛЬНАЯ КАМЕРА
-        // ==========================================
-        function addChamberItem() {
-            const name = document.getElementById('ch-name').value.trim();
-            const inputWeight = parseFloat(document.getElementById('ch-input-weight').value) || 0;
-            const outputWeight = parseFloat(document.getElementById('ch-output-weight').value) || 0;
-            const costPerKg = parseFloat(document.getElementById('ch-cost-per-kg').value) || 0;
-            const sellPrice = parseFloat(document.getElementById('ch-sell-price').value) || 0;
+    localStorage.setItem('dg_chamber_batch_v17', JSON.stringify(chamberBatchList));
+    renderChamberItemsList();
+}
 
-            if (!name || inputWeight <= 0) return alert('Заполните название и исходный вес!');
+function updateChamberItemMeat(itemIdx, meatIdx, val) {
+    chamberBatchList[itemIdx].meats[meatIdx].weightKg = parseFloat(val) || 0;
+    localStorage.setItem('dg_chamber_batch_v17', JSON.stringify(chamberBatchList));
+}
 
-            appState.chamberBatch.push({
-                id: Date.now(),
-                name,
-                inputWeight,
-                outputWeight,
-                costPerKg,
-                sellPrice
-            });
+function updateChamberItemField(itemIdx, field, val) {
+    chamberBatchList[itemIdx][field] = parseFloat(val) || 0;
+    localStorage.setItem('dg_chamber_batch_v17', JSON.stringify(chamberBatchList));
+}
 
-            saveChamber();
-            renderChamber();
+function removeChamberItem(index) {
+    chamberBatchList.splice(index, 1);
+    localStorage.setItem('dg_chamber_batch_v17', JSON.stringify(chamberBatchList));
+    renderChamberItemsList();
+}
 
-            // Очистка
-            document.getElementById('ch-name').value = '';
-            document.getElementById('ch-input-weight').value = '';
-            document.getElementById('ch-output-weight').value = '';
-            document.getElementById('ch-cost-per-kg').value = '';
-            document.getElementById('ch-sell-price').value = '';
-        }
+function renderChamberItemsList() {
+    const container = document.getElementById('chamberItemsList');
+    container.innerHTML = '';
 
-        function removeChamberItem(id) {
-            appState.chamberBatch = appState.chamberBatch.filter(i => i.id !== id);
-            saveChamber();
-            renderChamber();
-        }
+    if (chamberBatchList.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">Камера пуста. Добавьте изделие выше.</div>';
+        document.getElementById('btnSaveChamberHistory').style.display = 'none';
+        return;
+    }
 
-        function saveChamber() {
-            localStorage.setItem('dg_chamber', JSON.stringify(appState.chamberBatch));
-            updateFinanceBlock();
-        }
-
-        function renderChamber() {
-            const tbody = document.getElementById('chamber-table-body');
-            tbody.innerHTML = '';
-
-            appState.chamberBatch.forEach(item => {
-                const lossPct = item.outputWeight > 0 
-                    ? (((item.inputWeight - item.outputWeight) / item.inputWeight) * 100).toFixed(1) + '%' 
-                    : 'В процессе';
-
-                const actualWeight = item.outputWeight > 0 ? item.outputWeight : item.inputWeight;
-                const shrinkageRatio = item.outputWeight > 0 ? (item.inputWeight / item.outputWeight) : 1;
-                const finishedCostPerKg = item.costPerKg * shrinkageRatio;
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><b>${item.name}</b></td>
-                    <td>${item.inputWeight.toFixed(3)} кг</td>
-                    <td>${item.outputWeight > 0 ? item.outputWeight.toFixed(3) + ' кг' : '-'}</td>
-                    <td style="color: var(--accent-gold);">${lossPct}</td>
-                    <td>${finishedCostPerKg.toFixed(2)} грн</td>
-                    <td>${item.sellPrice.toFixed(2)} грн</td>
-                    <td style="color: var(--accent-green);">${(actualWeight * item.sellPrice).toFixed(2)} грн</td>
-                    <td><button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.8em;" onclick="removeChamberItem(${item.id})">Удалить</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // ==========================================
-        // 4. РЕЦЕПТЫ
-        // ==========================================
-        const recipeDb = {
-            krakow: {
-                salt: 20, // г/кг
-                nitriteSalt: 10,
-                blackPepper: 2,
-                allspice: 1,
-                garlic: 2,
-                phosphate: 3
-            },
-            servelat: {
-                salt: 18,
-                nitriteSalt: 9,
-                blackPepper: 1.5,
-                cardamom: 0.5,
-                sugar: 2,
-                phosphate: 3
-            },
-            balyk: {
-                salt: 25,
-                coriander: 3,
-                juniper: 2,
-                garlic: 3,
-                paprika: 4
-            },
-            kabanosy: {
-                salt: 18,
-                chili: 1.5,
-                caraway: 1,
-                garlic: 2.5,
-                blackPepper: 2
-            }
-        };
-
-        function calculateRecipe() {
-            const key = document.getElementById('recipe-select').value;
-            const weight = parseFloat(document.getElementById('recipe-meat-weight').value) || 0;
-            const list = document.getElementById('recipe-ingredients-list');
-
-            list.innerHTML = '';
-            const rec = recipeDb[key];
-
-            if (!rec) return;
-
-            for (let [ing, valPerKg] of Object.entries(rec)) {
-                const totalGrams = (valPerKg * weight).toFixed(1);
-                const li = document.createElement('li');
-                li.innerHTML = `• <b>${formatIngName(ing)}</b>: <span style="color: var(--accent-gold);">${totalGrams} г</span> (${valPerKg} г/кг)`;
-                list.appendChild(li);
-            }
-        }
-
-        function formatIngName(key) {
-            const names = {
-                salt: 'Соль поваренная',
-                nitriteSalt: 'Соль нитритная (0.6%)',
-                blackPepper: 'Перец чёрный молотый',
-                allspice: 'Перец душистый',
-                garlic: 'Чеснок сушеный',
-                phosphate: 'Пищевой фосфат',
-                cardamom: 'Мускатный орех / Кардамон',
-                sugar: 'Сахар / Декстроза',
-                coriander: 'Кориандр',
-                juniper: 'Можжевельник',
-                paprika: 'Паприка копчёная',
-                chili: 'Перец кайенский / Чили',
-                caraway: 'Тмин'
-            };
-            return names[key] || key;
-        }
-
-        // ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('cash-in-hand').value = appState.cash;
-            renderWarehouse();
-            renderChamber();
-            calculateRecipe();
-            updateFinanceBlock();
+    chamberBatchList.forEach((item, idx) => {
+        let meatsHtml = '';
+        item.meats.forEach((m, mIdx) => {
+            meatsHtml += `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:12px;">
+                    <span style="color:var(--text-muted);">${m.name} (кг):</span>
+                    <input type="number" step="0.1" value="${m.weightKg}" style="width:75px; height:32px; text-align:center; font-size:13px; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-main); font-weight:700;" oninput="updateChamberItemMeat(${idx}, ${mIdx}, this.value)">
+                </div>
+            `;
         });
-    </script>
+
+        const div = document.createElement('div');
+        div.className = 'chamber-item';
+        div.innerHTML = `
+            <div class="chamber-item-header">
+                <span>${item.recipeName}</span>
+                <button onclick="removeChamberItem(${idx})" style="width: auto; margin-bottom:0; padding:2px 8px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius: 6px;">✕</button>
+            </div>
+            ${meatsHtml}
+            <div class="chamber-grid" style="margin-top:8px;">
+                <div class="chamber-field">
+                    <label style="color:var(--success);">Вес ПОСЛЕ (кг):</label>
+                    <input type="number" step="0.01" class="green-input" value="${item.finishedWeightKg}" oninput="updateChamberItemField(${idx}, 'finishedWeightKg', this.value)">
+                </div>
+                <div class="chamber-field">
+                    <label>Цена (грн/кг):</label>
+                    <input type="number" step="10" value="${item.retailPrice}" oninput="updateChamberItemField(${idx}, 'retailPrice', this.value)">
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function calculateMultiBatch() {
+    const resultsBlock = document.getElementById('multiResultsBlock');
+    if (chamberBatchList.length === 0) {
+        resultsBlock.innerHTML = '<div style="color:var(--danger); text-align:center;">Добавьте изделия в камеру!</div>';
+        document.getElementById('btnSaveChamberHistory').style.display = 'none';
+        return;
+    }
+
+    let totalRawGrams = 0;
+    let totalFinishedWeight = 0;
+    let totalCost = 0;
+    let totalRevenue = 0;
+    let consolidatedMeats = {};
+    let consolidatedAdditives = {};
+
+    chamberBatchList.forEach(item => {
+        const rec = recipes[item.recipeName];
+        if (!rec) return;
+
+        totalFinishedWeight += item.finishedWeightKg;
+        totalRevenue += (item.finishedWeightKg * item.retailPrice);
+
+        let totalMeatKg = 0;
+        item.meats.forEach(m => {
+            let w = parseFloat(m.weightKg) || 0;
+            let p = parseFloat(m.pricePerKg !== undefined ? m.pricePerKg : (rec.meats.find(x=>x.name===m.name)?.pricePerKg || 0));
+            totalMeatKg += w;
+            totalCost += w * p;
+
+            if (!consolidatedMeats[m.name]) consolidatedMeats[m.name] = { weight: 0, cost: 0 };
+            consolidatedMeats[m.name].weight += w;
+            consolidatedMeats[m.name].cost += w * p;
+        });
+
+        totalRawGrams += totalMeatKg * 1000;
+
+        rec.additives.forEach(a => {
+            let ingGrams = (a.gramsPerKg || 0) * totalMeatKg;
+            let ingCost = (ingGrams / 1000) * (a.pricePerKg || 0);
+
+            totalRawGrams += ingGrams;
+            totalCost += ingCost;
+
+            if (!consolidatedAdditives[a.name]) consolidatedAdditives[a.name] = { grams: 0, cost: 0 };
+            consolidatedAdditives[a.name].grams += ingGrams;
+            consolidatedAdditives[a.name].cost += ingCost;
+        });
+    });
+
+    const totalRawKg = (totalRawGrams / 1000).toFixed(3);
+    const weightLossKg = (totalRawKg - totalFinishedWeight).toFixed(3);
+    const shrinkagePct = totalRawKg > 0 ? ((weightLossKg / totalRawKg) * 100).toFixed(1) : 0;
+    const yieldPct = totalRawKg > 0 ? ((totalFinishedWeight / totalRawKg) * 100).toFixed(1) : 0;
+    const avgCostPerKgFinished = totalFinishedWeight > 0 ? (totalCost / totalFinishedWeight).toFixed(2) : 0;
+    const totalProfit = (totalRevenue - totalCost).toFixed(2);
+
+    let html = `<div class="section-title">Сводная закупка сырья:</div>`;
+    for (let mName in consolidatedMeats) {
+        let m = consolidatedMeats[mName];
+        html += `<div class="row"><span class="row-name">${mName}</span><span style="font-size:13px; font-weight:700; color:var(--text-main); width:72px; text-align:center;">${m.weight.toFixed(2)} кг</span><span class="row-cost">${m.cost.toFixed(2)} грн</span></div>`;
+    }
+
+    html += `<div class="section-title">Сводные специи и вода:</div>`;
+    for (let aName in consolidatedAdditives) {
+        let a = consolidatedAdditives[aName];
+        html += `<div class="row"><span class="row-name">${aName}</span><span style="font-size:13px; font-weight:700; color:var(--text-main); width:72px; text-align:center;">${a.grams < 1000 ? a.grams.toFixed(1) + ' г' : (a.grams/1000).toFixed(3) + ' кг'}</span><span class="row-cost">${a.cost.toFixed(2)} грн</span></div>`;
+    }
+
+    html += `
+        <div class="section-title" style="margin-top: 16px;">Финансовый итог камеры:</div>
+        <div class="fin-row"><span>Общая закладка ДО:</span> <span><strong>${totalRawKg} кг</strong></span></div>
+        <div class="fin-row"><span>Общий вес ПОСЛЕ:</span> <span style="color:var(--success);"><strong>${totalFinishedWeight.toFixed(3)} кг</strong></span></div>
+        <div class="fin-row"><span>Потеря веса (усушка):</span> <span style="color:var(--danger);">${weightLossKg} кг (${shrinkagePct}%)</span></div>
+        <div class="fin-row"><span>Выход продукции:</span> <span style="color:var(--success); font-weight:700;">${yieldPct}%</span></div>
+        <div class="fin-row"><span>Общие затраты:</span> <span><strong>${totalCost.toFixed(2)} грн</strong></span></div>
+        <div class="fin-row" style="font-size:15px;"><span>СРЕДНЯЯ СЕБЕСТОИМОСТЬ 1 КГ:</span> <span style="color:var(--accent-gold); font-weight:800; font-size: 17px;">${avgCostPerKgFinished} грн/кг</span></div>
+        ${totalRevenue > 0 ? `
+            <div class="fin-row" style="border-bottom: none; font-size: 16px;"><span>ОЖИДАЕМАЯ СУММА ПРОДАЖИ:</span> <span style="color:var(--success); font-weight:800; font-size: 18px;">${totalRevenue.toFixed(2)} грн</span></div>
+        ` : ''}
+    `;
+
+    resultsBlock.innerHTML = html;
+    document.getElementById('btnSaveChamberHistory').style.display = 'block';
+}
+
+function processAndDeductChamberBatch() {
+    if (chamberBatchList.length === 0) return;
+
+    let requiredMeat = {};
+    let totalRevenue = 0;
+
+    chamberBatchList.forEach(item => {
+        const rec = recipes[item.recipeName];
+        if (!rec) return;
+
+        totalRevenue += (item.finishedWeightKg * item.retailPrice);
+
+        item.meats.forEach(m => {
+            let w = parseFloat(m.weightKg) || 0;
+            if (!requiredMeat[m.name]) requiredMeat[m.name] = 0;
+            requiredMeat[m.name] += w;
+        });
+    });
+
+    for (let mName in requiredMeat) {
+        let reqKg = requiredMeat[mName];
+        if (meatStock[mName]) {
+            meatStock[mName].weightKg -= reqKg;
+            if (meatStock[mName].weightKg < 0) meatStock[mName].weightKg = 0;
+        }
+    }
+
+    localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
+
+    // Начисление всей суммы камеры в "Товара на продажу"
+    pendingChamberSales += totalRevenue;
+    localStorage.setItem('dg_pending_sales_v17', pendingChamberSales);
+
+    alert(`Камера успешно проведена!\nМясо списано со склада. В Кассу добавлено +${totalRevenue.toFixed(2)} грн товара на продажу.`);
+    renderStockBalance();
+}
+
+/* --- ФИНАНСОВАЯ АНАЛИТИКА И РАСЧЕТ КАССЫ --- */
+function setPeriod(p) {
+    selectedPeriod = p;
+    document.getElementById('p_week').classList.toggle('active', p === 'week');
+    document.getElementById('p_month').classList.toggle('active', p === 'month');
+    document.getElementById('p_year').classList.toggle('active', p === 'year');
+    document.getElementById('p_all').classList.toggle('active', p === 'all');
+    renderAnalytics();
+}
+
+function renderAnalytics() {
+    const container = document.getElementById('historyLogsList');
+    container.innerHTML = '';
+
+    const now = new Date();
+    let filteredLogs = salesHistory.filter(item => {
+        const itemDate = new Date(item.date);
+        const diffDays = (now - itemDate) / (1000 * 60 * 60 * 24);
+
+        if (selectedPeriod === 'week') return diffDays <= 7;
+        if (selectedPeriod === 'month') return diffDays <= 30;
+        if (selectedPeriod === 'year') return diffDays <= 365;
+        return true;
+    });
+
+    let totRevenue = 0; let totCost = 0; let totProfit = 0; let totWeight = 0;
+    let totalAllTimeRevenue = 0;
+
+    salesHistory.forEach(item => {
+        totalAllTimeRevenue += item.revenue || 0;
+    });
+
+    filteredLogs.sort((a,b) => b.id - a.id).forEach(item => {
+        totRevenue += item.revenue || 0;
+        totCost += item.cost || 0;
+        totProfit += item.profit || 0;
+        totWeight += item.finishedWeightKg || 0;
+
+        const dateStr = new Date(item.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                <strong style="color:var(--text-main); font-size:14px;">${item.title}</strong>
+                <span style="font-size:11px; color:var(--text-muted);">${dateStr}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:4px;">
+                <span>Выручка: <strong>${item.revenue.toFixed(2)} грн</strong></span>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+
+    document.getElementById('statRevenue').innerText = totRevenue.toFixed(2) + ' грн';
+    document.getElementById('statCost').innerText = totCost.toFixed(2) + ' грн';
+    document.getElementById('statProfit').innerText = totProfit.toFixed(2) + ' грн';
+    document.getElementById('statWeight').innerText = totWeight.toFixed(2) + ' кг';
+
+    // РАСЧЕТ И ОТОБРАЖЕНИЕ КАССЫ И ОСТАТКА ПРОДАЖ
+    document.getElementById('pendingChamberSalesDisplay').innerText = pendingChamberSales.toFixed(2) + ' грн';
+    let currentCash = initialCash + totalAllTimeRevenue + manualCashAdjustment;
+    document.getElementById('currentCashDisplay').innerText = currentCash.toFixed(2) + ' грн';
+
+    if (filteredLogs.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">За выбранный период нет проведенных продаж.</div>';
+    }
+}
+
+function clearHistoryLogs() {
+    if (confirm("Вы действительно хотите очистить всю историю финансов и продаж?")) {
+        salesHistory = [];
+        localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
+        renderAnalytics();
+    }
+}
+
+/* --- РЕЦЕПТЫ --- */
+function renderRecipeManagerList() {
+    const list = document.getElementById('recipeManagerList');
+    list.innerHTML = '';
+
+    for (let name in recipes) {
+        const div = document.createElement('div');
+        div.className = 'row';
+        div.style.marginBottom = '8px';
+        div.innerHTML = `
+            <span class="row-name" style="font-weight:700; font-size:14px; flex:2; color:var(--text-main);">${name}</span>
+            <button onclick="editRecipe('${name}')" style="width: auto; margin-bottom:0; padding:6px 12px; background:var(--bg-secondary); border:1px solid var(--border-color); margin-right:4px; color:var(--text-main);">✏</button>
+            <button onclick="deleteRecipe('${name}')" style="width: auto; margin-bottom:0; padding:6px 12px; background:transparent; border:1px solid var(--danger); color:var(--danger);">🗑</button>
+        `;
+        list.appendChild(div);
+    }
+}
+
+function showNewRecipeForm() {
+    document.getElementById('newRecipeBlock').style.display = 'block';
+    document.getElementById('formTitle').innerText = 'Новый рецепт';
+    document.getElementById('newRecipeName').value = '';
+    document.getElementById('editMeatInputs').innerHTML = '';
+    document.getElementById('editAdditiveInputs').innerHTML = '';
+
+    addEditMeatInput("Мясо", 1.0, 150);
+    addEditAdditiveInput("Соль нитритная", 18, 50);
+}
+
+function editRecipe(name) {
+    const rec = recipes[name];
+    if (!rec) return;
+
+    document.getElementById('newRecipeBlock').style.display = 'block';
+    document.getElementById('formTitle').innerText = 'Редактирование: ' + name;
+    document.getElementById('newRecipeName').value = name;
+    document.getElementById('editMeatInputs').innerHTML = '';
+    document.getElementById('editAdditiveInputs').innerHTML = '';
+
+    rec.meats.forEach(m => addEditMeatInput(m.name, m.weightKg, m.pricePerKg));
+    rec.additives.forEach(a => addEditAdditiveInput(a.name, a.gramsPerKg, a.pricePerKg));
+}
+
+function addEditMeatInput(name = '', weight = 1, price = 100) {
+    const div = document.createElement('div');
+    div.className = 'ing-edit-row';
+    div.innerHTML = `
+        <input type="text" placeholder="Название мяса" class="edit-meat-name" value="${name}" style="flex:1.6;">
+        <input type="number" step="0.1" placeholder="кг" class="edit-meat-weight" value="${weight}" style="width:70px;">
+        <input type="number" step="1" placeholder="грн/кг" class="edit-meat-price" value="${price}" style="width:80px;">
+    `;
+    document.getElementById('editMeatInputs').appendChild(div);
+}
+
+function addEditAdditiveInput(name = '', gramsPerKg = 10, price = 0) {
+    const div = document.createElement('div');
+    div.className = 'ing-edit-row';
+    div.innerHTML = `
+        <input type="text" placeholder="Компонент/специя" class="edit-add-name" value="${name}" style="flex:1.6;">
+        <input type="number" step="0.1" placeholder="г/кг" class="edit-add-grams" value="${gramsPerKg}" style="width:70px;" title="Грамм на 1 кг мяса">
+        <input type="number" step="1" placeholder="грн/кг" class="edit-add-price" value="${price}" style="width:80px;">
+    `;
+    document.getElementById('editAdditiveInputs').appendChild(div);
+}
+
+function saveRecipe() {
+    const name = document.getElementById('newRecipeName').value.trim();
+    if (!name) { alert("Укажите название рецепта"); return; }
+
+    let meats = [];
+    let mNames = document.querySelectorAll('.edit-meat-name');
+    let mWeights = document.querySelectorAll('.edit-meat-weight');
+    let mPrices = document.querySelectorAll('.edit-meat-price');
+    for (let i = 0; i < mNames.length; i++) {
+        let mName = mNames[i].value.trim();
+        let mWeight = parseFloat(mWeights[i].value) || 0;
+        let mPrice = parseFloat(mPrices[i].value) || 0;
+        if (mName) meats.push({ name: mName, weightKg: mWeight, pricePerKg: mPrice });
+    }
+
+    let additives = [];
+    let aNames = document.querySelectorAll('.edit-add-name');
+    let aGrams = document.querySelectorAll('.edit-add-grams');
+    let aPrices = document.querySelectorAll('.edit-add-price');
+    for (let i = 0; i < aNames.length; i++) {
+        let aName = aNames[i].value.trim();
+        let aGram = parseFloat(aGrams[i].value) || 0;
+        let aPrice = parseFloat(aPrices[i].value) || 0;
+        if (aName) additives.push({ name: aName, gramsPerKg: aGram, pricePerKg: aPrice });
+    }
+
+    if (meats.length === 0) { alert("Добавьте хотя бы один вид мяса"); return; }
+
+    recipes[name] = { meats: meats, additives: additives };
+    localStorage.setItem('dg_cost_recipes_v17', JSON.stringify(recipes));
+    
+    if (activeRecipeState[name]) delete activeRecipeState[name];
+    localStorage.setItem('dg_active_state_v17', JSON.stringify(activeRecipeState));
+
+    cancelNewRecipe();
+    init();
+}
+
+function cancelNewRecipe() { document.getElementById('newRecipeBlock').style.display = 'none'; }
+
+function deleteRecipe(name) {
+    if (confirm(`Удалить рецепт "${name}"?`)) {
+        delete recipes[name];
+        localStorage.setItem('dg_cost_recipes_v17', JSON.stringify(recipes));
+        init();
+    }
+}
+
+init();
+</script>
 </body>
 </html>
+Мы делали это
