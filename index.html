@@ -542,143 +542,106 @@
 </div>
 
 <script>
-let defaultRecipes = {
-    "Краковская (100% Свинина)": {
-        meats: [
-            { name: "Свинина нежирная (лопатка / окорок)", weightKg: 0.70, pricePerKg: 180 },
-            { name: "Грудинка свиная", weightKg: 0.30, pricePerKg: 160 }
-        ],
-        additives: [
-            { name: "Нитритная соль", gramsPerKg: 19, pricePerKg: 50 },
-            { name: "Фосфат пищевой", gramsPerKg: 3, pricePerKg: 220 },
-            { name: "Аскорбат натрия", gramsPerKg: 0.5, pricePerKg: 300 },
-            { name: "Ферментированный красный рис", gramsPerKg: 1, pricePerKg: 350 },
-            { name: "Экстракт чёрного перца", gramsPerKg: 1.75, pricePerKg: 400 },
-            { name: "Экстракт чеснока", gramsPerKg: 1.25, pricePerKg: 380 },
-            { name: "Мускатный орех / Кориандр", gramsPerKg: 0.5, pricePerKg: 300 },
-            { name: "Вода ледяная", gramsPerKg: 90, pricePerKg: 0 }
-        ]
+const STORAGE_KEY = 'dg_gurman_full_state_v1';
+
+let defaultState = {
+    recipes: {
+        "Краковская (100% Свинина)": {
+            meats: [
+                { name: "Свинина нежирная (лопатка / окорок)", weightKg: 0.70, pricePerKg: 180 },
+                { name: "Грудинка свиная", weightKg: 0.30, pricePerKg: 160 }
+            ],
+            additives: [
+                { name: "Нитритная соль", gramsPerKg: 19, pricePerKg: 50 },
+                { name: "Фосфат пищевой", gramsPerKg: 3, pricePerKg: 220 },
+                { name: "Аскорбат натрия", gramsPerKg: 0.5, pricePerKg: 300 },
+                { name: "Ферментированный красный рис", gramsPerKg: 1, pricePerKg: 350 },
+                { name: "Экстракт чёрного перца", gramsPerKg: 1.75, pricePerKg: 400 },
+                { name: "Экстракт чеснока", gramsPerKg: 1.25, pricePerKg: 380 },
+                { name: "Мускатный орех / Кориандр", gramsPerKg: 0.5, pricePerKg: 300 },
+                { name: "Вода ледяная", gramsPerKg: 90, pricePerKg: 0 }
+            ]
+        },
+        "Балык": {
+            meats: [{ name: "Балык", weightKg: 1.0, pricePerKg: 190 }],
+            additives: [
+                { name: "Вода", gramsPerKg: 100, pricePerKg: 0 },
+                { name: "Соль нитритная", gramsPerKg: 18, pricePerKg: 50 },
+                { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 300 },
+                { name: "Экстракт черного перца", gramsPerKg: 1.5, pricePerKg: 400 },
+                { name: "Экстракт чеснока", gramsPerKg: 1, pricePerKg: 350 },
+                { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
+                { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 300 }
+            ]
+        },
+        "Куриные части": {
+            meats: [
+                { name: "Крылья", weightKg: 1.0, pricePerKg: 120 },
+                { name: "Голени", weightKg: 1.0, pricePerKg: 100 },
+                { name: "Окорочка", weightKg: 1.0, pricePerKg: 110 }
+            ],
+            additives: [
+                { name: "Вода", gramsPerKg: 220, pricePerKg: 0 },
+                { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
+                { name: "Чили перец", gramsPerKg: 0.5, pricePerKg: 350 },
+                { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
+                { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 300 }
+            ]
+        },
+        "Ребра": {
+            meats: [{ name: "Ребра свиные", weightKg: 1.0, pricePerKg: 170 }],
+            additives: [
+                { name: "Нитритная соль", gramsPerKg: 18, pricePerKg: 50 },
+                { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
+                { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 300 },
+                { name: "Перец кайенский", gramsPerKg: 1.5, pricePerKg: 350 },
+                { name: "Чеснок сушеный", gramsPerKg: 2, pricePerKg: 350 },
+                { name: "Кориандр", gramsPerKg: 1, pricePerKg: 300 },
+                { name: "Сахар", gramsPerKg: 2, pricePerKg: 30 }
+            ]
+        },
+        "Грудинка": {
+            meats: [{ name: "Грудинка свиная", weightKg: 1.0, pricePerKg: 160 }],
+            additives: [
+                { name: "Нитритная соль", gramsPerKg: 18, pricePerKg: 50 },
+                { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
+                { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 300 },
+                { name: "Перец чили", gramsPerKg: 1.5, pricePerKg: 350 },
+                { name: "Чеснок сушеный", gramsPerKg: 2, pricePerKg: 350 },
+                { name: "Кориандр", gramsPerKg: 1, pricePerKg: 300 },
+                { name: "Сахар", gramsPerKg: 2, pricePerKg: 30 }
+            ]
+        }
     },
-    "Балык": {
-        meats: [
-            { name: "Балык", weightKg: 1.0, pricePerKg: 190 }
-        ],
-        additives: [
-            { name: "Вода", gramsPerKg: 100, pricePerKg: 0 },
-            { name: "Соль нитритная", gramsPerKg: 18, pricePerKg: 50 },
-            { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 300 },
-            { name: "Экстракт черного перца", gramsPerKg: 1.5, pricePerKg: 400 },
-            { name: "Экстракт чеснока", gramsPerKg: 1, pricePerKg: 350 },
-            { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
-            { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 300 }
-        ]
+    meatStock: {
+        "Свинина нежирная (лопатка / окорок)": { weightKg: 0, pricePerKg: 180, lastUpdated: new Date().toISOString() },
+        "Грудинка свиная": { weightKg: 0, pricePerKg: 160, lastUpdated: new Date().toISOString() },
+        "Балык": { weightKg: 0, pricePerKg: 190, lastUpdated: new Date().toISOString() },
+        "Крылья": { weightKg: 0, pricePerKg: 120, lastUpdated: new Date().toISOString() },
+        "Голени": { weightKg: 0, pricePerKg: 100, lastUpdated: new Date().toISOString() },
+        "Окорочка": { weightKg: 0, pricePerKg: 110, lastUpdated: new Date().toISOString() },
+        "Ребра свиные": { weightKg: 0, pricePerKg: 170, lastUpdated: new Date().toISOString() }
     },
-    "Куриные части": {
-        meats: [
-            { name: "Крылья", weightKg: 1.0, pricePerKg: 120 },
-            { name: "Голени", weightKg: 1.0, pricePerKg: 100 },
-            { name: "Окорочка", weightKg: 1.0, pricePerKg: 110 }
-        ],
-        additives: [
-            { name: "Вода", gramsPerKg: 220, pricePerKg: 0 },
-            { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
-            { name: "Чили перец", gramsPerKg: 0.5, pricePerKg: 350 },
-            { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
-            { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 300 }
-        ]
-    },
-    "Ребра": {
-        meats: [
-            { name: "Ребра свиные", weightKg: 1.0, pricePerKg: 170 }
-        ],
-        additives: [
-            { name: "Нитритная соль", gramsPerKg: 18, pricePerKg: 50 },
-            { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
-            { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 300 },
-            { name: "Перец кайенский", gramsPerKg: 1.5, pricePerKg: 350 },
-            { name: "Чеснок сушеный", gramsPerKg: 2, pricePerKg: 350 },
-            { name: "Кориандр", gramsPerKg: 1, pricePerKg: 300 },
-            { name: "Сахар", gramsPerKg: 2, pricePerKg: 30 }
-        ]
-    },
-    "Грудинка": {
-        meats: [
-            { name: "Грудинка свиная", weightKg: 1.0, pricePerKg: 160 }
-        ],
-        additives: [
-            { name: "Нитритная соль", gramsPerKg: 18, pricePerKg: 50 },
-            { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
-            { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 300 },
-            { name: "Перец чили", gramsPerKg: 1.5, pricePerKg: 350 },
-            { name: "Чеснок сушеный", gramsPerKg: 2, pricePerKg: 350 },
-            { name: "Кориандр", gramsPerKg: 1, pricePerKg: 300 },
-            { name: "Сахар", gramsPerKg: 2, pricePerKg: 30 }
-        ]
-    }
+    activeRecipeState: {},
+    chamberBatchList: [],
+    chamberHistoryLogs: [],
+    purchaseHistoryLogs: [],
+    salesHistory: [],
+    initialCash: 0,
+    manualCashAdjustment: 0,
+    pendingChamberSales: 0,
+    pendingChamberCost: 0,
+    pendingChamberWeight: 0
 };
 
-let defaultStock = {
-    "Свинина нежирная (лопатка / окорок)": { weightKg: 0, pricePerKg: 180, lastUpdated: new Date().toISOString() },
-    "Грудинка свиная": { weightKg: 0, pricePerKg: 160, lastUpdated: new Date().toISOString() },
-    "Балык": { weightKg: 0, pricePerKg: 190, lastUpdated: new Date().toISOString() },
-    "Крылья": { weightKg: 0, pricePerKg: 120, lastUpdated: new Date().toISOString() },
-    "Голени": { weightKg: 0, pricePerKg: 100, lastUpdated: new Date().toISOString() },
-    "Окорочка": { weightKg: 0, pricePerKg: 110, lastUpdated: new Date().toISOString() },
-    "Ребра свиные": { weightKg: 0, pricePerKg: 170, lastUpdated: new Date().toISOString() }
-};
+let appState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultState;
 
-// Единый постоянный ключ для хранения данных в localStorage
-const STORAGE_PREFIX = 'dg_gurman_data_v1_';
-
-let recipes = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'recipes')) || defaultRecipes;
-let activeRecipeState = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'active_state')) || {};
-let chamberBatchList = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'chamber_batch')) || [];
-let chamberHistoryLogs = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'chamber_history')) || [];
-let purchaseHistoryLogs = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'purchase_history')) || [];
-let salesHistory = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'sales_history')) || [];
-let meatStock = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'meat_stock')) || defaultStock;
-
-let initialCash = parseFloat(localStorage.getItem(STORAGE_PREFIX + 'initial_cash')) || 0;
-let manualCashAdjustment = parseFloat(localStorage.getItem(STORAGE_PREFIX + 'manual_cash')) || 0;
-let pendingChamberSales = parseFloat(localStorage.getItem(STORAGE_PREFIX + 'pending_sales')) || 0; 
-let pendingChamberCost = parseFloat(localStorage.getItem(STORAGE_PREFIX + 'pending_cost')) || 0; 
-let pendingChamberWeight = parseFloat(localStorage.getItem(STORAGE_PREFIX + 'pending_weight')) || 0; 
-let selectedPeriod = 'week';
-
-function saveData() {
-    localStorage.setItem(STORAGE_PREFIX + 'recipes', JSON.stringify(recipes));
-    localStorage.setItem(STORAGE_PREFIX + 'active_state', JSON.stringify(activeRecipeState));
-    localStorage.setItem(STORAGE_PREFIX + 'chamber_batch', JSON.stringify(chamberBatchList));
-    localStorage.setItem(STORAGE_PREFIX + 'chamber_history', JSON.stringify(chamberHistoryLogs));
-    localStorage.setItem(STORAGE_PREFIX + 'purchase_history', JSON.stringify(purchaseHistoryLogs));
-    localStorage.setItem(STORAGE_PREFIX + 'sales_history', JSON.stringify(salesHistory));
-    localStorage.setItem(STORAGE_PREFIX + 'meat_stock', JSON.stringify(meatStock));
-    localStorage.setItem(STORAGE_PREFIX + 'initial_cash', initialCash);
-    localStorage.setItem(STORAGE_PREFIX + 'manual_cash', manualCashAdjustment);
-    localStorage.setItem(STORAGE_PREFIX + 'pending_sales', pendingChamberSales);
-    localStorage.setItem(STORAGE_PREFIX + 'pending_cost', pendingChamberCost);
-    localStorage.setItem(STORAGE_PREFIX + 'pending_weight', pendingChamberWeight);
+function saveAppData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
 }
 
-// ФУНКЦИИ ЭКСПОРТА И ИМПОРТА БАЗЫ ДАННЫХ
 function exportAppData() {
-    const dataObj = {
-        recipes,
-        activeRecipeState,
-        chamberBatchList,
-        chamberHistoryLogs,
-        purchaseHistoryLogs,
-        salesHistory,
-        meatStock,
-        initialCash,
-        manualCashAdjustment,
-        pendingChamberSales,
-        pendingChamberCost,
-        pendingChamberWeight,
-        exportDate: new Date().toISOString()
-    };
-
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataObj, null, 2));
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute("href", dataStr);
     downloadAnchor.setAttribute("download", "dymny_gurman_backup_" + new Date().toISOString().slice(0,10) + ".json");
@@ -695,23 +658,23 @@ function importAppData(event) {
     reader.onload = function(e) {
         try {
             const imported = JSON.parse(e.target.result);
-            if (imported.recipes) recipes = imported.recipes;
-            if (imported.meatStock) meatStock = imported.meatStock;
-            if (imported.salesHistory) salesHistory = imported.salesHistory;
-            if (imported.purchaseHistoryLogs) purchaseHistoryLogs = imported.purchaseHistoryLogs;
-            if (imported.chamberHistoryLogs) chamberHistoryLogs = imported.chamberHistoryLogs;
-            if (imported.chamberBatchList) chamberBatchList = imported.chamberBatchList;
-            if (imported.initialCash !== undefined) initialCash = imported.initialCash;
-            if (imported.manualCashAdjustment !== undefined) manualCashAdjustment = imported.manualCashAdjustment;
-            if (imported.pendingChamberSales !== undefined) pendingChamberSales = imported.pendingChamberSales;
-            if (imported.pendingChamberCost !== undefined) pendingChamberCost = imported.pendingChamberCost;
-            if (imported.pendingChamberWeight !== undefined) pendingChamberWeight = imported.pendingChamberWeight;
+            if (imported.recipes) appState.recipes = imported.recipes;
+            if (imported.meatStock) appState.meatStock = imported.meatStock;
+            if (imported.salesHistory) appState.salesHistory = imported.salesHistory;
+            if (imported.purchaseHistoryLogs) appState.purchaseHistoryLogs = imported.purchaseHistoryLogs;
+            if (imported.chamberHistoryLogs) appState.chamberHistoryLogs = imported.chamberHistoryLogs;
+            if (imported.chamberBatchList) appState.chamberBatchList = imported.chamberBatchList;
+            if (imported.initialCash !== undefined) appState.initialCash = imported.initialCash;
+            if (imported.manualCashAdjustment !== undefined) appState.manualCashAdjustment = imported.manualCashAdjustment;
+            if (imported.pendingChamberSales !== undefined) appState.pendingChamberSales = imported.pendingChamberSales;
+            if (imported.pendingChamberCost !== undefined) appState.pendingChamberCost = imported.pendingChamberCost;
+            if (imported.pendingChamberWeight !== undefined) appState.pendingChamberWeight = imported.pendingChamberWeight;
 
-            saveData();
+            saveAppData();
             init();
             alert("Резервная копия успешно загружена! Все данные восстановлены.");
         } catch (err) {
-            alert("Ошибка при чтении файла бэкапа: убедитесь, что выбран корректный .json файл.");
+            alert("Ошибка при чтении файла бэкапа.");
         }
     };
     reader.readAsText(file);
@@ -734,7 +697,7 @@ function init() {
     renderStockBalance();
     renderPurchaseHistoryLogs();
     initPurchaseForm();
-    document.getElementById('initialCashInput').value = initialCash;
+    document.getElementById('initialCashInput').value = appState.initialCash;
 }
 
 function switchTab(tab) {
@@ -758,14 +721,14 @@ function switchTab(tab) {
 }
 
 function updateInitialCash(val) {
-    initialCash = parseFloat(val) || 0;
-    saveData();
+    appState.initialCash = parseFloat(val) || 0;
+    saveAppData();
     renderAnalytics();
 }
 
 function updatePendingSalesManual(val) {
-    pendingChamberSales = parseFloat(val) || 0;
-    saveData();
+    appState.pendingChamberSales = parseFloat(val) || 0;
+    saveAppData();
     renderAnalytics();
 }
 
@@ -774,9 +737,9 @@ function adjustCashManual(type) {
     if (!amount || amount <= 0) return;
 
     if (type === 'sub') amount = -amount;
-    manualCashAdjustment += amount;
+    appState.manualCashAdjustment += amount;
 
-    salesHistory.push({
+    appState.salesHistory.push({
         id: Date.now(),
         date: new Date().toISOString(),
         title: type === 'add' ? "Ручной внос в кассу" : "Инкассация / Изъятие из кассы",
@@ -786,7 +749,7 @@ function adjustCashManual(type) {
         revenue: type === 'add' ? amount : 0,
         profit: 0
     });
-    saveData();
+    saveAppData();
     renderAnalytics();
 }
 
@@ -800,24 +763,24 @@ function registerSaleFromCamera() {
     let calculatedCost = 0;
     let soldWeight = 0;
 
-    if (pendingChamberSales > 0) {
-        let saleRatio = saleAmount / pendingChamberSales;
+    if (appState.pendingChamberSales > 0) {
+        let saleRatio = saleAmount / appState.pendingChamberSales;
         if (saleRatio > 1) saleRatio = 1;
 
-        calculatedCost = pendingChamberCost * saleRatio;
-        soldWeight = pendingChamberWeight * saleRatio;
+        calculatedCost = appState.pendingChamberCost * saleRatio;
+        soldWeight = appState.pendingChamberWeight * saleRatio;
 
-        pendingChamberSales -= saleAmount;
-        if (pendingChamberSales < 0) pendingChamberSales = 0;
+        appState.pendingChamberSales -= saleAmount;
+        if (appState.pendingChamberSales < 0) appState.pendingChamberSales = 0;
 
-        pendingChamberCost -= calculatedCost;
-        if (pendingChamberCost < 0) pendingChamberCost = 0;
+        appState.pendingChamberCost -= calculatedCost;
+        if (appState.pendingChamberCost < 0) appState.pendingChamberCost = 0;
 
-        pendingChamberWeight -= soldWeight;
-        if (pendingChamberWeight < 0) pendingChamberWeight = 0;
+        appState.pendingChamberWeight -= soldWeight;
+        if (appState.pendingChamberWeight < 0) appState.pendingChamberWeight = 0;
     }
 
-    salesHistory.push({
+    appState.salesHistory.push({
         id: Date.now(),
         date: new Date().toISOString(),
         title: "Продажа готовой продукции",
@@ -828,14 +791,14 @@ function registerSaleFromCamera() {
         profit: saleAmount - calculatedCost
     });
 
-    saveData();
+    saveAppData();
     document.getElementById('saleInputAmount').value = '';
     renderAnalytics();
-    alert(`Продажа на ${saleAmount.toFixed(2)} грн записана!\nДоп. себестоимость: ${calculatedCost.toFixed(2)} грн. Прибыль: ${(saleAmount - calculatedCost).toFixed(2)} грн.`);
+    alert(`Продажа на ${saleAmount.toFixed(2)} грн записана!\nПрибыль: ${(saleAmount - calculatedCost).toFixed(2)} грн.`);
 }
 
 function editSaleRecord(id) {
-    const record = salesHistory.find(item => item.id === id);
+    const record = appState.salesHistory.find(item => item.id === id);
     if (!record) return;
 
     let newRevenue = parseFloat(prompt("Введите новую сумму продажи (грн):", record.revenue));
@@ -851,35 +814,35 @@ function editSaleRecord(id) {
     record.revenue = newRevenue;
     record.profit = newRevenue - record.cost;
 
-    saveData();
+    saveAppData();
     renderAnalytics();
 }
 
 function deleteHistoryRecord(id) {
-    const index = salesHistory.findIndex(item => item.id === id);
+    const index = appState.salesHistory.findIndex(item => item.id === id);
     if (index === -1) return;
 
-    const record = salesHistory[index];
+    const record = appState.salesHistory[index];
     if (confirm(`Удалить запись "${record.title}" от ${formatDate(record.date)}?`)) {
-        if (record.type === 'purchase' || record.title.startsWith('Закупка сырья') || record.title.startsWith('Накладная закупки')) {
+        if (record.type === 'purchase' || record.title.startsWith('Накладная закупки')) {
             deletePurchaseRecord(id);
             return;
         } else if (record.type === 'cash_in') {
-            manualCashAdjustment -= record.revenue;
+            appState.manualCashAdjustment -= record.revenue;
         } else if (record.type === 'cash_out') {
-            manualCashAdjustment += record.cost;
+            appState.manualCashAdjustment += record.cost;
         }
 
-        salesHistory.splice(index, 1);
-        saveData();
+        appState.salesHistory.splice(index, 1);
+        saveAppData();
         renderAnalytics();
     }
 }
 
 function getAvailableStockNames() {
-    let namesSet = new Set(Object.keys(meatStock));
-    for (let rName in recipes) {
-        recipes[rName].meats.forEach(m => namesSet.add(m.name));
+    let namesSet = new Set(Object.keys(appState.meatStock));
+    for (let rName in appState.recipes) {
+        appState.recipes[rName].meats.forEach(m => namesSet.add(m.name));
     }
     return Array.from(namesSet).sort();
 }
@@ -905,7 +868,7 @@ function addPurchaseFormRow() {
             <label style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase;">Наименование сырья:</label>
             <button onclick="removePurchaseFormRow(this)" style="width:auto; margin-bottom:0; padding:2px 6px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; font-size:11px;">✕</button>
         </div>
-        <select class="p-name" style="margin-bottom:8px;" onchange="checkCustomStockInput(this)">
+        <select class="p-name" style="margin-bottom:8px;" onchange="onPurchaseItemSelect(this)">
             ${optionsHtml}
             <option value="__custom__">➕ Ввести свое название вручную...</option>
         </select>
@@ -924,14 +887,22 @@ function addPurchaseFormRow() {
     container.appendChild(div);
 }
 
-function checkCustomStockInput(selectElem) {
-    const customInput = selectElem.parentElement.querySelector('.p-custom-name');
-    if (selectElem.value === '__custom__') {
+function onPurchaseItemSelect(selectElem) {
+    const row = selectElem.closest('.purchase-item-row');
+    const customInput = row.querySelector('.p-custom-name');
+    const priceInput = row.querySelector('.p-price');
+    const name = selectElem.value;
+
+    if (name === '__custom__') {
         customInput.style.display = 'block';
         customInput.focus();
+        priceInput.value = '';
     } else {
         customInput.style.display = 'none';
         customInput.value = '';
+        if (appState.meatStock[name]) {
+            priceInput.value = appState.meatStock[name].pricePerKg;
+        }
     }
 }
 
@@ -974,14 +945,14 @@ function submitGroupPurchase() {
     }
 
     items.forEach(item => {
-        if (!meatStock[item.name]) {
-            meatStock[item.name] = { weightKg: item.weight, pricePerKg: item.price, lastUpdated: nowIso };
+        if (!appState.meatStock[item.name]) {
+            appState.meatStock[item.name] = { weightKg: item.weight, pricePerKg: item.price, lastUpdated: nowIso };
         } else {
-            let currentTotalCost = (meatStock[item.name].weightKg * meatStock[item.name].pricePerKg) + item.itemCost;
-            let newTotalWeight = meatStock[item.name].weightKg + item.weight;
-            meatStock[item.name].weightKg = newTotalWeight;
-            meatStock[item.name].pricePerKg = newTotalWeight > 0 ? (currentTotalCost / newTotalWeight) : item.price;
-            meatStock[item.name].lastUpdated = nowIso;
+            let currentTotalCost = (appState.meatStock[item.name].weightKg * appState.meatStock[item.name].pricePerKg) + item.itemCost;
+            let newTotalWeight = appState.meatStock[item.name].weightKg + item.weight;
+            appState.meatStock[item.name].weightKg = newTotalWeight;
+            appState.meatStock[item.name].pricePerKg = newTotalWeight > 0 ? (currentTotalCost / newTotalWeight) : item.price;
+            appState.meatStock[item.name].lastUpdated = nowIso;
         }
     });
 
@@ -991,13 +962,13 @@ function submitGroupPurchase() {
         items: items,
         totalCost: totalBatchCost
     };
-    purchaseHistoryLogs.push(purchaseRecord);
+    appState.purchaseHistoryLogs.push(purchaseRecord);
 
     if (totalBatchCost > 0) {
-        manualCashAdjustment -= totalBatchCost;
+        appState.manualCashAdjustment -= totalBatchCost;
         let itemTitles = items.map(x => `${x.name} (${x.weight}кг)`).join(', ');
 
-        salesHistory.push({
+        appState.salesHistory.push({
             id: purchaseRecord.id,
             date: nowIso,
             title: `Накладная закупки: ${itemTitles}`,
@@ -1009,7 +980,7 @@ function submitGroupPurchase() {
         });
     }
 
-    saveData();
+    saveAppData();
     initPurchaseForm();
     renderStockBalance();
     renderPurchaseHistoryLogs();
@@ -1022,14 +993,14 @@ function renderStockBalance() {
     const container = document.getElementById('stockBalanceList');
     container.innerHTML = '';
 
-    let keys = Object.keys(meatStock);
+    let keys = Object.keys(appState.meatStock);
     if (keys.length === 0) {
         container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">Склад пуст. Добавьте закупку выше.</div>';
         return;
     }
 
     keys.forEach(name => {
-        let item = meatStock[name];
+        let item = appState.meatStock[name];
         let isLow = item.weightKg <= 2.0;
 
         const div = document.createElement('div');
@@ -1054,8 +1025,8 @@ function renderStockBalance() {
 
 function clearAllStock() {
     if (confirm("Вы действительно хотите полностью очистить и обнулить все остатки на складе?")) {
-        meatStock = {};
-        saveData();
+        appState.meatStock = {};
+        saveAppData();
         renderStockBalance();
         alert("Склад полностью обнулен!");
     }
@@ -1066,21 +1037,18 @@ function renderPurchaseHistoryLogs() {
     if (!container) return;
     container.innerHTML = '';
 
-    if (purchaseHistoryLogs.length === 0) {
+    if (appState.purchaseHistoryLogs.length === 0) {
         container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">История закупок пуста.</div>';
         return;
     }
 
-    purchaseHistoryLogs.slice().sort((a,b) => b.id - a.id).forEach(p => {
+    appState.purchaseHistoryLogs.slice().sort((a,b) => b.id - a.id).forEach(p => {
         let itemsHtml = '';
         p.items.forEach((it, itemIdx) => {
             itemsHtml += `
                 <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding:4px 0; color:var(--text-muted);">
                     <span>• <strong>${it.name}</strong>: ${it.weight.toFixed(2)} кг x ${it.price.toFixed(2)} грн</span>
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <span style="color:var(--text-main); font-weight:600;">${it.itemCost.toFixed(2)} грн</span>
-                        <button onclick="editPurchaseItemPrice(${p.id}, ${itemIdx})" style="width:auto; margin-bottom:0; padding:1px 5px; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-main); border-radius:4px; font-size:10px; cursor:pointer;" title="Изменить цену или вес">✏️</button>
-                    </div>
+                    <span style="color:var(--text-main); font-weight:600;">${it.itemCost.toFixed(2)} грн</span>
                 </div>
             `;
         });
@@ -1093,7 +1061,7 @@ function renderPurchaseHistoryLogs() {
                 <strong style="color:var(--accent-gold); font-size:14px;">📦 Накладная закупки</strong>
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:11px; color:var(--text-muted);">📅 ${formatDate(p.date)}</span>
-                    <button onclick="deletePurchaseRecord(${p.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; font-size:11px; cursor:pointer;" title="Удалить накладную">✕</button>
+                    <button onclick="deletePurchaseRecord(${p.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; font-size:11px; cursor:pointer;">✕</button>
                 </div>
             </div>
             <div style="margin-bottom:8px;">${itemsHtml}</div>
@@ -1106,66 +1074,23 @@ function renderPurchaseHistoryLogs() {
     });
 }
 
-function editPurchaseItemPrice(purchaseId, itemIdx) {
-    const p = purchaseHistoryLogs.find(x => x.id === purchaseId);
-    if (!p || !p.items[itemIdx]) return;
-
-    let item = p.items[itemIdx];
-    let newPrice = parseFloat(prompt(`Изменение цены для "${item.name}" (сейчас: ${item.price} грн/кг):`, item.price));
-    if (isNaN(newPrice) || newPrice < 0) return;
-
-    let newWeight = parseFloat(prompt(`Изменение веса для "${item.name}" (сейчас: ${item.weight} кг):`, item.weight));
-    if (isNaN(newWeight) || newWeight <= 0) return;
-
-    let oldWeight = item.weight;
-    item.price = newPrice;
-    item.weight = newWeight;
-    item.itemCost = newWeight * newPrice;
-
-    if (meatStock[item.name]) {
-        let weightDiff = newWeight - oldWeight;
-        meatStock[item.name].weightKg += weightDiff;
-        if (meatStock[item.name].weightKg < 0) meatStock[item.name].weightKg = 0;
-        meatStock[item.name].pricePerKg = newPrice;
-    }
-
-    let oldTotalCost = p.totalCost;
-    p.totalCost = p.items.reduce((sum, x) => sum + x.itemCost, 0);
-    let costDiff = p.totalCost - oldTotalCost;
-
-    manualCashAdjustment -= costDiff;
-
-    let salesRec = salesHistory.find(x => x.id === purchaseId);
-    if (salesRec) {
-        salesRec.cost = p.totalCost;
-        salesRec.profit = -p.totalCost;
-        let itemTitles = p.items.map(x => `${x.name} (${x.weight}кг)`).join(', ');
-        salesRec.title = `Накладная закупки: ${itemTitles}`;
-    }
-
-    saveData();
-    renderStockBalance();
-    renderPurchaseHistoryLogs();
-    renderAnalytics();
-}
-
 function deletePurchaseRecord(id) {
-    const idx = purchaseHistoryLogs.findIndex(x => x.id === id);
+    const idx = appState.purchaseHistoryLogs.findIndex(x => x.id === id);
     if (idx === -1) return;
 
-    let p = purchaseHistoryLogs[idx];
+    let p = appState.purchaseHistoryLogs[idx];
     if (confirm(`Удалить эту накладную закупки? Сумма ${p.totalCost.toFixed(2)} грн вернется в кассу.`)) {
         p.items.forEach(it => {
-            if (meatStock[it.name]) {
-                meatStock[it.name].weightKg -= it.weight;
-                if (meatStock[it.name].weightKg < 0) meatStock[it.name].weightKg = 0;
+            if (appState.meatStock[it.name]) {
+                appState.meatStock[it.name].weightKg -= it.weight;
+                if (appState.meatStock[it.name].weightKg < 0) appState.meatStock[it.name].weightKg = 0;
             }
         });
-        manualCashAdjustment += p.totalCost;
-        salesHistory = salesHistory.filter(x => x.id !== id);
-        purchaseHistoryLogs.splice(idx, 1);
+        appState.manualCashAdjustment += p.totalCost;
+        appState.salesHistory = appState.salesHistory.filter(x => x.id !== id);
+        appState.purchaseHistoryLogs.splice(idx, 1);
 
-        saveData();
+        saveAppData();
         renderStockBalance();
         renderPurchaseHistoryLogs();
         renderAnalytics();
@@ -1174,21 +1099,21 @@ function deletePurchaseRecord(id) {
 
 function clearPurchaseHistoryLogs() {
     if (confirm("Вы действительно хотите очистить ВСЮ историю закупок?")) {
-        let totalRefundCost = purchaseHistoryLogs.reduce((sum, p) => sum + p.totalCost, 0);
-        purchaseHistoryLogs.forEach(p => {
+        let totalRefundCost = appState.purchaseHistoryLogs.reduce((sum, p) => sum + p.totalCost, 0);
+        appState.purchaseHistoryLogs.forEach(p => {
             p.items.forEach(it => {
-                if (meatStock[it.name]) {
-                    meatStock[it.name].weightKg -= it.weight;
-                    if (meatStock[it.name].weightKg < 0) meatStock[it.name].weightKg = 0;
+                if (appState.meatStock[it.name]) {
+                    appState.meatStock[it.name].weightKg -= it.weight;
+                    if (appState.meatStock[it.name].weightKg < 0) appState.meatStock[it.name].weightKg = 0;
                 }
             });
         });
-        manualCashAdjustment += totalRefundCost;
-        let purchaseIds = new Set(purchaseHistoryLogs.map(p => p.id));
-        salesHistory = salesHistory.filter(x => !purchaseIds.has(x.id));
-        purchaseHistoryLogs = [];
+        appState.manualCashAdjustment += totalRefundCost;
+        let purchaseIds = new Set(appState.purchaseHistoryLogs.map(p => p.id));
+        appState.salesHistory = appState.salesHistory.filter(x => !purchaseIds.has(x.id));
+        appState.purchaseHistoryLogs = [];
 
-        saveData();
+        saveAppData();
         renderStockBalance();
         renderPurchaseHistoryLogs();
         renderAnalytics();
@@ -1197,8 +1122,8 @@ function clearPurchaseHistoryLogs() {
 
 function deleteStockItem(name) {
     if (confirm(`Удалить позицию "${name}" со склада?`)) {
-        delete meatStock[name];
-        saveData();
+        delete appState.meatStock[name];
+        saveAppData();
         renderStockBalance();
     }
 }
@@ -1212,21 +1137,21 @@ function updateRecipeSelects() {
     s1.innerHTML = '';
     s2.innerHTML = '';
 
-    for (let name in recipes) {
+    for (let name in appState.recipes) {
         let opt1 = document.createElement('option'); opt1.value = name; opt1.innerText = name; s1.appendChild(opt1);
         let opt2 = document.createElement('option'); opt2.value = name; opt2.innerText = name; s2.appendChild(opt2);
     }
 
-    if (currentVal1 && recipes[currentVal1]) s1.value = currentVal1;
-    if (currentVal2 && recipes[currentVal2]) s2.value = currentVal2;
+    if (currentVal1 && appState.recipes[currentVal1]) s1.value = currentVal1;
+    if (currentVal2 && appState.recipes[currentVal2]) s2.value = currentVal2;
 }
 
 function getActiveRecipeData(recipeName) {
-    if (!recipes[recipeName]) return null;
-    if (!activeRecipeState[recipeName]) {
-        activeRecipeState[recipeName] = JSON.parse(JSON.stringify(recipes[recipeName]));
+    if (!appState.recipes[recipeName]) return null;
+    if (!appState.activeRecipeState[recipeName]) {
+        appState.activeRecipeState[recipeName] = JSON.parse(JSON.stringify(appState.recipes[recipeName]));
     }
-    return activeRecipeState[recipeName];
+    return appState.activeRecipeState[recipeName];
 }
 
 function onRecipeSelectChange() {
@@ -1235,8 +1160,8 @@ function onRecipeSelectChange() {
     if (!data) return;
 
     data.meats.forEach(m => {
-        if (meatStock[m.name] && meatStock[m.name].pricePerKg > 0) {
-            m.pricePerKg = meatStock[m.name].pricePerKg;
+        if (appState.meatStock[m.name] && appState.meatStock[m.name].pricePerKg > 0) {
+            m.pricePerKg = appState.meatStock[m.name].pricePerKg;
         }
     });
 
@@ -1255,7 +1180,7 @@ function renderSingleInputs(recipeName) {
     if (!data) return;
 
     data.meats.forEach((m, idx) => {
-        let stockBal = meatStock[m.name] ? meatStock[m.name].weightKg : 0;
+        let stockBal = appState.meatStock[m.name] ? appState.meatStock[m.name].weightKg : 0;
         let isEnough = stockBal >= m.weightKg;
 
         const row = document.createElement('div');
@@ -1293,7 +1218,7 @@ function updateSingleMeat(idx, field, val) {
     if (!data) return;
 
     data.meats[idx][field] = parseFloat(val) || 0;
-    saveData();
+    saveAppData();
     
     const costSpan = document.getElementById(`meat_cost_${idx}`);
     if (costSpan) {
@@ -1320,7 +1245,7 @@ function updateSingleAdditivePrice(idx, newPrice) {
     if (!data) return;
 
     data.additives[idx].pricePerKg = parseFloat(newPrice) || 0;
-    saveData();
+    saveAppData();
 
     let totalMeatKg = data.meats.reduce((sum, m) => sum + (parseFloat(m.weightKg) || 0), 0);
     let totalGrams = (data.additives[idx].gramsPerKg || 0) * totalMeatKg;
@@ -1404,7 +1329,7 @@ function processAndDeductSingleBatch() {
 
     let errorMsgs = [];
     res.meats.forEach(m => {
-        let stockBal = meatStock[m.name] ? meatStock[m.name].weightKg : 0;
+        let stockBal = appState.meatStock[m.name] ? appState.meatStock[m.name].weightKg : 0;
         if (stockBal < m.weightKg) {
             errorMsgs.push(`Недостаточно "${m.name}" на складе (нужно ${m.weightKg} кг, в наличии ${stockBal.toFixed(2)} кг)`);
         }
@@ -1418,21 +1343,21 @@ function processAndDeductSingleBatch() {
 
     const nowIso = new Date().toISOString();
     res.meats.forEach(m => {
-        if (meatStock[m.name]) {
-            meatStock[m.name].weightKg -= m.weightKg;
-            if (meatStock[m.name].weightKg < 0) meatStock[m.name].weightKg = 0;
-            meatStock[m.name].lastUpdated = nowIso;
+        if (appState.meatStock[m.name]) {
+            appState.meatStock[m.name].weightKg -= m.weightKg;
+            if (appState.meatStock[m.name].weightKg < 0) appState.meatStock[m.name].weightKg = 0;
+            appState.meatStock[m.name].lastUpdated = nowIso;
         }
     });
 
     if (res.revenue > 0) {
-        pendingChamberSales += res.revenue;
-        pendingChamberCost += res.totalAdditivesCost;
-        pendingChamberWeight += res.finishedWeight;
+        appState.pendingChamberSales += res.revenue;
+        appState.pendingChamberCost += res.totalAdditivesCost;
+        appState.pendingChamberWeight += res.finishedWeight;
     }
 
-    saveData();
-    alert(`Партия "${res.recipeName}" проведена!\nМясо успешно списано со склада, а товар на сумму ${res.revenue.toFixed(2)} грн добавлен в раздел продажи.`);
+    saveAppData();
+    alert(`Партия "${res.recipeName}" проведена!\nМясо успешно списано со склада.`);
     renderStockBalance();
 }
 
@@ -1441,7 +1366,7 @@ function updateChamberDefaultMeats() {
     const container = document.getElementById('chamberMeatInputsContainer');
     container.innerHTML = '';
 
-    const rec = recipes[name];
+    const rec = appState.recipes[name];
     if (!rec) return;
 
     let title = document.createElement('div');
@@ -1450,7 +1375,7 @@ function updateChamberDefaultMeats() {
     container.appendChild(title);
 
     rec.meats.forEach((m, idx) => {
-        let stockBal = meatStock[m.name] ? meatStock[m.name].weightKg : 0;
+        let stockBal = appState.meatStock[m.name] ? appState.meatStock[m.name].weightKg : 0;
         let div = document.createElement('div');
         div.style.cssText = "display:flex; gap:6px; margin-bottom:6px; align-items:center;";
         div.innerHTML = `
@@ -1464,7 +1389,7 @@ function updateChamberDefaultMeats() {
 function addRecipeToChamberBatch() {
     const name = document.getElementById('chamberRecipeAddSelect').value;
     const retailPrice = parseFloat(document.getElementById('chamberRetailPriceInput').value) || 0;
-    const rec = recipes[name];
+    const rec = appState.recipes[name];
     if (!rec) return;
 
     let meatsCopy = JSON.parse(JSON.stringify(rec.meats));
@@ -1473,8 +1398,8 @@ function addRecipeToChamberBatch() {
         let inputElem = document.querySelector(`.chamber_meat_input_${idx}`);
         if (inputElem) {
             m.weightKg = parseFloat(inputElem.value) || 0;
-            if (meatStock[m.name] && meatStock[m.name].pricePerKg > 0) {
-                m.pricePerKg = meatStock[m.name].pricePerKg;
+            if (appState.meatStock[m.name] && appState.meatStock[m.name].pricePerKg > 0) {
+                m.pricePerKg = appState.meatStock[m.name].pricePerKg;
             }
         }
         totalMeatKg += m.weightKg;
@@ -1491,7 +1416,7 @@ function addRecipeToChamberBatch() {
 
     let totalRawKg = totalMeatKg + (totalAdditivesGrams / 1000);
 
-    chamberBatchList.push({
+    appState.chamberBatchList.push({
         recipeName: name,
         meats: meatsCopy,
         additives: additivesCopy,
@@ -1500,23 +1425,23 @@ function addRecipeToChamberBatch() {
         addedDate: new Date().toISOString()
     });
 
-    saveData();
+    saveAppData();
     renderChamberItemsList();
 }
 
 function updateChamberItemMeat(itemIdx, meatIdx, val) {
-    chamberBatchList[itemIdx].meats[meatIdx].weightKg = parseFloat(val) || 0;
-    saveData();
+    appState.chamberBatchList[itemIdx].meats[meatIdx].weightKg = parseFloat(val) || 0;
+    saveAppData();
 }
 
 function updateChamberItemField(itemIdx, field, val) {
-    chamberBatchList[itemIdx][field] = parseFloat(val) || 0;
-    saveData();
+    appState.chamberBatchList[itemIdx][field] = parseFloat(val) || 0;
+    saveAppData();
 }
 
 function removeChamberItem(index) {
-    chamberBatchList.splice(index, 1);
-    saveData();
+    appState.chamberBatchList.splice(index, 1);
+    saveAppData();
     renderChamberItemsList();
 }
 
@@ -1524,13 +1449,13 @@ function renderChamberItemsList() {
     const container = document.getElementById('chamberItemsList');
     container.innerHTML = '';
 
-    if (chamberBatchList.length === 0) {
+    if (appState.chamberBatchList.length === 0) {
         container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">Камера пуста. Добавьте изделие выше.</div>';
         document.getElementById('btnSaveChamberHistory').style.display = 'none';
         return;
     }
 
-    chamberBatchList.forEach((item, idx) => {
+    appState.chamberBatchList.forEach((item, idx) => {
         let meatsHtml = '';
         item.meats.forEach((m, mIdx) => {
             meatsHtml += `
@@ -1569,7 +1494,7 @@ function renderChamberItemsList() {
 
 function calculateMultiBatch() {
     const resultsBlock = document.getElementById('multiResultsBlock');
-    if (chamberBatchList.length === 0) {
+    if (appState.chamberBatchList.length === 0) {
         resultsBlock.innerHTML = '<div style="color:var(--danger); text-align:center;">Добавьте изделия в камеру!</div>';
         document.getElementById('btnSaveChamberHistory').style.display = 'none';
         return;
@@ -1583,8 +1508,8 @@ function calculateMultiBatch() {
     let consolidatedMeats = {};
     let consolidatedAdditives = {};
 
-    chamberBatchList.forEach(item => {
-        const rec = recipes[item.recipeName];
+    appState.chamberBatchList.forEach(item => {
+        const rec = appState.recipes[item.recipeName];
         if (!rec) return;
 
         totalFinishedWeight += item.finishedWeightKg;
@@ -1654,7 +1579,7 @@ function calculateMultiBatch() {
 }
 
 function processAndDeductChamberBatch() {
-    if (chamberBatchList.length === 0) return;
+    if (appState.chamberBatchList.length === 0) return;
 
     let requiredMeat = {};
     let totalRevenue = 0;
@@ -1664,8 +1589,8 @@ function processAndDeductChamberBatch() {
     const nowIso = new Date().toISOString();
     let batchSummaryTitles = [];
 
-    chamberBatchList.forEach(item => {
-        const rec = recipes[item.recipeName];
+    appState.chamberBatchList.forEach(item => {
+        const rec = appState.recipes[item.recipeName];
         if (!rec) return;
 
         batchSummaryTitles.push(item.recipeName);
@@ -1691,18 +1616,18 @@ function processAndDeductChamberBatch() {
 
     for (let mName in requiredMeat) {
         let reqKg = requiredMeat[mName];
-        if (meatStock[mName]) {
-            meatStock[mName].weightKg -= reqKg;
-            if (meatStock[mName].weightKg < 0) meatStock[mName].weightKg = 0;
-            meatStock[mName].lastUpdated = nowIso;
+        if (appState.meatStock[mName]) {
+            appState.meatStock[mName].weightKg -= reqKg;
+            if (appState.meatStock[mName].weightKg < 0) appState.meatStock[mName].weightKg = 0;
+            appState.meatStock[mName].lastUpdated = nowIso;
         }
     }
 
-    pendingChamberSales += totalRevenue;
-    pendingChamberCost += totalAdditivesCost;
-    pendingChamberWeight += totalFinishedWeight;
+    appState.pendingChamberSales += totalRevenue;
+    appState.pendingChamberCost += totalAdditivesCost;
+    appState.pendingChamberWeight += totalFinishedWeight;
 
-    chamberHistoryLogs.push({
+    appState.chamberHistoryLogs.push({
         id: Date.now(),
         date: nowIso,
         title: "Партия: " + batchSummaryTitles.join(", "),
@@ -1712,8 +1637,8 @@ function processAndDeductChamberBatch() {
         projectedRevenue: totalRevenue
     });
 
-    chamberBatchList = [];
-    saveData();
+    appState.chamberBatchList = [];
+    saveAppData();
 
     alert(`Камера успешно проведена!\nМясо списано со склада. В Кассу добавлено +${totalRevenue.toFixed(2)} грн товара на продажу.`);
     
@@ -1728,12 +1653,12 @@ function renderChamberHistoryLogs() {
     if (!container) return;
     container.innerHTML = '';
 
-    if (chamberHistoryLogs.length === 0) {
+    if (appState.chamberHistoryLogs.length === 0) {
         container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">История копчения пуста.</div>';
         return;
     }
 
-    chamberHistoryLogs.slice().sort((a,b) => b.id - a.id).forEach(item => {
+    appState.chamberHistoryLogs.slice().sort((a,b) => b.id - a.id).forEach(item => {
         const div = document.createElement('div');
         div.className = 'history-item';
         div.style.borderLeftColor = 'var(--accent-gold)';
@@ -1743,7 +1668,7 @@ function renderChamberHistoryLogs() {
                 <strong style="color:var(--text-main); font-size:14px;">${item.title}</strong>
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:11px; color:var(--text-muted);">📅 ${formatDate(item.date)}</span>
-                    <button onclick="deleteChamberHistoryRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; font-size:11px; cursor:pointer;" title="Удалить запись">✕</button>
+                    <button onclick="deleteChamberHistoryRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; font-size:11px; cursor:pointer;">✕</button>
                 </div>
             </div>
             <div style="display:flex; justify-content:space-between; font-size:12px; margin-top:6px; color:var(--text-muted);">
@@ -1759,24 +1684,25 @@ function renderChamberHistoryLogs() {
 }
 
 function deleteChamberHistoryRecord(id) {
-    const index = chamberHistoryLogs.findIndex(item => item.id === id);
+    const index = appState.chamberHistoryLogs.findIndex(item => item.id === id);
     if (index === -1) return;
 
     if (confirm(`Удалить эту запись из истории копчения?`)) {
-        chamberHistoryLogs.splice(index, 1);
-        saveData();
+        appState.chamberHistoryLogs.splice(index, 1);
+        saveAppData();
         renderChamberHistoryLogs();
     }
 }
 
 function clearChamberHistoryLogs() {
     if (confirm("Вы действительно хотите очистить ВСЮ историю копчения в камере?")) {
-        chamberHistoryLogs = [];
-        saveData();
+        appState.chamberHistoryLogs = [];
+        saveAppData();
         renderChamberHistoryLogs();
     }
 }
 
+let selectedPeriod = 'week';
 function setPeriod(p) {
     selectedPeriod = p;
     document.getElementById('p_week').classList.toggle('active', p === 'week');
@@ -1791,7 +1717,7 @@ function renderAnalytics() {
     container.innerHTML = '';
 
     const now = new Date();
-    let filteredLogs = salesHistory.filter(item => {
+    let filteredLogs = appState.salesHistory.filter(item => {
         const itemDate = new Date(item.date);
         const diffDays = (now - itemDate) / (1000 * 60 * 60 * 24);
 
@@ -1809,7 +1735,7 @@ function renderAnalytics() {
         totProfit += item.profit || 0;
         totWeight += item.finishedWeightKg || 0;
 
-        const isPurchase = item.type === 'purchase' || item.title.startsWith('Закупка сырья') || item.title.startsWith('Накладная закупки');
+        const isPurchase = item.type === 'purchase' || item.title.startsWith('Накладная закупки');
 
         const div = document.createElement('div');
         div.className = 'history-item';
@@ -1820,8 +1746,8 @@ function renderAnalytics() {
                 <strong style="color:var(--text-main); font-size:14px;">${item.title}</strong>
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:11px; color:var(--text-muted);">📅 ${formatDate(item.date)}</span>
-                    ${!isPurchase && item.type === 'sale' ? `<button onclick="editSaleRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-main); border-radius:6px; font-size:11px; cursor:pointer;" title="Редактировать">✏️</button>` : ''}
-                    <button onclick="deleteHistoryRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; font-size:11px; cursor:pointer;" title="Удалить запись">✕</button>
+                    ${!isPurchase && item.type === 'sale' ? `<button onclick="editSaleRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-main); border-radius:6px; font-size:11px; cursor:pointer;" title="Редактировать">✏️️</button>` : ''}
+                    <button onclick="deleteHistoryRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; font-size:11px; cursor:pointer;">✕</button>
                 </div>
             </div>
             <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:4px;">
@@ -1840,30 +1766,30 @@ function renderAnalytics() {
 
     const pendingInput = document.getElementById('pendingChamberSalesInput');
     if (pendingInput && document.activeElement !== pendingInput) {
-        pendingInput.value = pendingChamberSales.toFixed(2);
+        pendingInput.value = appState.pendingChamberSales.toFixed(2);
     }
 
     let totalAllTimeRevenue = 0;
-    salesHistory.forEach(item => {
+    appState.salesHistory.forEach(item => {
         totalAllTimeRevenue += item.revenue || 0;
     });
 
-    let currentCash = initialCash + totalAllTimeRevenue + manualCashAdjustment;
+    let currentCash = appState.initialCash + totalAllTimeRevenue + appState.manualCashAdjustment;
     document.getElementById('currentCashDisplay').innerText = currentCash.toFixed(2) + ' грн';
 
     if (filteredLogs.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">За выбранный период нет проведенных продаж или закупок.</div>';
+        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">За выбранный период нет записей.</div>';
     }
 }
 
 function clearHistoryLogs() {
-    if (confirm("Вы действительно хотите очистить ВСЮ историю продаж, закупок и сбросить кассу?")) {
-        salesHistory = [];
-        pendingChamberSales = 0;
-        pendingChamberCost = 0;
-        pendingChamberWeight = 0;
-        manualCashAdjustment = 0;
-        saveData();
+    if (confirm("Вы действительно хотите очистить всю историю и кассу?")) {
+        appState.salesHistory = [];
+        appState.pendingChamberSales = 0;
+        appState.pendingChamberCost = 0;
+        appState.pendingChamberWeight = 0;
+        appState.manualCashAdjustment = 0;
+        saveAppData();
         renderAnalytics();
     }
 }
@@ -1872,7 +1798,7 @@ function renderRecipeManagerList() {
     const list = document.getElementById('recipeManagerList');
     list.innerHTML = '';
 
-    for (let name in recipes) {
+    for (let name in appState.recipes) {
         const div = document.createElement('div');
         div.className = 'row';
         div.style.marginBottom = '8px';
@@ -1897,7 +1823,7 @@ function showNewRecipeForm() {
 }
 
 function editRecipe(name) {
-    const rec = recipes[name];
+    const rec = appState.recipes[name];
     if (!rec) return;
 
     document.getElementById('newRecipeBlock').style.display = 'block';
@@ -1926,7 +1852,7 @@ function addEditAdditiveInput(name = '', gramsPerKg = 10, price = 0) {
     div.className = 'ing-edit-row';
     div.innerHTML = `
         <input type="text" placeholder="Компонент/специя" class="edit-add-name" value="${name}" style="flex:1.6;">
-        <input type="number" step="0.1" placeholder="г/кг" class="edit-add-grams" value="${gramsPerKg}" style="width:70px;" title="Грамм на 1 кг мяса">
+        <input type="number" step="0.1" placeholder="г/кг" class="edit-add-grams" value="${gramsPerKg}" style="width:70px;">
         <input type="number" step="1" placeholder="грн/кг" class="edit-add-price" value="${price}" style="width:80px;">
     `;
     document.getElementById('editAdditiveInputs').appendChild(div);
@@ -1960,10 +1886,10 @@ function saveRecipe() {
 
     if (meats.length === 0) { alert("Добавьте хотя бы один вид мяса"); return; }
 
-    recipes[name] = { meats: meats, additives: additives };
-    if (activeRecipeState[name]) delete activeRecipeState[name];
+    appState.recipes[name] = { meats: meats, additives: additives };
+    if (appState.activeRecipeState[name]) delete appState.activeRecipeState[name];
     
-    saveData();
+    saveAppData();
     cancelNewRecipe();
     init();
 }
@@ -1972,8 +1898,8 @@ function cancelNewRecipe() { document.getElementById('newRecipeBlock').style.dis
 
 function deleteRecipe(name) {
     if (confirm(`Удалить рецепт "${name}"?`)) {
-        delete recipes[name];
-        saveData();
+        delete appState.recipes[name];
+        saveAppData();
         init();
     }
 }
