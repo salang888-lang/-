@@ -575,6 +575,20 @@ let defaultRecipes = {
             { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
             { name: "Глутамат натрия", gramsPerKg: 2, pricePerKg: 300 }
         ]
+    },
+    "Ребра": {
+        meats: [
+            { name: "Ребра свиные", weightKg: 1.0, pricePerKg: 170 }
+        ],
+        additives: [
+            { name: "Нитритная соль", gramsPerKg: 18, pricePerKg: 50 },
+            { name: "Перец чёрный", gramsPerKg: 2, pricePerKg: 400 },
+            { name: "Аскорбат", gramsPerKg: 0.5, pricePerKg: 300 },
+            { name: "Перец кайенский", gramsPerKg: 1.5, pricePerKg: 350 },
+            { name: "Чеснок сушеный", gramsPerKg: 2, pricePerKg: 350 },
+            { name: "Кориандр", gramsPerKg: 1, pricePerKg: 300 },
+            { name: "Сахар", gramsPerKg: 2, pricePerKg: 30 }
+        ]
     }
 };
 
@@ -584,7 +598,8 @@ let defaultStock = {
     "Балык": { weightKg: 10.0, pricePerKg: 190, lastUpdated: new Date().toISOString() },
     "Крылья": { weightKg: 5.0, pricePerKg: 120, lastUpdated: new Date().toISOString() },
     "Голени": { weightKg: 5.0, pricePerKg: 100, lastUpdated: new Date().toISOString() },
-    "Окорочка": { weightKg: 5.0, pricePerKg: 110, lastUpdated: new Date().toISOString() }
+    "Окорочка": { weightKg: 5.0, pricePerKg: 110, lastUpdated: new Date().toISOString() },
+    "Ребра свиные": { weightKg: 10.0, pricePerKg: 170, lastUpdated: new Date().toISOString() }
 };
 
 let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v18')) || defaultRecipes;
