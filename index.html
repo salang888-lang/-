@@ -692,16 +692,14 @@ function editSaleRecord(id) {
     renderAnalytics();
 }
 
-/* ФУНКЦИЯ УДАЛЕНИЯ ОТДЕЛЬНОЙ ЗАПИСИ ИЗ ИСТОРИИ */
 function deleteHistoryRecord(id) {
     const index = salesHistory.findIndex(item => item.id === id);
     if (index === -1) return;
 
     const record = salesHistory[index];
     if (confirm(`Удалить запись "${record.title}"?`)) {
-        // Если это закупка, возвращаем списанные из кассы деньги обратно
         if (record.type === 'purchase' || record.title.startsWith('Закупка сырья')) {
-            manualCashAdjustment += record.cost; // Возврат средств
+            manualCashAdjustment += record.cost;
             localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
         }
 
@@ -1325,11 +1323,6 @@ function renderAnalytics() {
     });
 
     let totRevenue = 0; let totCost = 0; let totProfit = 0; let totWeight = 0;
-    let totalAllTimeRevenue = 0;
-
-    salesHistory.forEach(item => {
-        totalAllTimeRevenue += item.revenue || 0;
-    });
 
     filteredLogs.sort((a,b) => b.id - a.id).forEach(item => {
         totRevenue += item.revenue || 0;
@@ -1338,7 +1331,6 @@ function renderAnalytics() {
         totWeight += item.finishedWeightKg || 0;
 
         const dateStr = new Date(item.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
         const isPurchase = item.type === 'purchase' || item.title.startsWith('Закупка сырья');
 
         const div = document.createElement('div');
@@ -1372,6 +1364,12 @@ function renderAnalytics() {
     if (pendingInput && document.activeElement !== pendingInput) {
         pendingInput.value = pendingChamberSales.toFixed(2);
     }
+
+    // СТРОГИЙ РАСЧЕТ КАССЫ ОТ НАЧАЛЬНОГО ОСТАТКА
+    let totalAllTimeRevenue = 0;
+    salesHistory.forEach(item => {
+        totalAllTimeRevenue += item.revenue || 0;
+    });
 
     let currentCash = initialCash + totalAllTimeRevenue + manualCashAdjustment;
     document.getElementById('currentCashDisplay').innerText = currentCash.toFixed(2) + ' грн';
