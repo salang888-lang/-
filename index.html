@@ -407,7 +407,7 @@
 
         <!-- ИСТОРИЯ КОПЧЕНИЯ В КАМЕРЕ -->
         <div class="card">
-            <div class="section-title" style="margin-top:0;">📜 История копчения и прогнозируемой прибыли:</div>
+            <div class="section-title" style="margin-top:0;">📜 История копчения и ингредиентов:</div>
             <div id="chamberHistoryLogsList"></div>
             <button class="btn-sec" style="margin-top: 10px; width: 100%; color: var(--danger); border-color: var(--danger);" onclick="clearChamberHistoryLogs()">🗑 Очистить историю копчения</button>
         </div>
@@ -476,7 +476,7 @@
                     <div class="stat-card-value" id="statRevenue" style="color: var(--text-main);">0 грн</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-card-title">Затраты (Себестоимость)</div>
+                    <div class="stat-card-title">Затраты (Закупки + Ингредиенты)</div>
                     <div class="stat-card-value" id="statCost" style="color: var(--danger);">0 грн</div>
                 </div>
                 <div class="stat-card">
@@ -696,7 +696,7 @@ function registerSaleFromCamera() {
     document.getElementById('saleInputAmount').value = '';
 
     renderAnalytics();
-    alert(`Продажа на ${saleAmount.toFixed(2)} грн записана!\nСебестоимость: ${calculatedCost.toFixed(2)} грн. Прибыль: ${(saleAmount - calculatedCost).toFixed(2)} грн.`);
+    alert(`Продажа на ${saleAmount.toFixed(2)} грн записана!\nДоп. себестоимость: ${calculatedCost.toFixed(2)} грн. Прибыль: ${(saleAmount - calculatedCost).toFixed(2)} грн.`);
 }
 
 function editSaleRecord(id) {
@@ -994,7 +994,7 @@ function getSingleCalculatedData() {
     let revenue = finishedWeight * sellPrice;
     let profit = revenue - totalBatchCost;
 
-    return { recipeName, meats: data.meats, totalRawKg, finishedWeight, totalBatchCost, revenue, profit };
+    return { recipeName, meats: data.meats, totalRawKg, finishedWeight, totalBatchCost, totalAdditivesCost, revenue, profit };
 }
 
 function calculateSingle() {
@@ -1010,7 +1010,8 @@ function calculateSingle() {
 
         financialBlock.innerHTML = `
             <div class="fin-row"><span>Общий вес сырья ДО:</span> <span><strong>${res.totalRawKg.toFixed(3)} кг</strong></span></div>
-            <div class="fin-row"><span>Затраты на всю партию:</span> <span><strong>${res.totalBatchCost.toFixed(2)} грн</strong></span></div>
+            <div class="fin-row"><span>Полная себестоимость партии:</span> <span><strong>${res.totalBatchCost.toFixed(2)} грн</strong></span></div>
+            <div class="fin-row"><span>Из них специи и ингредиенты:</span> <span style="color:var(--accent-gold);">${res.totalAdditivesCost.toFixed(2)} грн</span></div>
             <div class="fin-row"><span>Потеря веса (усушка):</span> <span style="color:var(--danger);">${weightLossKg} кг (${shrinkagePct}%)</span></div>
             <div class="fin-row"><span>Фактический выход:</span> <span style="color:var(--success); font-weight:700;">${yieldPct}% (${res.finishedWeight} кг)</span></div>
             <div class="fin-row" style="font-size:15px; border-bottom: none; padding-top: 12px;"><span>СЕБЕСТОИМОСТЬ 1 КГ:</span> <span style="color:var(--accent-gold); font-weight:800; font-size: 17px;">${costPerKgFinished} грн/кг</span></div>
@@ -1021,7 +1022,7 @@ function calculateSingle() {
     } else {
         financialBlock.innerHTML = `
             <div class="fin-row"><span>Общий вес сырья ДО:</span> <span><strong>${res.totalRawKg.toFixed(3)} кг</strong></span></div>
-            <div class="fin-row" style="border-bottom: none;"><span>Затраты на всю партию:</span> <span><strong>${res.totalBatchCost.toFixed(2)} грн</strong></span></div>
+            <div class="fin-row" style="border-bottom: none;"><span>Полная себестоимость партии:</span> <span><strong>${res.totalBatchCost.toFixed(2)} грн</strong></span></div>
         `;
     }
 }
@@ -1060,7 +1061,7 @@ function processAndDeductSingleBatch() {
 
     if (res.revenue > 0) {
         pendingChamberSales += res.revenue;
-        pendingChamberCost += res.totalBatchCost;
+        pendingChamberCost += res.totalAdditivesCost; // Учитываем только специи, исключая двойной списанный мясо
         pendingChamberWeight += res.finishedWeight;
 
         localStorage.setItem('dg_pending_sales_v17', pendingChamberSales);
@@ -1214,7 +1215,8 @@ function calculateMultiBatch() {
 
     let totalRawGrams = 0;
     let totalFinishedWeight = 0;
-    let totalCost = 0;
+    let totalMeatCost = 0;
+    let totalAdditivesCost = 0;
     let totalRevenue = 0;
     let consolidatedMeats = {};
     let consolidatedAdditives = {};
@@ -1231,7 +1233,7 @@ function calculateMultiBatch() {
             let w = parseFloat(m.weightKg) || 0;
             let p = parseFloat(m.pricePerKg !== undefined ? m.pricePerKg : (rec.meats.find(x=>x.name===m.name)?.pricePerKg || 0));
             totalMeatKg += w;
-            totalCost += w * p;
+            totalMeatCost += w * p;
 
             if (!consolidatedMeats[m.name]) consolidatedMeats[m.name] = { weight: 0, cost: 0 };
             consolidatedMeats[m.name].weight += w;
@@ -1245,7 +1247,7 @@ function calculateMultiBatch() {
             let ingCost = (ingGrams / 1000) * (a.pricePerKg || 0);
 
             totalRawGrams += ingGrams;
-            totalCost += ingCost;
+            totalAdditivesCost += ingCost;
 
             if (!consolidatedAdditives[a.name]) consolidatedAdditives[a.name] = { grams: 0, cost: 0 };
             consolidatedAdditives[a.name].grams += ingGrams;
@@ -1257,32 +1259,31 @@ function calculateMultiBatch() {
     const weightLossKg = (totalRawKg - totalFinishedWeight).toFixed(3);
     const shrinkagePct = totalRawKg > 0 ? ((weightLossKg / totalRawKg) * 100).toFixed(1) : 0;
     const yieldPct = totalRawKg > 0 ? ((totalFinishedWeight / totalRawKg) * 100).toFixed(1) : 0;
-    const avgCostPerKgFinished = totalFinishedWeight > 0 ? (totalCost / totalFinishedWeight).toFixed(2) : 0;
-    const projectedProfit = totalRevenue - totalCost;
+    const totalFullCost = totalMeatCost + totalAdditivesCost;
+    const avgCostPerKgFinished = totalFinishedWeight > 0 ? (totalFullCost / totalFinishedWeight).toFixed(2) : 0;
 
-    let html = `<div class="section-title">Сводная закупка сырья:</div>`;
+    let html = `<div class="section-title">Сводный расход мяса (уже оплачено при закупке):</div>`;
     for (let mName in consolidatedMeats) {
         let m = consolidatedMeats[mName];
         html += `<div class="row"><span class="row-name">${mName}</span><span style="font-size:13px; font-weight:700; color:var(--text-main); width:72px; text-align:center;">${m.weight.toFixed(2)} кг</span><span class="row-cost">${m.cost.toFixed(2)} грн</span></div>`;
     }
 
-    html += `<div class="section-title">Сводные специи и вода:</div>`;
+    html += `<div class="section-title">Сводный расход специй и ингредиентов:</div>`;
     for (let aName in consolidatedAdditives) {
         let a = consolidatedAdditives[aName];
         html += `<div class="row"><span class="row-name">${aName}</span><span style="font-size:13px; font-weight:700; color:var(--text-main); width:72px; text-align:center;">${a.grams < 1000 ? a.grams.toFixed(1) + ' г' : (a.grams/1000).toFixed(3) + ' кг'}</span><span class="row-cost">${a.cost.toFixed(2)} грн</span></div>`;
     }
 
     html += `
-        <div class="section-title" style="margin-top: 16px;">Финансовый итог камеры:</div>
+        <div class="section-title" style="margin-top: 16px;">Расчет списания и выгода партии:</div>
         <div class="fin-row"><span>Общая закладка ДО:</span> <span><strong>${totalRawKg} кг</strong></span></div>
         <div class="fin-row"><span>Общий вес ПОСЛЕ:</span> <span style="color:var(--success);"><strong>${totalFinishedWeight.toFixed(3)} кг</strong></span></div>
         <div class="fin-row"><span>Потеря веса (усушка):</span> <span style="color:var(--danger);">${weightLossKg} кг (${shrinkagePct}%)</span></div>
         <div class="fin-row"><span>Выход продукции:</span> <span style="color:var(--success); font-weight:700;">${yieldPct}%</span></div>
-        <div class="fin-row"><span>Общие затраты (себестоимость):</span> <span style="color:var(--danger);"><strong>${totalCost.toFixed(2)} грн</strong></span></div>
-        <div class="fin-row" style="font-size:15px;"><span>СРЕДНЯЯ СЕБЕСТОИМОСТЬ 1 КГ:</span> <span style="color:var(--accent-gold); font-weight:800; font-size: 17px;">${avgCostPerKgFinished} грн/кг</span></div>
+        <div class="fin-row"><span>Затраты на СПЕЦИИ И ИНГРЕДИЕНТЫ:</span> <span style="color:var(--accent-gold);"><strong>${totalAdditivesCost.toFixed(2)} грн</strong></span></div>
+        <div class="fin-row" style="font-size:15px;"><span>ПОЛНАЯ СЕБЕСТОИМОСТЬ 1 КГ:</span> <span style="color:var(--accent-gold); font-weight:800; font-size: 17px;">${avgCostPerKgFinished} грн/кг</span></div>
         ${totalRevenue > 0 ? `
-            <div class="fin-row" style="font-size: 15px;"><span>ОЖИДАЕМАЯ ВЫРУЧКА:</span> <span style="color:var(--text-main); font-weight:800;">${totalRevenue.toFixed(2)} грн</span></div>
-            <div class="fin-row" style="border-bottom: none; font-size: 16px; padding-top:10px;"><span>💡 ПРОГНОЗИРУЕМАЯ ПРИБЫЛЬ:</span> <span style="color:var(--success); font-weight:800; font-size: 18px;">+${projectedProfit.toFixed(2)} грн</span></div>
+            <div class="fin-row" style="font-size: 15px; border-bottom:none; padding-top:10px;"><span>ОЖИДАЕМАЯ СУММА ПРОДАЖИ:</span> <span style="color:var(--success); font-weight:800; font-size: 18px;">${totalRevenue.toFixed(2)} грн</span></div>
         ` : ''}
     `;
 
@@ -1295,7 +1296,8 @@ function processAndDeductChamberBatch() {
 
     let requiredMeat = {};
     let totalRevenue = 0;
-    let totalCost = 0;
+    let totalMeatCost = 0;
+    let totalAdditivesCost = 0;
     let totalFinishedWeight = 0;
     const nowIso = new Date().toISOString();
     let batchSummaryTitles = [];
@@ -1313,7 +1315,7 @@ function processAndDeductChamberBatch() {
             let w = parseFloat(m.weightKg) || 0;
             let p = parseFloat(m.pricePerKg !== undefined ? m.pricePerKg : (rec.meats.find(x=>x.name===m.name)?.pricePerKg || 0));
             totalMeatKg += w;
-            totalCost += w * p;
+            totalMeatCost += w * p;
 
             if (!requiredMeat[m.name]) requiredMeat[m.name] = 0;
             requiredMeat[m.name] += w;
@@ -1321,7 +1323,7 @@ function processAndDeductChamberBatch() {
 
         rec.additives.forEach(a => {
             let ingGrams = (a.gramsPerKg || 0) * totalMeatKg;
-            totalCost += (ingGrams / 1000) * (a.pricePerKg || 0);
+            totalAdditivesCost += (ingGrams / 1000) * (a.pricePerKg || 0);
         });
     });
 
@@ -1336,8 +1338,9 @@ function processAndDeductChamberBatch() {
 
     localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
 
+    // Учитываем в затраты Кассы только Специи/Ингредиенты (чтобы исключить удвоение затрат на мясо)
     pendingChamberSales += totalRevenue;
-    pendingChamberCost += totalCost;
+    pendingChamberCost += totalAdditivesCost;
     pendingChamberWeight += totalFinishedWeight;
 
     localStorage.setItem('dg_pending_sales_v17', pendingChamberSales);
@@ -1345,19 +1348,18 @@ function processAndDeductChamberBatch() {
     localStorage.setItem('dg_pending_weight_v17', pendingChamberWeight);
 
     // СОХРАНЕНИЕ В ИСТОРИЮ КОПЧЕНИЯ КАМЕРЫ
-    let projectedProfit = totalRevenue - totalCost;
     chamberHistoryLogs.push({
         id: Date.now(),
         date: nowIso,
         title: "Партия: " + batchSummaryTitles.join(", "),
         finishedWeightKg: totalFinishedWeight,
-        cost: totalCost,
-        projectedRevenue: totalRevenue,
-        projectedProfit: projectedProfit
+        additivesCost: totalAdditivesCost,
+        fullMeatCost: totalMeatCost,
+        projectedRevenue: totalRevenue
     });
     localStorage.setItem('dg_chamber_history_v17', JSON.stringify(chamberHistoryLogs));
 
-    alert(`Камера успешно проведена!\nМясо списано со склада. В Кассу добавлено +${totalRevenue.toFixed(2)} грн товара на продажу.\nЗапись добавлена в Историю копчения.`);
+    alert(`Камера успешно проведена!\nМясо списано со склада. В Кассу добавлено +${totalRevenue.toFixed(2)} грн товара на продажу (с учетом затрат только на ингредиенты: ${totalAdditivesCost.toFixed(2)} грн).`);
     
     chamberBatchList = [];
     localStorage.setItem('dg_chamber_batch_v17', JSON.stringify(chamberBatchList));
@@ -1393,11 +1395,10 @@ function renderChamberHistoryLogs() {
             </div>
             <div style="display:flex; justify-content:space-between; font-size:12px; margin-top:6px; color:var(--text-muted);">
                 <span>Выход: <strong style="color:var(--accent-gold);">${item.finishedWeightKg.toFixed(2)} кг</strong></span>
-                <span>Затраты: <strong style="color:var(--danger);">${item.cost.toFixed(2)} грн</strong></span>
+                <span>Затраты на ингредиенты: <strong style="color:var(--accent-gold);">${(item.additivesCost || 0).toFixed(2)} грн</strong></span>
             </div>
             <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:4px;">
-                <span>Ожидаемая выручка: <strong style="color:var(--text-main);">${item.projectedRevenue.toFixed(2)} грн</strong></span>
-                <span>Прогноз прибыли: <strong style="color:var(--success);">+${item.projectedProfit.toFixed(2)} грн</strong></span>
+                <span>Ожидаемая выручка: <strong style="color:var(--success);">${item.projectedRevenue.toFixed(2)} грн</strong></span>
             </div>
         `;
         container.appendChild(div);
