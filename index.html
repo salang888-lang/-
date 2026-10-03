@@ -1651,7 +1651,7 @@ function deleteChamberHistoryRecord(id) {
 }
 
 function clearChamberHistoryLogs() {
-    if (confirm("Вы действительно хотите очистить ВСЮ историю копчения в камере?")) {
+    if (confirm("Вы хотите очистить ВСЮ историю копчения в камере?")) {
         chamberHistoryLogs = [];
         localStorage.setItem('dg_chamber_history_v17', JSON.stringify(chamberHistoryLogs));
         renderChamberHistoryLogs();
@@ -1739,7 +1739,7 @@ function renderAnalytics() {
 }
 
 function clearHistoryLogs() {
-    if (confirm("Вы действительно хотите очистить ВСЮ историю продаж, закупок и сбросить кассу?")) {
+    if (confirm("Вы хотите очистить ВСЮ историю продаж, закупок и сбросить кассу?")) {
         salesHistory = [];
         pendingChamberSales = 0;
         pendingChamberCost = 0;
