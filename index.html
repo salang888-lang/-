@@ -200,6 +200,29 @@
             color: var(--text-main);
             margin-bottom: 10px;
         }
+        .chamber-grid {
+            display: flex;
+            gap: 10px;
+        }
+        .chamber-field {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .chamber-field label {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .chamber-field input {
+            height: 36px;
+            margin-bottom: 0;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: center;
+        }
 
         .fin-row {
             display: flex;
@@ -527,7 +550,9 @@ let meatStock = JSON.parse(localStorage.getItem('dg_meat_stock_v17')) || default
 
 let initialCash = parseFloat(localStorage.getItem('dg_initial_cash_v17')) || 0;
 let manualCashAdjustment = parseFloat(localStorage.getItem('dg_manual_cash_v17')) || 0;
-let pendingChamberSales = parseFloat(localStorage.getItem('dg_pending_sales_v17')) || 0; // На сколько надо еще продать товара из камеры
+let pendingChamberSales = parseFloat(localStorage.getItem('dg_pending_sales_v17')) || 0; 
+let pendingChamberCost = parseFloat(localStorage.getItem('dg_pending_cost_v17')) || 0; 
+let pendingChamberWeight = parseFloat(localStorage.getItem('dg_pending_weight_v17')) || 0; 
 let selectedPeriod = 'week';
 
 function init() {
@@ -577,7 +602,7 @@ function adjustCashManual(type) {
     renderAnalytics();
 }
 
-/* ФУНКЦИЯ ПРОДАЖИ (СПИСАНИЕ ИЗ ОЖИДАЕМОЙ ПРОДАЖИ КАМЕРЫ В ПОЛУЧЕННЫЕ НАЛИЧНЫЕ) */
+/* ФУНКЦИЯ ПРОДАЖИ (СПИСАНИЕ ИЗ ОЖИДАЕМОЙ ПРОДАЖИ КАМЕРЫ В ПОЛУЧЕННЫЕ НАЛИЧНЫЕ И РАСЧЕТ СЕБЕСТОИМОСТИ) */
 function registerSaleFromCamera() {
     const saleAmount = parseFloat(document.getElementById('saleInputAmount').value) || 0;
     if (saleAmount <= 0) {
@@ -585,25 +610,45 @@ function registerSaleFromCamera() {
         return;
     }
 
-    pendingChamberSales -= saleAmount;
-    if (pendingChamberSales < 0) pendingChamberSales = 0;
+    let calculatedCost = 0;
+    let soldWeight = 0;
+
+    if (pendingChamberSales > 0) {
+        let saleRatio = saleAmount / pendingChamberSales;
+        if (saleRatio > 1) saleRatio = 1;
+
+        calculatedCost = pendingChamberCost * saleRatio;
+        soldWeight = pendingChamberWeight * saleRatio;
+
+        pendingChamberSales -= saleAmount;
+        if (pendingChamberSales < 0) pendingChamberSales = 0;
+
+        pendingChamberCost -= calculatedCost;
+        if (pendingChamberCost < 0) pendingChamberCost = 0;
+
+        pendingChamberWeight -= soldWeight;
+        if (pendingChamberWeight < 0) pendingChamberWeight = 0;
+    }
+
     localStorage.setItem('dg_pending_sales_v17', pendingChamberSales);
+    localStorage.setItem('dg_pending_cost_v17', pendingChamberCost);
+    localStorage.setItem('dg_pending_weight_v17', pendingChamberWeight);
 
     salesHistory.push({
         id: Date.now(),
         date: new Date().toISOString(),
         title: "Продажа готовой продукции",
-        finishedWeightKg: 0,
-        cost: 0,
+        finishedWeightKg: soldWeight,
+        cost: calculatedCost,
         revenue: saleAmount,
-        profit: saleAmount
+        profit: saleAmount - calculatedCost
     });
 
     localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
     document.getElementById('saleInputAmount').value = '';
 
     renderAnalytics();
-    alert(`Продажа на ${saleAmount.toFixed(2)} грн записана!\nДеньги поступили в кассу, а сумма к продаже из камеры уменьшена.`);
+    alert(`Продажа на ${saleAmount.toFixed(2)} грн записана!\nСебестоимость: ${calculatedCost.toFixed(2)} грн. Прибыль: ${(saleAmount - calculatedCost).toFixed(2)} грн.`);
 }
 
 /* --- СКЛАД СЫРЬЯ --- */
@@ -893,10 +938,15 @@ function processAndDeductSingleBatch() {
 
     localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
 
-    // Начисление в сумму "Товара на продажу"
+    // Начисление товара в ожидание продажи
     if (res.revenue > 0) {
         pendingChamberSales += res.revenue;
+        pendingChamberCost += res.totalBatchCost;
+        pendingChamberWeight += res.finishedWeight;
+
         localStorage.setItem('dg_pending_sales_v17', pendingChamberSales);
+        localStorage.setItem('dg_pending_cost_v17', pendingChamberCost);
+        localStorage.setItem('dg_pending_weight_v17', pendingChamberWeight);
     }
 
     alert(`Партия "${res.recipeName}" проведена!\nМясо успешно списано со склада, а товар на сумму ${res.revenue.toFixed(2)} грн добавлен в раздел продажи.`);
@@ -1085,7 +1135,6 @@ function calculateMultiBatch() {
     const shrinkagePct = totalRawKg > 0 ? ((weightLossKg / totalRawKg) * 100).toFixed(1) : 0;
     const yieldPct = totalRawKg > 0 ? ((totalFinishedWeight / totalRawKg) * 100).toFixed(1) : 0;
     const avgCostPerKgFinished = totalFinishedWeight > 0 ? (totalCost / totalFinishedWeight).toFixed(2) : 0;
-    const totalProfit = (totalRevenue - totalCost).toFixed(2);
 
     let html = `<div class="section-title">Сводная закупка сырья:</div>`;
     for (let mName in consolidatedMeats) {
@@ -1121,17 +1170,30 @@ function processAndDeductChamberBatch() {
 
     let requiredMeat = {};
     let totalRevenue = 0;
+    let totalCost = 0;
+    let totalFinishedWeight = 0;
 
     chamberBatchList.forEach(item => {
         const rec = recipes[item.recipeName];
         if (!rec) return;
 
+        totalFinishedWeight += item.finishedWeightKg;
         totalRevenue += (item.finishedWeightKg * item.retailPrice);
 
+        let totalMeatKg = 0;
         item.meats.forEach(m => {
             let w = parseFloat(m.weightKg) || 0;
+            let p = parseFloat(m.pricePerKg !== undefined ? m.pricePerKg : (rec.meats.find(x=>x.name===m.name)?.pricePerKg || 0));
+            totalMeatKg += w;
+            totalCost += w * p;
+
             if (!requiredMeat[m.name]) requiredMeat[m.name] = 0;
             requiredMeat[m.name] += w;
+        });
+
+        rec.additives.forEach(a => {
+            let ingGrams = (a.gramsPerKg || 0) * totalMeatKg;
+            totalCost += (ingGrams / 1000) * (a.pricePerKg || 0);
         });
     });
 
@@ -1145,9 +1207,14 @@ function processAndDeductChamberBatch() {
 
     localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
 
-    // Начисление всей суммы камеры в "Товара на продажу"
+    // Начисление суммы, затрат и веса в ожидание продажи
     pendingChamberSales += totalRevenue;
+    pendingChamberCost += totalCost;
+    pendingChamberWeight += totalFinishedWeight;
+
     localStorage.setItem('dg_pending_sales_v17', pendingChamberSales);
+    localStorage.setItem('dg_pending_cost_v17', pendingChamberCost);
+    localStorage.setItem('dg_pending_weight_v17', pendingChamberWeight);
 
     alert(`Камера успешно проведена!\nМясо списано со склада. В Кассу добавлено +${totalRevenue.toFixed(2)} грн товара на продажу.`);
     renderStockBalance();
@@ -1202,6 +1269,8 @@ function renderAnalytics() {
             </div>
             <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:4px;">
                 <span>Выручка: <strong>${item.revenue.toFixed(2)} грн</strong></span>
+                <span>Себестоимость: <strong style="color:var(--danger);">${item.cost.toFixed(2)} грн</strong></span>
+                <span>Прибыль: <strong style="color:var(--success);">${item.profit.toFixed(2)} грн</strong></span>
             </div>
         `;
         container.appendChild(div);
@@ -1225,7 +1294,13 @@ function renderAnalytics() {
 function clearHistoryLogs() {
     if (confirm("Вы действительно хотите очистить всю историю финансов и продаж?")) {
         salesHistory = [];
+        pendingChamberSales = 0;
+        pendingChamberCost = 0;
+        pendingChamberWeight = 0;
         localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
+        localStorage.setItem('dg_pending_sales_v17', 0);
+        localStorage.setItem('dg_pending_cost_v17', 0);
+        localStorage.setItem('dg_pending_weight_v17', 0);
         renderAnalytics();
     }
 }
@@ -1347,4 +1422,3 @@ init();
 </script>
 </body>
 </html>
-Мы делали это
