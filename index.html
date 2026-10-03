@@ -550,10 +550,10 @@ let defaultRecipes = {
 };
 
 let defaultStock = {
-    "Балык": { weightKg: 10.0, pricePerKg: 190 },
-    "Крылья": { weightKg: 5.0, pricePerKg: 120 },
-    "Голени": { weightKg: 5.0, pricePerKg: 100 },
-    "Окорочка": { weightKg: 5.0, pricePerKg: 110 }
+    "Балык": { weightKg: 10.0, pricePerKg: 190, lastUpdated: new Date().toISOString() },
+    "Крылья": { weightKg: 5.0, pricePerKg: 120, lastUpdated: new Date().toISOString() },
+    "Голени": { weightKg: 5.0, pricePerKg: 100, lastUpdated: new Date().toISOString() },
+    "Окорочка": { weightKg: 5.0, pricePerKg: 110, lastUpdated: new Date().toISOString() }
 };
 
 let recipes = JSON.parse(localStorage.getItem('dg_cost_recipes_v17')) || defaultRecipes;
@@ -568,6 +568,12 @@ let pendingChamberSales = parseFloat(localStorage.getItem('dg_pending_sales_v17'
 let pendingChamberCost = parseFloat(localStorage.getItem('dg_pending_cost_v17')) || 0; 
 let pendingChamberWeight = parseFloat(localStorage.getItem('dg_pending_weight_v17')) || 0; 
 let selectedPeriod = 'week';
+
+function formatDate(isoString) {
+    if (!isoString) return '—';
+    const d = new Date(isoString);
+    return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
 
 function init() {
     updateRecipeSelects();
@@ -619,6 +625,19 @@ function adjustCashManual(type) {
     if (type === 'sub') amount = -amount;
     manualCashAdjustment += amount;
     localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
+
+    salesHistory.push({
+        id: Date.now(),
+        date: new Date().toISOString(),
+        title: type === 'add' ? "Ручной внос в кассу" : "Инкассация / Изъятие из кассы",
+        type: type === 'add' ? "cash_in" : "cash_out",
+        finishedWeightKg: 0,
+        cost: type === 'sub' ? Math.abs(amount) : 0,
+        revenue: type === 'add' ? amount : 0,
+        profit: 0
+    });
+    localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
+
     renderAnalytics();
 }
 
@@ -697,8 +716,14 @@ function deleteHistoryRecord(id) {
     if (index === -1) return;
 
     const record = salesHistory[index];
-    if (confirm(`Удалить запись "${record.title}"?`)) {
+    if (confirm(`Удалить запись "${record.title}" от ${formatDate(record.date)}?`)) {
         if (record.type === 'purchase' || record.title.startsWith('Закупка сырья')) {
+            manualCashAdjustment += record.cost;
+            localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
+        } else if (record.type === 'cash_in') {
+            manualCashAdjustment -= record.revenue;
+            localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
+        } else if (record.type === 'cash_out') {
             manualCashAdjustment += record.cost;
             localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
         }
@@ -714,6 +739,7 @@ function addMeatStock() {
     const name = document.getElementById('stockMeatName').value.trim();
     const weight = parseFloat(document.getElementById('stockMeatWeight').value) || 0;
     const price = parseFloat(document.getElementById('stockMeatPrice').value) || 0;
+    const nowIso = new Date().toISOString();
 
     if (!name || weight <= 0) {
         alert("Укажите правильное наименование и закупленный вес!");
@@ -723,12 +749,13 @@ function addMeatStock() {
     let purchaseTotalCost = weight * price;
 
     if (!meatStock[name]) {
-        meatStock[name] = { weightKg: weight, pricePerKg: price };
+        meatStock[name] = { weightKg: weight, pricePerKg: price, lastUpdated: nowIso };
     } else {
         let currentTotalCost = (meatStock[name].weightKg * meatStock[name].pricePerKg) + purchaseTotalCost;
         let newTotalWeight = meatStock[name].weightKg + weight;
         meatStock[name].weightKg = newTotalWeight;
         meatStock[name].pricePerKg = newTotalWeight > 0 ? (currentTotalCost / newTotalWeight) : price;
+        meatStock[name].lastUpdated = nowIso;
     }
 
     localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
@@ -739,7 +766,7 @@ function addMeatStock() {
 
         salesHistory.push({
             id: Date.now(),
-            date: new Date().toISOString(),
+            date: nowIso,
             title: `Закупка сырья (${name})`,
             type: "purchase",
             finishedWeightKg: 0,
@@ -783,7 +810,10 @@ function renderStockBalance() {
             </div>
             <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--text-muted);">
                 <span>Остаток: <strong style="color:${isLow ? 'var(--danger)' : 'var(--success)'}; font-size:15px;">${item.weightKg.toFixed(2)} кг</strong></span>
-                <span>Средняя цена закупки: <strong style="color:var(--accent-gold);">${item.pricePerKg.toFixed(2)} грн/кг</strong></span>
+                <span>Средняя цена: <strong style="color:var(--accent-gold);">${item.pricePerKg.toFixed(2)} грн/кг</strong></span>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:6px; border-top:1px dashed rgba(255,255,255,0.1); padding-top:4px;">
+                📅 Приход / Изменение: <span style="color:var(--text-main); font-weight:600;">${formatDate(item.lastUpdated)}</span>
             </div>
         `;
         container.appendChild(div);
@@ -1008,10 +1038,12 @@ function processAndDeductSingleBatch() {
         }
     }
 
+    const nowIso = new Date().toISOString();
     res.meats.forEach(m => {
         if (meatStock[m.name]) {
             meatStock[m.name].weightKg -= m.weightKg;
             if (meatStock[m.name].weightKg < 0) meatStock[m.name].weightKg = 0;
+            meatStock[m.name].lastUpdated = nowIso;
         }
     });
 
@@ -1092,7 +1124,8 @@ function addRecipeToChamberBatch() {
         meats: meatsCopy,
         additives: additivesCopy,
         finishedWeightKg: Number((totalRawKg * 0.8).toFixed(2)),
-        retailPrice: retailPrice
+        retailPrice: retailPrice,
+        addedDate: new Date().toISOString()
     });
 
     localStorage.setItem('dg_chamber_batch_v17', JSON.stringify(chamberBatchList));
@@ -1153,6 +1186,9 @@ function renderChamberItemsList() {
                     <label>Цена (грн/кг):</label>
                     <input type="number" step="10" value="${item.retailPrice}" oninput="updateChamberItemField(${idx}, 'retailPrice', this.value)">
                 </div>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:8px; text-align:right;">
+                🕒 Загружено: ${formatDate(item.addedDate)}
             </div>
         `;
         container.appendChild(div);
@@ -1250,6 +1286,7 @@ function processAndDeductChamberBatch() {
     let totalRevenue = 0;
     let totalCost = 0;
     let totalFinishedWeight = 0;
+    const nowIso = new Date().toISOString();
 
     chamberBatchList.forEach(item => {
         const rec = recipes[item.recipeName];
@@ -1280,6 +1317,7 @@ function processAndDeductChamberBatch() {
         if (meatStock[mName]) {
             meatStock[mName].weightKg -= reqKg;
             if (meatStock[mName].weightKg < 0) meatStock[mName].weightKg = 0;
+            meatStock[mName].lastUpdated = nowIso;
         }
     }
 
@@ -1330,7 +1368,6 @@ function renderAnalytics() {
         totProfit += item.profit || 0;
         totWeight += item.finishedWeightKg || 0;
 
-        const dateStr = new Date(item.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         const isPurchase = item.type === 'purchase' || item.title.startsWith('Закупка сырья');
 
         const div = document.createElement('div');
@@ -1341,8 +1378,8 @@ function renderAnalytics() {
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                 <strong style="color:var(--text-main); font-size:14px;">${item.title}</strong>
                 <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:11px; color:var(--text-muted);">${dateStr}</span>
-                    ${!isPurchase ? `<button onclick="editSaleRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-main); border-radius:6px; font-size:11px; cursor:pointer;" title="Редактировать">✏️</button>` : ''}
+                    <span style="font-size:11px; color:var(--text-muted);">📅 ${formatDate(item.date)}</span>
+                    ${!isPurchase && item.type === 'sale' ? `<button onclick="editSaleRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-main); border-radius:6px; font-size:11px; cursor:pointer;" title="Редактировать">✏️</button>` : ''}
                     <button onclick="deleteHistoryRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; font-size:11px; cursor:pointer;" title="Удалить запись">✕</button>
                 </div>
             </div>
@@ -1365,7 +1402,6 @@ function renderAnalytics() {
         pendingInput.value = pendingChamberSales.toFixed(2);
     }
 
-    // СТРОГИЙ РАСЧЕТ КАССЫ ОТ НАЧАЛЬНОГО ОСТАТКА
     let totalAllTimeRevenue = 0;
     salesHistory.forEach(item => {
         totalAllTimeRevenue += item.revenue || 0;
