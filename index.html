@@ -280,7 +280,6 @@
 
         .ing-edit-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
 
-        /* Выравнивание и убираем стрелочки инпута */
         #pendingChamberSalesInput::-webkit-outer-spin-button,
         #pendingChamberSalesInput::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -486,7 +485,7 @@
             <div class="section-title">📋 История операций и продаж:</div>
             <div id="historyLogsList"></div>
             
-            <button class="btn-sec" style="margin-top: 10px; width: 100%; color: var(--danger); border-color: var(--danger);" onclick="clearHistoryLogs()">🗑 Очистить историю продаж</button>
+            <button class="btn-sec" style="margin-top: 10px; width: 100%; color: var(--danger); border-color: var(--danger);" onclick="clearHistoryLogs()">🗑 Очистить всю историю</button>
         </div>
     </div>
 
@@ -623,7 +622,6 @@ function adjustCashManual(type) {
     renderAnalytics();
 }
 
-/* ФУНКЦИЯ ПРОДАЖИ (СПИСАНИЕ ИЗ ОЖИДАЕМОЙ ПРОДАЖИ КАМЕРЫ В ПОЛУЧЕННЫЕ НАЛИЧНЫЕ И РАСЧЕТ СЕБЕСТОИМОСТИ) */
 function registerSaleFromCamera() {
     const saleAmount = parseFloat(document.getElementById('saleInputAmount').value) || 0;
     if (saleAmount <= 0) {
@@ -659,6 +657,7 @@ function registerSaleFromCamera() {
         id: Date.now(),
         date: new Date().toISOString(),
         title: "Продажа готовой продукции",
+        type: "sale",
         finishedWeightKg: soldWeight,
         cost: calculatedCost,
         revenue: saleAmount,
@@ -672,7 +671,6 @@ function registerSaleFromCamera() {
     alert(`Продажа на ${saleAmount.toFixed(2)} грн записана!\nСебестоимость: ${calculatedCost.toFixed(2)} грн. Прибыль: ${(saleAmount - calculatedCost).toFixed(2)} грн.`);
 }
 
-/* ФУНКЦИЯ РЕДАКТИРОВАНИЯ СУММЫ ПРОДАЖИ В ИСТОРИИ */
 function editSaleRecord(id) {
     const record = salesHistory.find(item => item.id === id);
     if (!record) return;
@@ -694,7 +692,26 @@ function editSaleRecord(id) {
     renderAnalytics();
 }
 
-/* --- СКЛАД СЫРЬЯ (С АВТОМАТИЧЕСКИМ СПИСАНИЕМ ИЗ КАССЫ) --- */
+/* ФУНКЦИЯ УДАЛЕНИЯ ОТДЕЛЬНОЙ ЗАПИСИ ИЗ ИСТОРИИ */
+function deleteHistoryRecord(id) {
+    const index = salesHistory.findIndex(item => item.id === id);
+    if (index === -1) return;
+
+    const record = salesHistory[index];
+    if (confirm(`Удалить запись "${record.title}"?`)) {
+        // Если это закупка, возвращаем списанные из кассы деньги обратно
+        if (record.type === 'purchase' || record.title.startsWith('Закупка сырья')) {
+            manualCashAdjustment += record.cost; // Возврат средств
+            localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
+        }
+
+        salesHistory.splice(index, 1);
+        localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
+        renderAnalytics();
+    }
+}
+
+/* --- СКЛАД СЫРЬЯ --- */
 function addMeatStock() {
     const name = document.getElementById('stockMeatName').value.trim();
     const weight = parseFloat(document.getElementById('stockMeatWeight').value) || 0;
@@ -718,16 +735,15 @@ function addMeatStock() {
 
     localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
 
-    // Вычитаем сумму закупки из наличных средств кассы
     if (purchaseTotalCost > 0) {
         manualCashAdjustment -= purchaseTotalCost;
         localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
 
-        // Записываем операцию закупки в историю кассы
         salesHistory.push({
             id: Date.now(),
             date: new Date().toISOString(),
             title: `Закупка сырья (${name})`,
+            type: "purchase",
             finishedWeightKg: 0,
             cost: purchaseTotalCost,
             revenue: 0,
@@ -1003,7 +1019,6 @@ function processAndDeductSingleBatch() {
 
     localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
 
-    // Начисление товара в ожидание продажи
     if (res.revenue > 0) {
         pendingChamberSales += res.revenue;
         pendingChamberCost += res.totalBatchCost;
@@ -1272,7 +1287,6 @@ function processAndDeductChamberBatch() {
 
     localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
 
-    // Начисление суммы, затрат и веса в ожидание продажи
     pendingChamberSales += totalRevenue;
     pendingChamberCost += totalCost;
     pendingChamberWeight += totalFinishedWeight;
@@ -1325,20 +1339,25 @@ function renderAnalytics() {
 
         const dateStr = new Date(item.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
+        const isPurchase = item.type === 'purchase' || item.title.startsWith('Закупка сырья');
+
         const div = document.createElement('div');
         div.className = 'history-item';
+        if (isPurchase) div.style.borderLeftColor = 'var(--danger)';
+
         div.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                 <strong style="color:var(--text-main); font-size:14px;">${item.title}</strong>
-                <div>
-                    <span style="font-size:11px; color:var(--text-muted); margin-right:8px;">${dateStr}</span>
-                    <button onclick="editSaleRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-main); border-radius:6px; font-size:11px; cursor:pointer;" title="Редактировать сумму">✏️</button>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:11px; color:var(--text-muted);">${dateStr}</span>
+                    ${!isPurchase ? `<button onclick="editSaleRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-main); border-radius:6px; font-size:11px; cursor:pointer;" title="Редактировать">✏️</button>` : ''}
+                    <button onclick="deleteHistoryRecord(${item.id})" style="width:auto; margin-bottom:0; padding:2px 6px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; font-size:11px; cursor:pointer;" title="Удалить запись">✕</button>
                 </div>
             </div>
             <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:4px;">
                 <span>Выручка: <strong>${item.revenue.toFixed(2)} грн</strong></span>
-                <span>Себестоимость: <strong style="color:var(--danger);">${item.cost.toFixed(2)} грн</strong></span>
-                <span>Прибыль: <strong style="color:var(--success);">${item.profit.toFixed(2)} грн</strong></span>
+                <span>Затраты: <strong style="color:var(--danger);">${item.cost.toFixed(2)} грн</strong></span>
+                <span>Прибыль: <strong style="color:${item.profit >= 0 ? 'var(--success)' : 'var(--danger)'};">${item.profit.toFixed(2)} грн</strong></span>
             </div>
         `;
         container.appendChild(div);
@@ -1349,7 +1368,6 @@ function renderAnalytics() {
     document.getElementById('statProfit').innerText = totProfit.toFixed(2) + ' грн';
     document.getElementById('statWeight').innerText = totWeight.toFixed(2) + ' кг';
 
-    // РАСЧЕТ И ОТОБРАЖЕНИЕ КАССЫ И ОСТАТКА ПРОДАЖ
     const pendingInput = document.getElementById('pendingChamberSalesInput');
     if (pendingInput && document.activeElement !== pendingInput) {
         pendingInput.value = pendingChamberSales.toFixed(2);
@@ -1359,20 +1377,24 @@ function renderAnalytics() {
     document.getElementById('currentCashDisplay').innerText = currentCash.toFixed(2) + ' грн';
 
     if (filteredLogs.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">За выбранный период нет проведенных продаж.</div>';
+        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:15px; font-size:13px;">За выбранный период нет проведенных продаж или закупок.</div>';
     }
 }
 
 function clearHistoryLogs() {
-    if (confirm("Вы действительно хотите очистить всю историю финансов и продаж?")) {
+    if (confirm("Вы действительно хотите очистить ВСЮ историю продаж, закупок и сбросить кассу?")) {
         salesHistory = [];
         pendingChamberSales = 0;
         pendingChamberCost = 0;
         pendingChamberWeight = 0;
+        manualCashAdjustment = 0;
+
         localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
         localStorage.setItem('dg_pending_sales_v17', 0);
         localStorage.setItem('dg_pending_cost_v17', 0);
         localStorage.setItem('dg_pending_weight_v17', 0);
+        localStorage.setItem('dg_manual_cash_v17', 0);
+
         renderAnalytics();
     }
 }
