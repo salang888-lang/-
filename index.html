@@ -532,6 +532,20 @@
 
 <script>
 let defaultRecipes = {
+    "Краковская колбаса": {
+        meats: [
+            { name: "Свинина полужирная", weightKg: 0.7, pricePerKg: 160 },
+            { name: "Грудинка свиная", weightKg: 0.3, pricePerKg: 180 }
+        ],
+        additives: [
+            { name: "Соль нитритная", gramsPerKg: 18, pricePerKg: 50 },
+            { name: "Фосфат", gramsPerKg: 2, pricePerKg: 220 },
+            { name: "Аскорбат натрия", gramsPerKg: 0.5, pricePerKg: 300 },
+            { name: "Экстракт чёрного перца", gramsPerKg: 1.5, pricePerKg: 400 },
+            { name: "Экстракт чеснока", gramsPerKg: 1, pricePerKg: 350 },
+            { name: "Сахар", gramsPerKg: 1, pricePerKg: 30 }
+        ]
+    },
     "Балык": {
         meats: [
             { name: "Балык", weightKg: 1.0, pricePerKg: 190 }
@@ -563,6 +577,9 @@ let defaultRecipes = {
 };
 
 let defaultStock = {
+    "Краковская колбаса": { weightKg: 10.0, pricePerKg: 170, lastUpdated: new Date().toISOString() },
+    "Свинина полужирная": { weightKg: 15.0, pricePerKg: 160, lastUpdated: new Date().toISOString() },
+    "Грудинка свиная": { weightKg: 10.0, pricePerKg: 180, lastUpdated: new Date().toISOString() },
     "Балык": { weightKg: 10.0, pricePerKg: 190, lastUpdated: new Date().toISOString() },
     "Крылья": { weightKg: 5.0, pricePerKg: 120, lastUpdated: new Date().toISOString() },
     "Голени": { weightKg: 5.0, pricePerKg: 100, lastUpdated: new Date().toISOString() },
@@ -768,7 +785,7 @@ function addPurchaseFormRow() {
             <label style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase;">Наименование сырья:</label>
             <button onclick="removePurchaseFormRow(this)" style="width:auto; margin-bottom:0; padding:2px 6px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; font-size:11px;">✕</button>
         </div>
-        <input type="text" class="p-name" placeholder="например: Балык, Крылья, Лопатка" style="margin-bottom:8px;">
+        <input type="text" class="p-name" placeholder="например: Свинина полужирная, Грудинка" style="margin-bottom:8px;">
         <div class="input-row">
             <div class="input-col">
                 <label>Вес (кг):</label>
@@ -776,7 +793,7 @@ function addPurchaseFormRow() {
             </div>
             <div class="input-col">
                 <label>Цена (грн/кг):</label>
-                <input type="number" class="p-price" placeholder="190" step="1">
+                <input type="number" class="p-price" placeholder="160" step="1">
             </div>
         </div>
     `;
@@ -818,7 +835,6 @@ function submitGroupPurchase() {
         return;
     }
 
-    // Обновляем складские остатки
     items.forEach(item => {
         if (!meatStock[item.name]) {
             meatStock[item.name] = { weightKg: item.weight, pricePerKg: item.price, lastUpdated: nowIso };
@@ -948,7 +964,6 @@ function renderPurchaseHistoryLogs() {
     });
 }
 
-/* РЕДАКТИРОВАНИЕ ЦЕНЫ И ВЕСА В ИСТОРИИ ЗАКУПОК */
 function editPurchaseItemPrice(purchaseId, itemIdx) {
     const p = purchaseHistoryLogs.find(x => x.id === purchaseId);
     if (!p || !p.items[itemIdx]) return;
@@ -960,14 +975,12 @@ function editPurchaseItemPrice(purchaseId, itemIdx) {
     let newWeight = parseFloat(prompt(`Изменение веса для "${item.name}" (сейчас: ${item.weight} кг):`, item.weight));
     if (isNaN(newWeight) || newWeight <= 0) return;
 
-    let oldItemCost = item.itemCost;
     let oldWeight = item.weight;
 
     item.price = newPrice;
     item.weight = newWeight;
     item.itemCost = newWeight * newPrice;
 
-    // Скорректировать склад именно на разницу веса этой позиции
     if (meatStock[item.name]) {
         let weightDiff = newWeight - oldWeight;
         meatStock[item.name].weightKg += weightDiff;
@@ -975,16 +988,13 @@ function editPurchaseItemPrice(purchaseId, itemIdx) {
         meatStock[item.name].pricePerKg = newPrice;
     }
 
-    // Пересчет суммы накладной
     let oldTotalCost = p.totalCost;
     p.totalCost = p.items.reduce((sum, x) => sum + x.itemCost, 0);
     let costDiff = p.totalCost - oldTotalCost;
 
-    // Корректировка Кассы
     manualCashAdjustment -= costDiff;
     localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
 
-    // Корректировка Финансовой истории
     let salesRec = salesHistory.find(x => x.id === purchaseId);
     if (salesRec) {
         salesRec.cost = p.totalCost;
@@ -1002,7 +1012,6 @@ function editPurchaseItemPrice(purchaseId, itemIdx) {
     renderAnalytics();
 }
 
-/* ПОЛНОЕ И ТОЧНОЕ УДАЛЕНИЕ ТОЛЬКО ВЕСА ЭТОЙ НАКЛАДНОЙ */
 function deletePurchaseRecord(id) {
     const idx = purchaseHistoryLogs.findIndex(x => x.id === id);
     if (idx === -1) return;
@@ -1011,8 +1020,6 @@ function deletePurchaseRecord(id) {
     let summaryList = p.items.map(i => `${i.name}: ${i.weight} кг`).join('\n');
 
     if (confirm(`Удалить эту накладную закупки?\n\nСпишется только вес из этой накладной:\n${summaryList}\n\nСумма ${p.totalCost.toFixed(2)} грн ВЕРНЕТСЯ в Кассу.`)) {
-
-        // 1. Списываем ровно тот вес, который был закуплен в ЭТОЙ накладной
         p.items.forEach(it => {
             if (meatStock[it.name]) {
                 meatStock[it.name].weightKg -= it.weight;
@@ -1021,15 +1028,12 @@ function deletePurchaseRecord(id) {
         });
         localStorage.setItem('dg_meat_stock_v17', JSON.stringify(meatStock));
 
-        // 2. Возвращаем потраченную сумму накладной в Кассу
         manualCashAdjustment += p.totalCost;
         localStorage.setItem('dg_manual_cash_v17', manualCashAdjustment);
 
-        // 3. Удаляем накладную из финансового отчета
         salesHistory = salesHistory.filter(x => x.id !== id);
         localStorage.setItem('dg_sales_history_v17', JSON.stringify(salesHistory));
 
-        // 4. Удаляем из истории закупок
         purchaseHistoryLogs.splice(idx, 1);
         localStorage.setItem('dg_purchase_history_v17', JSON.stringify(purchaseHistoryLogs));
 
@@ -1837,17 +1841,22 @@ function saveRecipe() {
     if (activeRecipeState[name]) delete activeRecipeState[name];
     localStorage.setItem('dg_active_state_v17', JSON.stringify(activeRecipeState));
 
+    updateRecipeSelects();
     cancelNewRecipe();
-    init();
+    renderRecipeManagerList();
+    alert("Рецепт успешно сохранен!");
 }
 
-function cancelNewRecipe() { document.getElementById('newRecipeBlock').style.display = 'none'; }
+function cancelNewRecipe() { 
+    document.getElementById('newRecipeBlock').style.display = 'none'; 
+}
 
 function deleteRecipe(name) {
-    if (confirm(`Удалить рецепт "${name}"?`)) {
+    if (confirm(`Удалить рецепт "${name}" из базы?`)) {
         delete recipes[name];
         localStorage.setItem('dg_cost_recipes_v17', JSON.stringify(recipes));
-        init();
+        updateRecipeSelects();
+        renderRecipeManagerList();
     }
 }
 
